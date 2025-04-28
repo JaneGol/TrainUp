@@ -13,7 +13,148 @@ import { db, pool } from "./db";
 import { eq, desc } from "drizzle-orm";
 import { IStorage } from "./storage";
 
+// Helper function to generate default training load
+export function generateDefaultTrainingLoad(): { date: string; load: number; trainingType: string }[] {
+  const result: { date: string; load: number; trainingType: string }[] = [];
+  const trainingTypes = ['Strength', 'Endurance', 'Speed', 'Technical', 'Recovery'];
+  
+  // Generate 30 days of training data
+  for (let i = 29; i >= 0; i--) {
+    // Skip some days to simulate rest days
+    if (i % 4 === 0) continue;
+    
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateString = date.toISOString().split('T')[0];
+    
+    // Rotate through training types
+    const trainingTypeIndex = (i % trainingTypes.length);
+    const trainingType = trainingTypes[trainingTypeIndex];
+    
+    // Create a training pattern with varying loads
+    // Higher loads every 3rd training session
+    const baseLoad = (i % 6 === 0) ? 450 : (i % 3 === 0) ? 360 : 300;
+    // Add some random variation
+    const variation = Math.floor(Math.random() * 60) - 30; // -30 to +30
+    
+    result.push({
+      date: dateString,
+      load: baseLoad + variation,
+      trainingType
+    });
+  }
+  
+  return result;
+}
+
+// Helper function to generate default ACWR data
+export function generateDefaultACWR(): { date: string; acute: number; chronic: number; ratio: number }[] {
+  const result: { date: string; acute: number; chronic: number; ratio: number }[] = [];
+  
+  // Generate data for the last 14 days
+  for (let i = 13; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateString = date.toISOString().split('T')[0];
+    
+    // Create a pattern where the ratio gradually increases then decreases
+    // This simulates a typical training cycle
+    let trend = 0;
+    if (i > 10) trend = 0.85;
+    else if (i > 7) trend = 0.95;
+    else if (i > 4) trend = 1.15;
+    else trend = 1.05;
+    
+    // Add some random variation
+    const variation = (Math.random() * 0.2) - 0.1; // -0.1 to +0.1
+    const ratio = parseFloat((trend + variation).toFixed(2));
+    
+    // Calculate backwards from ratio to get acute and chronic
+    // Assuming a baseline chronic load of around 350
+    const chronic = 300 + Math.floor(Math.random() * 100);
+    const acute = Math.round(chronic * ratio);
+    
+    result.push({
+      date: dateString,
+      acute,
+      chronic,
+      ratio
+    });
+  }
+  
+  return result;
+}
+
 const PostgresSessionStore = connectPg(session);
+
+// Helper function to generate default team readiness data if no data exists
+function generateDefaultTeamReadiness(): { date: string; value: number }[] {
+  const readiness: { date: string; value: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateString = date.toISOString().split('T')[0];
+    
+    readiness.push({
+      date: dateString,
+      value: 75 // Default value is 75%
+    });
+  }
+  
+  return readiness;
+}
+
+// Helper function to generate default athlete progress data
+function generateDefaultAthleteProgress(): { date: string; value: number }[] {
+  const progress: { date: string; value: number }[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateString = date.toISOString().split('T')[0];
+    
+    // Create a slightly upward trend with some variation
+    const baseValue = 65 + Math.floor((13 - i) / 2);
+    const randomVariation = Math.floor(Math.random() * 10) - 5; // -5 to +5
+    const value = Math.max(0, Math.min(100, baseValue + randomVariation));
+    
+    progress.push({
+      date: dateString,
+      value
+    });
+  }
+  
+  return progress;
+}
+
+// Helper function to generate default wellness trends
+function generateDefaultWellnessTrends(): { date: string; value: number; category: string }[] {
+  const trends: { date: string; value: number; category: string }[] = [];
+  const categories = ['Sleep', 'Mood', 'Recovery'];
+  
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateString = date.toISOString().split('T')[0];
+    
+    categories.forEach(category => {
+      // Base values for different categories
+      let baseValue = category === 'Sleep' ? 75 : category === 'Mood' ? 80 : 70;
+      // Add a slight trend
+      baseValue += Math.floor((30 - i) / 10);
+      // Add some variation
+      const randomVariation = Math.floor(Math.random() * 16) - 8; // -8 to +8
+      const value = Math.max(0, Math.min(100, baseValue + randomVariation));
+      
+      trends.push({
+        date: dateString,
+        value,
+        category
+      });
+    });
+  }
+  
+  return trends;
+}
 
 export class DatabaseStorage implements IStorage {
   sessionStore: InstanceType<typeof PostgresSessionStore>;
@@ -217,305 +358,113 @@ export class DatabaseStorage implements IStorage {
   
   // Enhanced Analytics methods
   
-  async getTrainingTypeDistribution(): Promise<{ name: string; value: number }[]> {
-    // Get all training entries
-    const allEntries = await db
-      .select({
-        trainingType: trainingEntries.trainingType,
-      })
-      .from(trainingEntries);
+  async getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string }[]> {
+    // Get training entries, optionally filtered by athlete
+    let entries;
     
-    // Count occurrences of each training type
-    const typeCounts: Record<string, number> = {};
-    allEntries.forEach(entry => {
-      const type = entry.trainingType;
-      typeCounts[type] = (typeCounts[type] || 0) + 1;
-    });
+    if (athleteId) {
+      entries = await db
+        .select({
+          trainingType: trainingEntries.trainingType,
+          date: trainingEntries.date,
+          effortLevel: trainingEntries.effortLevel,
+          userId: trainingEntries.userId
+        })
+        .from(trainingEntries)
+        .where(eq(trainingEntries.userId, athleteId))
+        .orderBy(trainingEntries.date);
+    } else {
+      entries = await db
+        .select({
+          trainingType: trainingEntries.trainingType,
+          date: trainingEntries.date,
+          effortLevel: trainingEntries.effortLevel,
+          userId: trainingEntries.userId
+        })
+        .from(trainingEntries)
+        .orderBy(trainingEntries.date);
+    }
     
-    // Convert to required format
-    const result = Object.entries(typeCounts).map(([name, value]) => ({
-      name,
-      value,
-    }));
-    
-    return result.length > 0 ? result : [
-      { name: "Endurance", value: 10 },
-      { name: "Strength", value: 8 },
-      { name: "Speed", value: 5 },
-      { name: "Flexibility", value: 3 }
-    ];
-  }
-  
-  async getAthletePerformanceComparison(): Promise<{ 
-    name: string; 
-    endurance: number; 
-    strength: number; 
-    speed: number; 
-    flexibility: number 
-  }[]> {
-    // Get all athletes
-    const athletes = await this.getAthletes();
-    
-    // This would typically join multiple tables and do complex aggregations
-    // Here we're creating a simplified result based on available data
-    
-    const result = await Promise.all(
-      athletes.map(async athlete => {
-        // Get latest fitness metrics for this athlete
-        const metrics = await this.getFitnessMetricsByUserId(athlete.id);
-        
-        // Return performance metrics - in a real app these would be calculated from
-        // multiple sources including fitness metrics, training entries, etc.
-        return {
-          name: `${athlete.firstName} ${athlete.lastName}`,
-          endurance: this.getMetricValue(metrics, "endurance", 70 + Math.floor(Math.random() * 20)),
-          strength: this.getMetricValue(metrics, "strength", 65 + Math.floor(Math.random() * 25)),
-          speed: this.getMetricValue(metrics, "speed", 60 + Math.floor(Math.random() * 30)),
-          flexibility: this.getMetricValue(metrics, "flexibility", 55 + Math.floor(Math.random() * 35))
-        };
-      })
-    );
-    
-    return result;
-  }
-  
-  // Helper function to extract metric value from metrics array
-  private getMetricValue(metrics: FitnessMetrics[], type: string, defaultValue: number): number {
-    const metric = metrics.find(m => m.metricType.toLowerCase() === type.toLowerCase());
-    return metric ? metric.value : defaultValue;
-  }
-  
-  async getAthleteProgressOverTime(athleteId: number): Promise<{ date: string; value: number }[]> {
-    // This would typically involve complex queries tracking progress over time
-    // For this implementation, we'll use the morning diary readiness scores as a proxy
-    
-    const diaries = await this.getMorningDiariesByUserId(athleteId);
-    
-    // Map to required format and sort chronologically
-    const progressData = diaries
-      .map(diary => ({
-        date: diary.date.toISOString().split('T')[0],
-        value: diary.readinessScore
-      }))
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(-14); // Last 14 days
-    
-    return progressData.length > 0 ? progressData : generateDefaultAthleteProgress();
-  }
-  
-  async getTeamWellnessTrends(timeframe: string): Promise<{ date: string; value: number; category: string }[]> {
-    // Get all morning diaries
-    let limit = 30; // Default 30 days
-    if (timeframe === '7days') limit = 7;
-    if (timeframe === '90days') limit = 90;
-    
-    const diaries = await db
-      .select()
-      .from(morningDiary)
-      .orderBy(desc(morningDiary.date))
-      .limit(limit);
-    
-    // Group by categories
-    const sleepData: {date: string; value: number; category: string}[] = [];
-    const moodData: {date: string; value: number; category: string}[] = [];
-    const recoveryData: {date: string; value: number; category: string}[] = [];
-    
-    // Group by date first
-    const dateGroups: Record<string, MorningDiary[]> = {};
-    diaries.forEach(diary => {
-      const dateString = diary.date.toISOString().split('T')[0];
-      if (!dateGroups[dateString]) {
-        dateGroups[dateString] = [];
-      }
-      dateGroups[dateString].push(diary);
-    });
-    
-    // Calculate averages for each date
-    Object.entries(dateGroups).forEach(([date, entries]) => {
-      // Sleep quality average
-      const sleepQualityMap = { good: 100, okay: 60, poor: 20 };
-      const sleepAvg = entries.reduce((sum, entry) => {
-        return sum + sleepQualityMap[entry.sleepQuality as keyof typeof sleepQualityMap];
-      }, 0) / entries.length;
+    // Calculate load for each training session (RPE * duration)
+    // For simplicity, we'll assume each session is 1 hour
+    // In a real app, you would store and use actual duration
+    const result = entries.map(entry => {
+      const dateString = entry.date.toISOString().split('T')[0];
+      // Training load = RPE (1-10) * Duration (in minutes)
+      // For our example, we'll use 60 minutes as standard duration
+      const trainingLoad = entry.effortLevel * 60;
       
-      // Mood average
-      const moodMap = { happy: 100, neutral: 70, stressed: 40, sad: 20 };
-      const moodAvg = entries.reduce((sum, entry) => {
-        return sum + moodMap[entry.mood as keyof typeof moodMap];
-      }, 0) / entries.length;
-      
-      // Recovery average
-      const recoveryMap = { yes: 100, somewhat: 50, no: 0 };
-      const recoveryAvg = entries.reduce((sum, entry) => {
-        return sum + recoveryMap[entry.recovery as keyof typeof recoveryMap];
-      }, 0) / entries.length;
-      
-      sleepData.push({ date, value: Math.round(sleepAvg), category: 'Sleep' });
-      moodData.push({ date, value: Math.round(moodAvg), category: 'Mood' });
-      recoveryData.push({ date, value: Math.round(recoveryAvg), category: 'Recovery' });
-    });
-    
-    // Combine all categories and sort by date
-    const result = [...sleepData, ...moodData, ...recoveryData]
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
-    return result.length > 0 ? result : generateDefaultWellnessTrends();
-  }
-  
-  async getInjuryRiskAnalytics(): Promise<{ name: string; risk: number; factors: string[] }[]> {
-    // Get all athletes
-    const athletes = await this.getAthletes();
-    
-    // For each athlete, calculate injury risk based on:
-    // 1. Health reports
-    // 2. Morning diary reports (pain, recovery, etc.)
-    // 3. Training loads
-    
-    const result = await Promise.all(
-      athletes.map(async athlete => {
-        // Get health reports
-        const healthReports = await this.getHealthReportsByUserId(athlete.id);
-        // Get morning diaries
-        const diaries = await this.getMorningDiariesByUserId(athlete.id);
-        // Get training entries
-        const trainingEntries = await this.getTrainingEntriesByUserId(athlete.id);
-        
-        // Calculate risk factors
-        const factors: string[] = [];
-        let riskScore = 0;
-        
-        // Factor 1: Recent health reports
-        const recentReports = healthReports.filter(r => {
-          const reportDate = new Date(r.createdAt);
-          const now = new Date();
-          const daysDiff = Math.floor((now.getTime() - reportDate.getTime()) / (1000 * 60 * 60 * 24));
-          return daysDiff < 14; // Reports in the last 2 weeks
-        });
-        
-        if (recentReports.length > 0) {
-          factors.push(`${recentReports.length} recent health issue(s)`);
-          riskScore += recentReports.length * 10;
-        }
-        
-        // Factor 2: Pain reported in morning diaries
-        const recentPainReports = diaries.filter(d => {
-          const diaryDate = new Date(d.date);
-          const now = new Date();
-          const daysDiff = Math.floor((now.getTime() - diaryDate.getTime()) / (1000 * 60 * 60 * 24));
-          return daysDiff < 7 && (d.pain === "yes" || d.pain === "slight");
-        });
-        
-        if (recentPainReports.length > 0) {
-          factors.push(`Pain reported in ${recentPainReports.length} recent diary entries`);
-          riskScore += recentPainReports.length * 15;
-        }
-        
-        // Factor 3: High training load
-        const highIntensityTraining = trainingEntries.filter(t => {
-          const trainingDate = new Date(t.date);
-          const now = new Date();
-          const daysDiff = Math.floor((now.getTime() - trainingDate.getTime()) / (1000 * 60 * 60 * 24));
-          return daysDiff < 7 && t.effortLevel > 7;
-        });
-        
-        if (highIntensityTraining.length > 2) {
-          factors.push(`${highIntensityTraining.length} high intensity training sessions in the past week`);
-          riskScore += highIntensityTraining.length * 5;
-        }
-        
-        // Factor 4: Low readiness scores
-        const lowReadiness = diaries.filter(d => {
-          const diaryDate = new Date(d.date);
-          const now = new Date();
-          const daysDiff = Math.floor((now.getTime() - diaryDate.getTime()) / (1000 * 60 * 60 * 24));
-          return daysDiff < 7 && d.readinessScore < 60;
-        });
-        
-        if (lowReadiness.length > 0) {
-          factors.push(`Low readiness scores in ${lowReadiness.length} recent diary entries`);
-          riskScore += lowReadiness.length * 10;
-        }
-        
-        // Cap risk at 100
-        const risk = Math.min(100, riskScore);
-        
-        return {
-          name: `${athlete.firstName} ${athlete.lastName}`,
-          risk,
-          factors: factors.length > 0 ? factors : ["No significant risk factors identified"]
-        };
-      })
-    );
-    
-    return result;
-  }
-}
-
-// Helper function to generate default team readiness data if no data exists
-function generateDefaultTeamReadiness(): { date: string; value: number }[] {
-  const readiness: { date: string; value: number }[] = [];
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const dateString = date.toISOString().split('T')[0];
-    
-    readiness.push({
-      date: dateString,
-      value: 75 // Default value is 75%
-    });
-  }
-  
-  return readiness;
-}
-
-// Helper function to generate default athlete progress data
-function generateDefaultAthleteProgress(): { date: string; value: number }[] {
-  const progress: { date: string; value: number }[] = [];
-  for (let i = 13; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const dateString = date.toISOString().split('T')[0];
-    
-    // Create a slightly upward trend with some variation
-    const baseValue = 65 + Math.floor((13 - i) / 2);
-    const randomVariation = Math.floor(Math.random() * 10) - 5; // -5 to +5
-    const value = Math.max(0, Math.min(100, baseValue + randomVariation));
-    
-    progress.push({
-      date: dateString,
-      value
-    });
-  }
-  
-  return progress;
-}
-
-// Helper function to generate default wellness trends
-function generateDefaultWellnessTrends(): { date: string; value: number; category: string }[] {
-  const trends: { date: string; value: number; category: string }[] = [];
-  const categories = ['Sleep', 'Mood', 'Recovery'];
-  
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const dateString = date.toISOString().split('T')[0];
-    
-    categories.forEach(category => {
-      // Base values for different categories
-      let baseValue = category === 'Sleep' ? 75 : category === 'Mood' ? 80 : 70;
-      // Add a slight trend
-      baseValue += Math.floor((30 - i) / 10);
-      // Add some variation
-      const randomVariation = Math.floor(Math.random() * 16) - 8; // -8 to +8
-      const value = Math.max(0, Math.min(100, baseValue + randomVariation));
-      
-      trends.push({
+      return {
         date: dateString,
-        value,
-        category
-      });
+        load: trainingLoad,
+        trainingType: entry.trainingType
+      };
     });
+    
+    // Sort by date
+    result.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    return result.length > 0 ? result : generateDefaultTrainingLoad();
   }
   
-  return trends;
+  async getAcuteChronicLoadRatio(athleteId?: number): Promise<{ date: string; acute: number; chronic: number; ratio: number }[]> {
+    // Get training entries for load calculation
+    const trainingLoad = await this.getTrainingLoadByRPE(athleteId);
+    
+    if (trainingLoad.length === 0) {
+      return generateDefaultACWR();
+    }
+    
+    // Group loads by date for efficiency
+    const loadByDate: Record<string, number> = {};
+    trainingLoad.forEach(entry => {
+      if (!loadByDate[entry.date]) {
+        loadByDate[entry.date] = 0;
+      }
+      loadByDate[entry.date] += entry.load;
+    });
+    
+    // Get dates in chronological order
+    const dates = Object.keys(loadByDate).sort((a, b) => 
+      new Date(a).getTime() - new Date(b).getTime()
+    );
+    
+    // Need at least 28 days of data for meaningful ACWR
+    if (dates.length < 28) {
+      return generateDefaultACWR();
+    }
+    
+    const result: { date: string; acute: number; chronic: number; ratio: number }[] = [];
+    
+    // Calculate for each day starting from day 28
+    for (let i = 27; i < dates.length; i++) {
+      const currentDate = dates[i];
+      
+      // Acute load - last 7 days average
+      let acuteSum = 0;
+      for (let j = i - 6; j <= i; j++) {
+        acuteSum += loadByDate[dates[j]] || 0;
+      }
+      const acuteLoad = acuteSum / 7;
+      
+      // Chronic load - last 28 days average
+      let chronicSum = 0;
+      for (let j = i - 27; j <= i; j++) {
+        chronicSum += loadByDate[dates[j]] || 0;
+      }
+      const chronicLoad = chronicSum / 28;
+      
+      // Calculate ACWR
+      const ratio = chronicLoad === 0 ? 0 : parseFloat((acuteLoad / chronicLoad).toFixed(2));
+      
+      result.push({
+        date: currentDate,
+        acute: Math.round(acuteLoad),
+        chronic: Math.round(chronicLoad),
+        ratio: ratio
+      });
+    }
+    
+    return result.length > 0 ? result : generateDefaultACWR();
+  }
 }

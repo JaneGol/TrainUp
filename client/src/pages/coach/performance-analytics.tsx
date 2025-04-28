@@ -3,55 +3,166 @@ import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   BarChart,
   Bar,
   LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  ReferenceLine
 } from "recharts";
 
-// Mock data for visualization - in a real app this would come from API
-const performanceByAthleteData = [
-  { name: "Emma Wilson", endurance: 90, strength: 75, speed: 85, flexibility: 70 },
-  { name: "Jamal Brown", endurance: 75, strength: 85, speed: 70, flexibility: 65 },
-  { name: "Sarah Chen", endurance: 60, strength: 50, speed: 65, flexibility: 80 },
-  { name: "Alex Morgan", endurance: 95, strength: 80, speed: 90, flexibility: 75 },
-];
+interface TrainingLoad {
+  date: string;
+  load: number;
+  trainingType: string;
+}
 
-const athleteImprovementData = [
-  { month: "Jan", improvement: 5 },
-  { month: "Feb", improvement: 8 },
-  { month: "Mar", improvement: 12 },
-  { month: "Apr", improvement: 7 },
-  { month: "May", improvement: 10 },
-  { month: "Jun", improvement: 15 },
-];
+interface AcuteChronicWorkloadRatio {
+  date: string;
+  acute: number;
+  chronic: number;
+  ratio: number;
+}
 
-const trainingTypeDistribution = [
-  { name: "Strength", value: 35 },
-  { name: "Endurance", value: 25 },
-  { name: "Speed", value: 20 },
-  { name: "Technique", value: 15 },
-  { name: "Recovery", value: 5 },
-];
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+const TRAINING_TYPES_COLORS: Record<string, string> = {
+  "Strength": "#f97316",
+  "Endurance": "#0ea5e9",
+  "Speed": "#22c55e",
+  "Technical": "#a855f7",
+  "Recovery": "#64748b",
+  "Other": "#6b7280"
+};
 
 export default function PerformanceAnalyticsPage() {
   const [, navigate] = useLocation();
-  const [timeFrame, setTimeFrame] = useState("6months");
-  const [selectedMetric, setSelectedMetric] = useState("endurance");
+  const [timeFrame, setTimeFrame] = useState("30days");
+  const [selectedAthlete, setSelectedAthlete] = useState<string | undefined>(undefined);
+  
+  // Fetch data for athletes (used in dropdown)
+  const { data: athletes, isLoading: athletesLoading } = useQuery({
+    queryKey: ["/api/athletes"],
+    queryFn: async () => {
+      const res = await fetch("/api/athletes");
+      if (!res.ok) throw new Error("Failed to fetch athletes");
+      return await res.json();
+    }
+  });
+  
+  // Fetch training load data
+  const { data: trainingLoadData, isLoading: trainingLoadLoading, error: trainingLoadError } = useQuery<TrainingLoad[]>({
+    queryKey: ["/api/analytics/training-load", { athleteId: selectedAthlete }],
+    queryFn: async () => {
+      const url = selectedAthlete 
+        ? `/api/analytics/training-load?athleteId=${selectedAthlete}`
+        : `/api/analytics/training-load`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch training load data");
+      return await res.json();
+    }
+  });
+  
+  // Fetch ACWR data
+  const { data: acwrData, isLoading: acwrLoading, error: acwrError } = useQuery<AcuteChronicWorkloadRatio[]>({
+    queryKey: ["/api/analytics/acwr", { athleteId: selectedAthlete }],
+    queryFn: async () => {
+      const url = selectedAthlete 
+        ? `/api/analytics/acwr?athleteId=${selectedAthlete}`
+        : `/api/analytics/acwr`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch ACWR data");
+      return await res.json();
+    }
+  });
+  
+  // Filter data based on timeframe
+  const filterDataByTimeFrame = (data: any[]) => {
+    if (!data) return [];
+    
+    const now = new Date();
+    let daysToSubtract = 30;
+    
+    if (timeFrame === "7days") daysToSubtract = 7;
+    else if (timeFrame === "30days") daysToSubtract = 30;
+    else if (timeFrame === "90days") daysToSubtract = 90;
+    else if (timeFrame === "365days") daysToSubtract = 365;
+    
+    const cutoffDate = new Date(now);
+    cutoffDate.setDate(cutoffDate.getDate() - daysToSubtract);
+    
+    return data.filter(item => new Date(item.date) >= cutoffDate);
+  };
+  
+  // Process training load data to group by type and date
+  const processTrainingLoadData = () => {
+    if (!trainingLoadData) return [];
+    
+    const filteredData = filterDataByTimeFrame(trainingLoadData);
+    
+    // Sort by date
+    return filteredData.sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  };
+  
+  // Process ACWR data
+  const processAcwrData = () => {
+    if (!acwrData) return [];
+    
+    const filteredData = filterDataByTimeFrame(acwrData);
+    
+    // Sort by date
+    return filteredData.sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  };
+  
+  // Map training load data by type for stacked bar chart
+  const mapTrainingLoadByType = () => {
+    const data = processTrainingLoadData();
+    if (!data.length) return [];
+    
+    // Group data by date
+    const groupedByDate: Record<string, Record<string, number>> = {};
+    
+    data.forEach(item => {
+      if (!groupedByDate[item.date]) {
+        groupedByDate[item.date] = {};
+      }
+      
+      if (!groupedByDate[item.date][item.trainingType]) {
+        groupedByDate[item.date][item.trainingType] = 0;
+      }
+      
+      groupedByDate[item.date][item.trainingType] += item.load;
+    });
+    
+    // Convert to array format for chart
+    return Object.entries(groupedByDate).map(([date, types]) => ({
+      date,
+      ...types
+    }));
+  };
+  
+  const processedTrainingLoad = processTrainingLoadData();
+  const processedAcwr = processAcwrData();
+  const trainingLoadByType = mapTrainingLoadByType();
+  
+  // Get all unique training types for the legend
+  const uniqueTrainingTypes = processedTrainingLoad.length > 0
+    ? Array.from(new Set(processedTrainingLoad.map(item => item.trainingType)))
+    : [];
   
   return (
     <DashboardLayout>
@@ -89,159 +200,282 @@ export default function PerformanceAnalyticsPage() {
           </TabsList>
           
           <TabsContent value="performance-analytics" className="mt-0">
+            <div className="flex items-center justify-between mb-6 gap-4">
+              <div className="flex items-center space-x-2">
+                <Select
+                  value={selectedAthlete}
+                  onValueChange={(value) => setSelectedAthlete(value)}
+                >
+                  <SelectTrigger className="w-[220px]">
+                    <SelectValue placeholder="All Athletes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={undefined}>All Athletes</SelectItem>
+                    {athletes?.map((athlete: any) => (
+                      <SelectItem key={athlete.id} value={athlete.id.toString()}>
+                        {athlete.firstName} {athlete.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Select
+                  value={timeFrame}
+                  onValueChange={setTimeFrame}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Time Period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7days">Last 7 days</SelectItem>
+                    <SelectItem value="30days">Last 30 days</SelectItem>
+                    <SelectItem value="90days">Last 90 days</SelectItem>
+                    <SelectItem value="365days">Last year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 gap-6">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Performance By Athlete</CardTitle>
-                  <div className="flex space-x-2">
-                    <Select
-                      value={selectedMetric}
-                      onValueChange={setSelectedMetric}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select metric" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="endurance">Endurance</SelectItem>
-                        <SelectItem value="strength">Strength</SelectItem>
-                        <SelectItem value="speed">Speed</SelectItem>
-                        <SelectItem value="flexibility">Flexibility</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select
-                      value={timeFrame}
-                      onValueChange={setTimeFrame}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select time frame" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1month">Last month</SelectItem>
-                        <SelectItem value="3months">Last 3 months</SelectItem>
-                        <SelectItem value="6months">Last 6 months</SelectItem>
-                        <SelectItem value="1year">Last year</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <CardHeader>
+                  <CardTitle>Training Load by Type</CardTitle>
+                  <CardDescription>
+                    Training load calculated as RPE (1-10) × Duration (minutes)
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={performanceByAthleteData}
-                        margin={{
-                          top: 5,
-                          right: 30,
-                          left: 20,
-                          bottom: 5,
-                        }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey={selectedMetric} fill="#0062cc" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Athlete Improvement Over Time</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64">
+                  {trainingLoadLoading ? (
+                    <div className="h-80 flex items-center justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : trainingLoadError ? (
+                    <Alert variant="destructive" className="mb-6">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Failed to load training data. Please try again later.
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <div className="h-80">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={athleteImprovementData}
+                        <BarChart
+                          data={trainingLoadByType}
                           margin={{
-                            top: 5,
+                            top: 20,
                             right: 30,
                             left: 20,
                             bottom: 5,
                           }}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="month" />
-                          <YAxis />
-                          <Tooltip />
+                          <XAxis 
+                            dataKey="date" 
+                            tickFormatter={(date) => {
+                              const d = new Date(date);
+                              return `${d.getDate()}/${d.getMonth() + 1}`;
+                            }}
+                            tick={{ fontSize: 12 }}
+                          />
+                          <YAxis 
+                            label={{ 
+                              value: 'Training Load (arbitrary units)', 
+                              angle: -90, 
+                              position: 'insideLeft' 
+                            }}
+                          />
+                          <Tooltip 
+                            formatter={(value, name) => [value, name]}
+                            labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                          />
                           <Legend />
+                          {uniqueTrainingTypes.map((type) => (
+                            <Bar 
+                              key={type} 
+                              dataKey={type} 
+                              stackId="a" 
+                              fill={TRAINING_TYPES_COLORS[type] || TRAINING_TYPES_COLORS.Other} 
+                              name={type}
+                            />
+                          ))}
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Acute:Chronic Workload Ratio</CardTitle>
+                  <CardDescription>
+                    ACWR compares 7-day workload (acute) to 28-day workload (chronic)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {acwrLoading ? (
+                    <div className="h-80 flex items-center justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : acwrError ? (
+                    <Alert variant="destructive" className="mb-6">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Failed to load ACWR data. Please try again later.
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={processedAcwr}
+                          margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="date" 
+                            tickFormatter={(date) => {
+                              const d = new Date(date);
+                              return `${d.getDate()}/${d.getMonth() + 1}`;
+                            }}
+                            tick={{ fontSize: 12 }}
+                          />
+                          <YAxis 
+                            label={{ 
+                              value: 'ACWR', 
+                              angle: -90, 
+                              position: 'insideLeft' 
+                            }}
+                            domain={[0, 2]}
+                          />
+                          <Tooltip 
+                            formatter={(value, name) => {
+                              if (name === "ratio") return [value, "ACWR"];
+                              if (name === "acute") return [value, "Acute load (7-day)"];
+                              if (name === "chronic") return [value, "Chronic load (28-day)"];
+                              return [value, name];
+                            }}
+                            labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                          />
+                          <Legend />
+                          
+                          {/* Safe zone reference */}
+                          <ReferenceLine y={0.8} stroke="#22c55e" strokeDasharray="3 3" />
+                          <ReferenceLine y={1.3} stroke="#f97316" strokeDasharray="3 3" />
+                          
+                          {/* Danger zone label */}
+                          <ReferenceLine 
+                            y={1.5} 
+                            label={{ 
+                              value: 'High Injury Risk', 
+                              position: 'right',
+                              fill: '#ef4444',
+                              fontSize: 12
+                            }} 
+                            stroke="#ef4444" 
+                            strokeDasharray="3 3" 
+                          />
+                          
                           <Line 
                             type="monotone" 
-                            dataKey="improvement" 
-                            stroke="#0062cc" 
-                            activeDot={{ r: 8 }}
+                            dataKey="ratio" 
+                            stroke="#0062cc"
                             strokeWidth={2}
+                            dot={{ r: 3 }}
+                            activeDot={{ r: 8 }}
                           />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Training Type Distribution</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64 flex items-center justify-center">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={trainingTypeDistribution}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          >
-                            {trainingTypeDistribution.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                          <Legend />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  )}
+                </CardContent>
+              </Card>
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Performance Metrics Comparison</CardTitle>
+                  <CardTitle>Acute & Chronic Workload</CardTitle>
+                  <CardDescription>
+                    Comparison of 7-day (acute) and 28-day (chronic) average workload
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={performanceByAthleteData}
-                        margin={{
-                          top: 20,
-                          right: 30,
-                          left: 20,
-                          bottom: 5,
-                        }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="endurance" stackId="a" fill="#0062cc" />
-                        <Bar dataKey="strength" stackId="a" fill="#ff5722" />
-                        <Bar dataKey="speed" stackId="a" fill="#00c853" />
-                        <Bar dataKey="flexibility" stackId="a" fill="#ffc107" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {acwrLoading ? (
+                    <div className="h-80 flex items-center justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : acwrError ? (
+                    <Alert variant="destructive" className="mb-6">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Failed to load ACWR data. Please try again later.
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart
+                          data={processedAcwr}
+                          margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="date" 
+                            tickFormatter={(date) => {
+                              const d = new Date(date);
+                              return `${d.getDate()}/${d.getMonth() + 1}`;
+                            }}
+                            tick={{ fontSize: 12 }}
+                          />
+                          <YAxis 
+                            label={{ 
+                              value: 'Workload (arbitrary units)', 
+                              angle: -90, 
+                              position: 'insideLeft' 
+                            }}
+                          />
+                          <Tooltip 
+                            formatter={(value, name) => {
+                              if (name === "acute") return [value, "Acute load (7-day)"];
+                              if (name === "chronic") return [value, "Chronic load (28-day)"];
+                              return [value, name];
+                            }}
+                            labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                          />
+                          <Legend />
+                          <Area 
+                            type="monotone" 
+                            dataKey="chronic" 
+                            stackId="1" 
+                            stroke="#8884d8" 
+                            fill="#8884d8"
+                            fillOpacity={0.3}
+                            name="Chronic load (28-day)"
+                          />
+                          <Area 
+                            type="monotone" 
+                            dataKey="acute" 
+                            stackId="2" 
+                            stroke="#82ca9d" 
+                            fill="#82ca9d"
+                            fillOpacity={0.3}
+                            name="Acute load (7-day)"
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

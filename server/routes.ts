@@ -292,56 +292,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Enhanced Coach Analytics Routes
   
-  // Get training load distribution by type
-  app.get("/api/analytics/training-distribution", async (req, res) => {
+  // Get training load by RPE
+  app.get("/api/analytics/training-load", async (req, res) => {
     if (!req.isAuthenticated() || req.user!.role !== "coach") {
       return res.sendStatus(401);
     }
     
-    const trainingDistribution = await storage.getTrainingTypeDistribution();
-    res.json(trainingDistribution);
+    const athleteId = req.query.athleteId ? parseInt(req.query.athleteId as string) : undefined;
+    const loadData = await storage.getTrainingLoadByRPE(athleteId);
+    res.json(loadData);
   });
   
-  // Get comparative metrics between athletes
-  app.get("/api/analytics/athlete-comparison", async (req, res) => {
+  // Get acute vs chronic load ratio
+  app.get("/api/analytics/acwr", async (req, res) => {
     if (!req.isAuthenticated() || req.user!.role !== "coach") {
       return res.sendStatus(401);
     }
     
-    const athleteComparison = await storage.getAthletePerformanceComparison();
-    res.json(athleteComparison);
-  });
-  
-  // Get athlete progress over time
-  app.get("/api/analytics/athlete-progress/:id", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "coach") {
-      return res.sendStatus(401);
-    }
-    
-    const athleteId = parseInt(req.params.id);
-    const progressData = await storage.getAthleteProgressOverTime(athleteId);
-    res.json(progressData);
-  });
-  
-  // Get team-wide wellness trends 
-  app.get("/api/analytics/team-wellness", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "coach") {
-      return res.sendStatus(401);
-    }
-    
-    const timeframe = req.query.timeframe || '30days';
-    const wellnessData = await storage.getTeamWellnessTrends(timeframe as string);
-    res.json(wellnessData);
-  });
-  
-  // Get injury risk analytics
-  app.get("/api/analytics/injury-risk", async (req, res) => {
-    if (!req.isAuthenticated() || req.user!.role !== "coach") {
-      return res.sendStatus(401);
-    }
-    
-    const riskData = await storage.getInjuryRiskAnalytics();
-    res.json(riskData);
+    const athleteId = req.query.athleteId ? parseInt(req.query.athleteId as string) : undefined;
+    const acwrData = await storage.getAcuteChronicLoadRatio(athleteId);
+    res.json(acwrData);
   });
 
   const httpServer = createServer(app);

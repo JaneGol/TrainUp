@@ -49,11 +49,8 @@ export interface IStorage {
   getTeamReadiness(): Promise<{ date: string; value: number }[]>;
   
   // Enhanced Analytics methods
-  getTrainingTypeDistribution(): Promise<{ name: string; value: number }[]>;
-  getAthletePerformanceComparison(): Promise<{ name: string; endurance: number; strength: number; speed: number; flexibility: number }[]>;
-  getAthleteProgressOverTime(athleteId: number): Promise<{ date: string; value: number }[]>;
-  getTeamWellnessTrends(timeframe: string): Promise<{ date: string; value: number; category: string }[]>;
-  getInjuryRiskAnalytics(): Promise<{ name: string; risk: number; factors: string[] }[]>;
+  getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string }[]>;
+  getAcuteChronicLoadRatio(athleteId?: number): Promise<{ date: string; acute: number; chronic: number; ratio: number }[]>;
   
   // Session store
   sessionStore: SessionStoreType;
@@ -279,10 +276,107 @@ export class MemStorage implements IStorage {
     
     return readiness;
   }
+  
+  // Enhanced Analytics methods
+  async getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string }[]> {
+    // Get all training entries, optionally filtered by athlete
+    let entries = Array.from(this.trainingEntries.values());
+    
+    // Apply athlete filter if specified
+    if (athleteId) {
+      entries = entries.filter(entry => entry.userId === athleteId);
+    }
+    
+    // Calculate load for each training session (RPE * duration)
+    // For simplicity, we'll assume each session is 1 hour
+    // In a real app, you would store and use actual duration
+    const result = entries.map(entry => {
+      const dateString = entry.date.toISOString().split('T')[0];
+      // Training load = RPE (1-10) * Duration (in minutes)
+      // For our example, we'll use 60 minutes as standard duration
+      const trainingLoad = entry.effortLevel * 60;
+      
+      return {
+        date: dateString,
+        load: trainingLoad,
+        trainingType: entry.trainingType
+      };
+    });
+    
+    // Sort by date
+    result.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    return result.length > 0 ? result : generateDefaultTrainingLoad();
+  }
+  
+  async getAcuteChronicLoadRatio(athleteId?: number): Promise<{ date: string; acute: number; chronic: number; ratio: number }[]> {
+    // Get training entries for load calculation
+    const trainingLoad = await this.getTrainingLoadByRPE(athleteId);
+    
+    if (trainingLoad.length === 0) {
+      return generateDefaultACWR();
+    }
+    
+    // Group loads by date for efficiency
+    const loadByDate: Record<string, number> = {};
+    trainingLoad.forEach(entry => {
+      if (!loadByDate[entry.date]) {
+        loadByDate[entry.date] = 0;
+      }
+      loadByDate[entry.date] += entry.load;
+    });
+    
+    // Get dates in chronological order
+    const dates = Object.keys(loadByDate).sort((a, b) => 
+      new Date(a).getTime() - new Date(b).getTime()
+    );
+    
+    // Need at least 28 days of data for meaningful ACWR
+    if (dates.length < 28) {
+      return generateDefaultACWR();
+    }
+    
+    const result: { date: string; acute: number; chronic: number; ratio: number }[] = [];
+    
+    // Calculate for each day starting from day 28
+    for (let i = 27; i < dates.length; i++) {
+      const currentDate = dates[i];
+      
+      // Acute load - last 7 days average
+      let acuteSum = 0;
+      for (let j = i - 6; j <= i; j++) {
+        acuteSum += loadByDate[dates[j]] || 0;
+      }
+      const acuteLoad = acuteSum / 7;
+      
+      // Chronic load - last 28 days average
+      let chronicSum = 0;
+      for (let j = i - 27; j <= i; j++) {
+        chronicSum += loadByDate[dates[j]] || 0;
+      }
+      const chronicLoad = chronicSum / 28;
+      
+      // Calculate ACWR
+      const ratio = chronicLoad === 0 ? 0 : parseFloat((acuteLoad / chronicLoad).toFixed(2));
+      
+      result.push({
+        date: currentDate,
+        acute: Math.round(acuteLoad),
+        chronic: Math.round(chronicLoad),
+        ratio: ratio
+      });
+    }
+    
+    return result.length > 0 ? result : generateDefaultACWR();
+  }
 }
 
-// Import DatabaseStorage implementation
-import { DatabaseStorage } from './database-storage';
+// Import DatabaseStorage implementation and helper functions
+import { 
+  DatabaseStorage, 
+  generateDefaultTrainingLoad, 
+  generateDefaultACWR 
+} from './database-storage';
 
 // Switch to the database storage implementation
 export const storage = new DatabaseStorage();
