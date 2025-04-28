@@ -11,6 +11,7 @@ import AthleteDashboard from "@/pages/athlete/dashboard";
 import TrainingDiary from "@/pages/athlete/training-diary";
 import FitnessProgress from "@/pages/athlete/fitness-progress";
 import SmartDoctor from "@/pages/athlete/smart-doctor";
+import MorningDiaryPage from "@/pages/athlete/morning-diary";
 import CoachDashboard from "@/pages/coach/dashboard";
 import AthleteLogsPage from "@/pages/coach/athlete-logs";
 import TeamOverviewPage from "@/pages/coach/team-overview";

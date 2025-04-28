@@ -14,7 +14,8 @@ import {
   List,
   LineChart,
   CalendarClock,
-  UserCircle
+  UserCircle,
+  SunMoon
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -54,11 +55,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   
   // Define navigation items based on user role
   const athleteNavItems = [
-    { label: "Dashboard", icon: <Home className="h-5 w-5" />, href: "/" },
-    { label: "Training Diary", icon: <FileText className="h-5 w-5" />, href: "/training-diary" },
+    { label: "Self-Monitoring Diary", icon: <SunMoon className="h-5 w-5" />, href: "/morning-diary" },
+    { label: "Training Evaluation", icon: <FileText className="h-5 w-5" />, href: "/training-diary" },
     { label: "Fitness Progress", icon: <BarChart className="h-5 w-5" />, href: "/fitness-progress" },
     { label: "Smart Doctor", icon: <HeartPulse className="h-5 w-5" />, href: "/smart-doctor" },
-    { label: "Feedback", icon: <MessageSquare className="h-5 w-5" />, href: "/feedback" },
   ];
   
   const coachNavItems = [
