@@ -37,6 +37,31 @@ export const insertTrainingEntrySchema = createInsertSchema(trainingEntries).omi
   createdAt: true,
 });
 
+export const morningDiary = pgTable("morning_diary", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  date: timestamp("date").defaultNow().notNull(),
+  sleepQuality: text("sleep_quality", { enum: ["good", "okay", "poor"] }).notNull(),
+  restedness: text("restedness", { enum: ["very", "somewhat", "not at all"] }).notNull(),
+  mood: text("mood", { enum: ["happy", "neutral", "stressed", "sad"] }).notNull(),
+  motivation: text("motivation", { enum: ["yes", "somewhat", "no"] }).notNull(),
+  bodyFeeling: text("body_feeling", { enum: ["fresh", "a little sore", "very sore"] }).notNull(),
+  pain: text("pain", { enum: ["no", "slight", "yes"] }).notNull(),
+  stressLevel: text("stress_level", { enum: ["low", "medium", "high"] }).notNull(),
+  recovery: text("recovery", { enum: ["yes", "somewhat", "no"] }).notNull(),
+  focus: text("focus", { enum: ["yes", "not fully", "no"] }).notNull(),
+  readiness: text("readiness", { enum: ["yes", "almost", "no"] }).notNull(),
+  readinessScore: integer("readiness_score").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertMorningDiarySchema = createInsertSchema(morningDiary).omit({
+  id: true,
+  date: true,
+  readinessScore: true,
+  createdAt: true,
+});
+
 export const fitnessMetrics = pgTable("fitness_metrics", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
@@ -86,6 +111,9 @@ export type User = typeof users.$inferSelect;
 
 export type InsertTrainingEntry = z.infer<typeof insertTrainingEntrySchema>;
 export type TrainingEntry = typeof trainingEntries.$inferSelect;
+
+export type InsertMorningDiary = z.infer<typeof insertMorningDiarySchema>;
+export type MorningDiary = typeof morningDiary.$inferSelect;
 
 export type InsertFitnessMetrics = z.infer<typeof insertFitnessMetricsSchema>;
 export type FitnessMetrics = typeof fitnessMetrics.$inferSelect;

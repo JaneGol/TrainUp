@@ -1,6 +1,7 @@
 import { 
   User, InsertUser, 
   TrainingEntry, InsertTrainingEntry,
+  MorningDiary, InsertMorningDiary,
   FitnessMetrics, InsertFitnessMetrics,
   HealthReport, InsertHealthReport,
   CoachFeedback, InsertCoachFeedback
@@ -23,6 +24,11 @@ export interface IStorage {
   createTrainingEntry(entry: InsertTrainingEntry): Promise<TrainingEntry>;
   getTrainingEntriesByUserId(userId: number): Promise<TrainingEntry[]>;
   markTrainingEntryAsReviewed(entryId: number): Promise<void>;
+  
+  // Morning diary methods
+  createMorningDiary(diary: InsertMorningDiary, userId: number, readinessScore: number): Promise<MorningDiary>;
+  getMorningDiariesByUserId(userId: number): Promise<MorningDiary[]>;
+  getLatestMorningDiary(userId: number): Promise<MorningDiary | undefined>;
   
   // Fitness metrics methods
   createFitnessMetrics(metrics: InsertFitnessMetrics): Promise<FitnessMetrics>;
@@ -47,6 +53,7 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private trainingEntries: Map<number, TrainingEntry>;
+  private morningDiaries: Map<number, MorningDiary>;
   private fitnessMetrics: Map<number, FitnessMetrics>;
   private healthReports: Map<number, HealthReport>;
   private coachFeedback: Map<number, CoachFeedback>;
@@ -55,6 +62,7 @@ export class MemStorage implements IStorage {
   
   private userCurrentId: number;
   private entryCurrentId: number;
+  private diaryCurrentId: number;
   private metricsCurrentId: number;
   private reportCurrentId: number;
   private feedbackCurrentId: number;
@@ -62,12 +70,14 @@ export class MemStorage implements IStorage {
   constructor() {
     this.users = new Map();
     this.trainingEntries = new Map();
+    this.morningDiaries = new Map();
     this.fitnessMetrics = new Map();
     this.healthReports = new Map();
     this.coachFeedback = new Map();
     
     this.userCurrentId = 1;
     this.entryCurrentId = 1;
+    this.diaryCurrentId = 1;
     this.metricsCurrentId = 1;
     this.reportCurrentId = 1;
     this.feedbackCurrentId = 1;
@@ -147,6 +157,35 @@ export class MemStorage implements IStorage {
       entry.coachReviewed = true;
       this.trainingEntries.set(entryId, entry);
     }
+  }
+  
+  // Morning diary methods
+  async createMorningDiary(diary: InsertMorningDiary, userId: number, readinessScore: number): Promise<MorningDiary> {
+    const id = this.diaryCurrentId++;
+    const now = new Date();
+    
+    const newDiary: MorningDiary = {
+      ...diary,
+      id,
+      userId,
+      date: now,
+      readinessScore,
+      createdAt: now
+    };
+    
+    this.morningDiaries.set(id, newDiary);
+    return newDiary;
+  }
+  
+  async getMorningDiariesByUserId(userId: number): Promise<MorningDiary[]> {
+    return Array.from(this.morningDiaries.values())
+      .filter(diary => diary.userId === userId)
+      .sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date descending
+  }
+  
+  async getLatestMorningDiary(userId: number): Promise<MorningDiary | undefined> {
+    const diaries = await this.getMorningDiariesByUserId(userId);
+    return diaries.length > 0 ? diaries[0] : undefined;
   }
   
   // Fitness metrics methods

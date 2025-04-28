@@ -2,7 +2,13 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { insertTrainingEntrySchema, insertHealthReportSchema, insertFitnessMetricsSchema, insertCoachFeedbackSchema } from "@shared/schema";
+import { 
+  insertTrainingEntrySchema, 
+  insertHealthReportSchema, 
+  insertFitnessMetricsSchema, 
+  insertCoachFeedbackSchema,
+  insertMorningDiarySchema 
+} from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -89,6 +95,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const userId = req.user!.id;
     const metrics = await storage.getFitnessMetricsByUserId(userId);
     res.json(metrics);
+  });
+  
+  // Morning Diary Routes
+  app.post("/api/morning-diary", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const validatedData = insertMorningDiarySchema.parse(req.body);
+      
+      // Calculate readiness score based on form values
+      // This function should match the logic in the frontend component
+      const calculateReadinessScore = (data: any) => {
+        let score = 0;
+        const maxScore = 10;
+        
+        // Sleep quality
+        if (data.sleepQuality === "good") score += 1;
+        else if (data.sleepQuality === "okay") score += 0.5;
+        
+        // Restedness
+        if (data.restedness === "very") score += 1;
+        else if (data.restedness === "somewhat") score += 0.5;
+        
+        // Mood
+        if (data.mood === "happy") score += 1;
+        else if (data.mood === "neutral") score += 0.75;
+        
+        // Motivation
+        if (data.motivation === "yes") score += 1;
+        else if (data.motivation === "somewhat") score += 0.5;
+        
+        // Body feeling
+        if (data.bodyFeeling === "fresh") score += 1;
+        else if (data.bodyFeeling === "a little sore") score += 0.5;
+        
+        // Pain/injury
+        if (data.pain === "no") score += 1;
+        else if (data.pain === "slight") score += 0.5;
+        
+        // Stress level
+        if (data.stressLevel === "low") score += 1;
+        else if (data.stressLevel === "medium") score += 0.5;
+        
+        // Recovery
+        if (data.recovery === "yes") score += 1;
+        else if (data.recovery === "somewhat") score += 0.5;
+        
+        // Focus
+        if (data.focus === "yes") score += 1;
+        else if (data.focus === "not fully") score += 0.5;
+        
+        // Readiness
+        if (data.readiness === "yes") score += 1;
+        else if (data.readiness === "almost") score += 0.5;
+        
+        // Convert to percentage
+        return Math.round((score / maxScore) * 100);
+      };
+      
+      const readinessScore = calculateReadinessScore(validatedData);
+      
+      const diary = await storage.createMorningDiary(
+        validatedData, 
+        req.user!.id, 
+        readinessScore
+      );
+      
+      res.status(201).json(diary);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create morning diary entry" });
+    }
+  });
+  
+  app.get("/api/morning-diary", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = req.user!.id;
+    const diaries = await storage.getMorningDiariesByUserId(userId);
+    res.json(diaries);
+  });
+  
+  app.get("/api/morning-diary/latest", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = req.user!.id;
+    const diary = await storage.getLatestMorningDiary(userId);
+    
+    if (!diary) {
+      return res.status(404).json({ error: "No morning diary entries found" });
+    }
+    
+    res.json(diary);
+  });
+  
+  // Coach Routes - Morning Diary
+  app.get("/api/athletes/:id/morning-diary", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "coach") {
+      return res.sendStatus(401);
+    }
+    
+    const athleteId = parseInt(req.params.id);
+    const diaries = await storage.getMorningDiariesByUserId(athleteId);
+    res.json(diaries);
   });
 
   // Coach Routes
