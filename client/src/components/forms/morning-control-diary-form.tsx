@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,6 +6,7 @@ import { z } from "zod";
 import { insertMorningDiarySchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 import {
   Form,
@@ -25,7 +26,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 
 // Define Zod schema for the form
-const morningDiarySchema = insertMorningDiarySchema;
+const morningDiarySchema = insertMorningDiarySchema.extend({
+  additionalNotes: z.string().optional()
+});
 
 // Type for form values derived from the schema
 type MorningDiaryFormValues = z.infer<typeof morningDiarySchema>;
@@ -33,12 +36,14 @@ type MorningDiaryFormValues = z.infer<typeof morningDiarySchema>;
 export default function MorningControlDiaryForm() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [isSubmitted, setIsSubmitted] = useState(false);
   
   // Create form with default values
   const form = useForm<MorningDiaryFormValues>({
     resolver: zodResolver(morningDiarySchema),
     defaultValues: {
+      userId: user?.id,
       sleepQuality: "okay",
       restedness: "somewhat",
       mood: "neutral",
@@ -52,6 +57,13 @@ export default function MorningControlDiaryForm() {
       additionalNotes: "",
     },
   });
+  
+  // Update userId when user changes
+  useEffect(() => {
+    if (user) {
+      form.setValue("userId", user.id);
+    }
+  }, [user, form]);
   
   // Submit the diary entry to the API
   const submitMutation = useMutation({

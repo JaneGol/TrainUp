@@ -51,6 +51,7 @@ export const morningDiary = pgTable("morning_diary", {
   recovery: text("recovery", { enum: ["yes", "somewhat", "no"] }).notNull(),
   focus: text("focus", { enum: ["yes", "not fully", "no"] }).notNull(),
   readiness: text("readiness", { enum: ["yes", "almost", "no"] }).notNull(),
+  additionalNotes: text("additional_notes"),
   readinessScore: integer("readiness_score").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

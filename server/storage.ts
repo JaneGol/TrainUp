@@ -10,6 +10,7 @@ import session from "express-session";
 import createMemoryStore from "memorystore";
 
 const MemoryStore = createMemoryStore(session);
+type SessionStoreType = InstanceType<typeof MemoryStore>;
 
 // modify the interface with any CRUD methods
 // you might need
@@ -47,7 +48,7 @@ export interface IStorage {
   getTeamReadiness(): Promise<{ date: string; value: number }[]>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: SessionStoreType;
 }
 
 export class MemStorage implements IStorage {
@@ -58,7 +59,7 @@ export class MemStorage implements IStorage {
   private healthReports: Map<number, HealthReport>;
   private coachFeedback: Map<number, CoachFeedback>;
   
-  sessionStore: session.SessionStore;
+  sessionStore: SessionStoreType;
   
   private userCurrentId: number;
   private entryCurrentId: number;
