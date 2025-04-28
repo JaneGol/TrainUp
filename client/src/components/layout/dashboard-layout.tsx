@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import RoleSwitcher from "@/components/layout/role-switcher";
 import { 
@@ -7,19 +7,18 @@ import {
   FileText, 
   BarChart, 
   HeartPulse, 
-  MessageSquare, 
-  ChevronLeft, 
+  MessageSquare,
   LogOut,
   Users,
   List,
   LineChart,
   CalendarClock,
   UserCircle,
-  SunMoon
+  SunMoon,
+  Menu
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 
 interface DashboardLayoutProps {
@@ -77,58 +76,103 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return location.startsWith(href) && href !== "/" && href !== "/coach";
   };
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full">
-      <div className="py-6 px-4 border-b">
-        <h2 className="text-xl font-bold text-primary">SportSync</h2>
-      </div>
-      
-      <div className="flex-1 py-6 px-4 space-y-1">
-        {navItems.map((item) => (
-          <Link 
-            key={item.href} 
-            href={item.href}
-            onClick={() => setSidebarOpen(false)}
-          >
-            <a
-              className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive(item.href)
-                  ? "bg-primary-light text-primary"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </a>
-          </Link>
-        ))}
-      </div>
-      
-      <div className="px-4 py-4 border-t">
-        <button 
-          onClick={handleLogout}
-          className="flex items-center w-full space-x-3 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100"
-        >
-          <LogOut className="h-5 w-5" />
-          <span>Log Out</span>
-        </button>
-      </div>
-    </div>
-  );
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Desktop Sidebar */}
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r">
-        <SidebarContent />
+        <div className="flex flex-col h-full">
+          <div className="py-6 px-4 border-b">
+            <h2 className="text-xl font-bold text-primary">SportSync</h2>
+          </div>
+          
+          <div className="flex-1 py-6 px-4 space-y-1">
+            {navItems.map((item) => (
+              <div 
+                key={item.href} 
+                className="group"
+                onClick={() => navigate(item.href)}
+              >
+                <div
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                    isActive(item.href)
+                      ? "bg-primary-light text-primary"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="px-4 py-4 border-t">
+            <button 
+              onClick={handleLogout}
+              className="flex items-center w-full space-x-3 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Log Out</span>
+            </button>
+          </div>
+        </div>
       </div>
       
-      {/* Mobile Sidebar Sheet */}
-      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="p-0 w-64">
-          <SidebarContent />
-        </SheetContent>
-      </Sheet>
+      {/* Mobile Sidebar - Overlay style */}
+      {isMobile && sidebarOpen && (
+        <div className="fixed inset-0 z-40">
+          <div className="absolute inset-0 bg-black/50" onClick={toggleSidebar}></div>
+          <div className="absolute left-0 top-0 bottom-0 w-64 bg-white z-50">
+            <div className="flex flex-col h-full">
+              <div className="py-6 px-4 border-b flex justify-between items-center">
+                <h2 className="text-xl font-bold text-primary">SportSync</h2>
+                <button onClick={toggleSidebar} className="p-1">
+                  <span className="sr-only">Close menu</span>
+                  ✕
+                </button>
+              </div>
+              
+              <div className="flex-1 py-6 px-4 space-y-1">
+                {navItems.map((item) => (
+                  <div 
+                    key={item.href} 
+                    className="group"
+                    onClick={() => {
+                      navigate(item.href);
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <div
+                      className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                        isActive(item.href)
+                          ? "bg-primary-light text-primary"
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="px-4 py-4 border-t">
+                <button 
+                  onClick={handleLogout}
+                  className="flex items-center w-full space-x-3 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Log Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Main Content */}
       <div className="md:ml-64 flex-1 flex flex-col min-h-screen">
@@ -137,12 +181,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
             <div className="flex items-center">
               {isMobile && (
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden mr-2" onClick={() => setSidebarOpen(true)}>
-                    <List className="h-5 w-5" />
-                    <span className="sr-only">Open sidebar</span>
-                  </Button>
-                </SheetTrigger>
+                <Button variant="ghost" size="icon" className="md:hidden mr-2" onClick={toggleSidebar}>
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Open sidebar</span>
+                </Button>
               )}
               <h1 className="md:hidden font-bold text-xl text-primary">SportSync</h1>
             </div>
@@ -167,7 +209,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
         
         {/* Page Content */}
-        <main className="flex-1">
+        <main className="flex-1 pb-16 md:pb-0">
           {children}
         </main>
         
@@ -175,14 +217,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="md:hidden bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 z-10">
           <div className="grid grid-cols-4">
             {navItems.slice(0, 4).map((item) => (
-              <Link key={item.href} href={item.href}>
-                <a className={`flex flex-col items-center py-2 ${
+              <div 
+                key={item.href}
+                className={`flex flex-col items-center py-2 cursor-pointer ${
                   isActive(item.href) ? "text-primary" : "text-gray-500"
-                }`}>
-                  {item.icon}
-                  <span className="text-xs mt-1">{item.label}</span>
-                </a>
-              </Link>
+                }`}
+                onClick={() => navigate(item.href)}
+              >
+                {item.icon}
+                <span className="text-xs mt-1">{item.label}</span>
+              </div>
             ))}
           </div>
         </div>

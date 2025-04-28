@@ -25,6 +25,7 @@ function Router() {
       
       {/* Athlete routes */}
       <ProtectedRoute path="/" component={AthleteDashboard} />
+      <ProtectedRoute path="/morning-diary" component={MorningDiaryPage} />
       <ProtectedRoute path="/training-diary" component={TrainingDiary} />
       <ProtectedRoute path="/fitness-progress" component={FitnessProgress} />
       <ProtectedRoute path="/smart-doctor" component={SmartDoctor} />
