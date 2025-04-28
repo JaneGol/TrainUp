@@ -1,99 +1,90 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { insertMorningDiarySchema } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import {
+  RadioGroup,
+  RadioGroupItem
+} from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
 
-// Define the form schema
-const morningDiarySchema = z.object({
-  sleepQuality: z.enum(["good", "okay", "poor"]),
-  restedness: z.enum(["very", "somewhat", "not at all"]),
-  mood: z.enum(["happy", "neutral", "stressed", "sad"]),
-  motivation: z.enum(["yes", "somewhat", "no"]),
-  bodyFeeling: z.enum(["fresh", "a little sore", "very sore"]),
-  pain: z.enum(["no", "slight", "yes"]),
-  stressLevel: z.enum(["low", "medium", "high"]),
-  recovery: z.enum(["yes", "somewhat", "no"]),
-  focus: z.enum(["yes", "not fully", "no"]),
-  readiness: z.enum(["yes", "almost", "no"]),
-});
+// Define Zod schema for the form
+const morningDiarySchema = insertMorningDiarySchema;
 
+// Type for form values derived from the schema
 type MorningDiaryFormValues = z.infer<typeof morningDiarySchema>;
 
 export default function MorningControlDiaryForm() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isSubmitted, setIsSubmitted] = useState(false);
   
-  // Form initialization
+  // Create form with default values
   const form = useForm<MorningDiaryFormValues>({
     resolver: zodResolver(morningDiarySchema),
     defaultValues: {
-      sleepQuality: "good",
-      restedness: "very",
-      mood: "happy",
-      motivation: "yes",
-      bodyFeeling: "fresh",
+      sleepQuality: "okay",
+      restedness: "somewhat",
+      mood: "neutral",
+      motivation: "somewhat",
+      bodyFeeling: "a little sore",
       pain: "no",
-      stressLevel: "low",
-      recovery: "yes",
-      focus: "yes",
-      readiness: "yes",
+      stressLevel: "medium",
+      recovery: "somewhat",
+      focus: "not fully",
+      readiness: "almost",
+      additionalNotes: "",
     },
   });
   
-  // Mutation for submitting diary entry
-  const submitDiaryMutation = useMutation({
+  // Submit the diary entry to the API
+  const submitMutation = useMutation({
     mutationFn: async (data: MorningDiaryFormValues) => {
       const res = await apiRequest("POST", "/api/morning-diary", data);
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/morning-diary"] });
       toast({
-        title: "Morning diary submitted",
-        description: "Your morning check-in has been recorded.",
+        title: "Morning Diary Submitted",
+        description: "Your morning control diary has been recorded successfully.",
       });
-      form.reset({
-        sleepQuality: "good",
-        restedness: "very",
-        mood: "happy",
-        motivation: "yes",
-        bodyFeeling: "fresh",
-        pain: "no",
-        stressLevel: "low",
-        recovery: "yes",
-        focus: "yes",
-        readiness: "yes",
-      });
+      
+      // Invalidate relevant queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/morning-diary"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/morning-diary/latest"] });
+      
+      // Show success message
+      setIsSubmitted(true);
     },
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: `Failed to submit morning diary: ${error.message}`,
+        description: error.message || "Failed to submit morning diary.",
         variant: "destructive",
       });
     },
   });
   
-  // Form submission handler
   function onSubmit(data: MorningDiaryFormValues) {
-    submitDiaryMutation.mutate(data);
+    submitMutation.mutate(data);
   }
   
-  // Helper function to calculate overall readiness score based on answers
   function calculateReadinessScore(data: MorningDiaryFormValues) {
     let score = 0;
     const maxScore = 10;
@@ -106,7 +97,7 @@ export default function MorningControlDiaryForm() {
     if (data.restedness === "very") score += 1;
     else if (data.restedness === "somewhat") score += 0.5;
     
-    // Mood (happy and neutral are considered positive)
+    // Mood
     if (data.mood === "happy") score += 1;
     else if (data.mood === "neutral") score += 0.75;
     
@@ -141,356 +132,472 @@ export default function MorningControlDiaryForm() {
     // Convert to percentage
     return Math.round((score / maxScore) * 100);
   }
-  
-  // Calculate dynamic readiness score as form values change
-  const watchAllFields = form.watch();
-  const readinessScore = calculateReadinessScore(watchAllFields);
-  
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Daily Morning Self-Control Diary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-5 flex items-center justify-between">
-          <p className="text-sm text-gray-500">Your morning check-in helps monitor your readiness and recovery status</p>
-          <div className={`text-lg font-bold rounded-full w-12 h-12 flex items-center justify-center ${
-            readinessScore >= 80 ? 'bg-green-100 text-green-700' :
-            readinessScore >= 60 ? 'bg-primary-light text-primary' :
-            'bg-red-100 text-red-700'
-          }`}>
-            {readinessScore}%
+
+  // If form is already submitted, show success message and current readiness score
+  if (isSubmitted) {
+    const readinessScore = calculateReadinessScore(form.getValues());
+    
+    return (
+      <div className="bg-white p-6 rounded-xl shadow-sm">
+        <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+          <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-10 w-10 text-green-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
           </div>
+          <h3 className="text-2xl font-bold text-gray-800">Thank You!</h3>
+          <p className="text-gray-600 max-w-md mx-auto">
+            Your morning control diary has been submitted successfully.
+          </p>
+          <div className="mt-2">
+            <p className="text-sm text-gray-500">Your readiness score</p>
+            <p className="text-3xl font-bold text-primary">{readinessScore}%</p>
+          </div>
+          <Button 
+            className="mt-6" 
+            onClick={() => setIsSubmitted(false)}
+          >
+            Submit Another Entry
+          </Button>
         </div>
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="sleepQuality"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-sm font-medium">How well did I sleep?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex space-x-2"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="good" id="sleep-good" />
-                        <Label htmlFor="sleep-good" className="text-sm">Good</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="okay" id="sleep-okay" />
-                        <Label htmlFor="sleep-okay" className="text-sm">Okay</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="poor" id="sleep-poor" />
-                        <Label htmlFor="sleep-poor" className="text-sm">Poor</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="restedness"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-sm font-medium">How rested do I feel?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex space-x-2"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="very" id="rest-very" />
-                        <Label htmlFor="rest-very" className="text-sm">Very</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="somewhat" id="rest-somewhat" />
-                        <Label htmlFor="rest-somewhat" className="text-sm">Somewhat</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="not at all" id="rest-not" />
-                        <Label htmlFor="rest-not" className="text-sm">Not at all</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="mood"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-sm font-medium">How is my mood this morning?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex space-x-2"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="happy" id="mood-happy" />
-                        <Label htmlFor="mood-happy" className="text-sm">Happy</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="neutral" id="mood-neutral" />
-                        <Label htmlFor="mood-neutral" className="text-sm">Neutral</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="stressed" id="mood-stressed" />
-                        <Label htmlFor="mood-stressed" className="text-sm">Stressed</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="sad" id="mood-sad" />
-                        <Label htmlFor="mood-sad" className="text-sm">Sad</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="motivation"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-sm font-medium">Do I feel motivated for today?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex space-x-2"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="yes" id="mot-yes" />
-                        <Label htmlFor="mot-yes" className="text-sm">Yes</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="somewhat" id="mot-somewhat" />
-                        <Label htmlFor="mot-somewhat" className="text-sm">Somewhat</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="no" id="mot-no" />
-                        <Label htmlFor="mot-no" className="text-sm">No</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="bodyFeeling"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-sm font-medium">How is my body feeling?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex space-x-2"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="fresh" id="body-fresh" />
-                        <Label htmlFor="body-fresh" className="text-sm">Fresh</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="a little sore" id="body-littlesore" />
-                        <Label htmlFor="body-littlesore" className="text-sm">A little sore</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="very sore" id="body-verysore" />
-                        <Label htmlFor="body-verysore" className="text-sm">Very sore</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="pain"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-sm font-medium">Am I feeling any pain or injury?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex space-x-2"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="no" id="pain-no" />
-                        <Label htmlFor="pain-no" className="text-sm">No</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="slight" id="pain-slight" />
-                        <Label htmlFor="pain-slight" className="text-sm">Slight</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="yes" id="pain-yes" />
-                        <Label htmlFor="pain-yes" className="text-sm">Yes</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="stressLevel"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-sm font-medium">How stressed do I feel?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex space-x-2"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="low" id="stress-low" />
-                        <Label htmlFor="stress-low" className="text-sm">Low</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="medium" id="stress-medium" />
-                        <Label htmlFor="stress-medium" className="text-sm">Medium</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="high" id="stress-high" />
-                        <Label htmlFor="stress-high" className="text-sm">High</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="recovery"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-sm font-medium">Did I recover well yesterday?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex space-x-2"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="yes" id="rec-yes" />
-                        <Label htmlFor="rec-yes" className="text-sm">Yes</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="somewhat" id="rec-somewhat" />
-                        <Label htmlFor="rec-somewhat" className="text-sm">Somewhat</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="no" id="rec-no" />
-                        <Label htmlFor="rec-no" className="text-sm">No</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="focus"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-sm font-medium">Am I focused on today's goals?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex space-x-2"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="yes" id="focus-yes" />
-                        <Label htmlFor="focus-yes" className="text-sm">Yes</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="not fully" id="focus-notfully" />
-                        <Label htmlFor="focus-notfully" className="text-sm">Not fully</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="no" id="focus-no" />
-                        <Label htmlFor="focus-no" className="text-sm">No</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="readiness"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-sm font-medium">Am I ready to give my best today?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex space-x-2"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="yes" id="ready-yes" />
-                        <Label htmlFor="ready-yes" className="text-sm">Yes</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="almost" id="ready-almost" />
-                        <Label htmlFor="ready-almost" className="text-sm">Almost</Label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <RadioGroupItem value="no" id="ready-no" />
-                        <Label htmlFor="ready-no" className="text-sm">No</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <div className="pt-2">
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={submitDiaryMutation.isPending}
-              >
-                {submitDiaryMutation.isPending ? "Submitting..." : "Submit Morning Check-in"}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-sm">
+      <h3 className="text-xl font-bold text-gray-800 mb-6">Daily Morning Self-Control Diary</h3>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Sleep Quality */}
+          <FormField
+            control={form.control}
+            name="sleepQuality"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>How was your sleep quality last night?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="good" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Good</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="okay" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Okay</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="poor" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Poor</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Restedness */}
+          <FormField
+            control={form.control}
+            name="restedness"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>How rested do you feel this morning?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="very" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Very rested</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="somewhat" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Somewhat rested</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="not" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Not rested</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Mood */}
+          <FormField
+            control={form.control}
+            name="mood"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>What is your mood today?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="happy" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Happy/Positive</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="neutral" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Neutral</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="low" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Low/Negative</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Motivation */}
+          <FormField
+            control={form.control}
+            name="motivation"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Are you motivated to train today?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="yes" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Yes, very motivated</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="somewhat" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Somewhat motivated</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="no" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Not motivated</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Body Feeling */}
+          <FormField
+            control={form.control}
+            name="bodyFeeling"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>How does your body feel today?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="fresh" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Fresh and energetic</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="a little sore" />
+                      </FormControl>
+                      <FormLabel className="font-normal">A little sore but okay</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="very sore" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Very sore/fatigued</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Pain or Injury */}
+          <FormField
+            control={form.control}
+            name="pain"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Do you have any pain or injury concerns?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="no" />
+                      </FormControl>
+                      <FormLabel className="font-normal">No pain/injuries</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="slight" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Slight discomfort</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="significant" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Significant pain/injury concern</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Stress Level */}
+          <FormField
+            control={form.control}
+            name="stressLevel"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>What is your current stress level?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="low" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Low stress</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="medium" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Medium stress</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="high" />
+                      </FormControl>
+                      <FormLabel className="font-normal">High stress</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Recovery */}
+          <FormField
+            control={form.control}
+            name="recovery"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Do you feel recovered from your last training session?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="yes" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Yes, fully recovered</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="somewhat" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Somewhat recovered</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="no" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Not recovered</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Mental Focus */}
+          <FormField
+            control={form.control}
+            name="focus"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Do you feel mentally focused today?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="yes" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Yes, very focused</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="not fully" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Not fully focused</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="distracted" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Distracted/unfocused</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Readiness */}
+          <FormField
+            control={form.control}
+            name="readiness"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Do you feel ready to perform your best today?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="yes" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Yes, ready to perform at my best</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="almost" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Almost there</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="no" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Not ready to perform well</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Additional Notes */}
+          <FormField
+            control={form.control}
+            name="additionalNotes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Additional Notes (optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Anything else you'd like to note about how you're feeling today?"
+                    className="resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  You can include any other factors affecting your readiness today.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={submitMutation.isPending}
+          >
+            {submitMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              "Submit Morning Diary"
+            )}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }
