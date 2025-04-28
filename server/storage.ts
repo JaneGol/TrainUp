@@ -48,6 +48,13 @@ export interface IStorage {
   // Team metrics
   getTeamReadiness(): Promise<{ date: string; value: number }[]>;
   
+  // Enhanced Analytics methods
+  getTrainingTypeDistribution(): Promise<{ name: string; value: number }[]>;
+  getAthletePerformanceComparison(): Promise<{ name: string; endurance: number; strength: number; speed: number; flexibility: number }[]>;
+  getAthleteProgressOverTime(athleteId: number): Promise<{ date: string; value: number }[]>;
+  getTeamWellnessTrends(timeframe: string): Promise<{ date: string; value: number; category: string }[]>;
+  getInjuryRiskAnalytics(): Promise<{ name: string; risk: number; factors: string[] }[]>;
+  
   // Session store
   sessionStore: SessionStoreType;
 }
