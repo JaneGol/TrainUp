@@ -10,7 +10,8 @@ import session from "express-session";
 import createMemoryStore from "memorystore";
 
 const MemoryStore = createMemoryStore(session);
-type SessionStoreType = InstanceType<typeof MemoryStore>;
+// Use a more generic session store type to accommodate different implementations
+type SessionStoreType = session.Store;
 
 // modify the interface with any CRUD methods
 // you might need
@@ -268,4 +269,8 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Import DatabaseStorage implementation
+import { DatabaseStorage } from './database-storage';
+
+// Switch to the database storage implementation
+export const storage = new DatabaseStorage();
