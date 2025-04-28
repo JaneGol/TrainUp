@@ -54,10 +54,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   
   // Define navigation items based on user role
   const athleteNavItems = [
-    { label: "Self-Monitoring Diary", icon: <SunMoon className="h-5 w-5" />, href: "/morning-diary" },
-    { label: "Training Evaluation", icon: <FileText className="h-5 w-5" />, href: "/training-diary" },
-    { label: "Fitness Progress", icon: <BarChart className="h-5 w-5" />, href: "/fitness-progress" },
-    { label: "Smart Doctor", icon: <HeartPulse className="h-5 w-5" />, href: "/smart-doctor" },
+    { label: "SELF CONTROL DIARY", icon: <SunMoon className="h-5 w-5" />, href: "/morning-diary" },
+    { label: "RPE FORM", icon: <FileText className="h-5 w-5" />, href: "/training-diary" },
+    { label: "fitness progress", icon: <BarChart className="h-5 w-5" />, href: "/fitness-progress" },
+    { label: "smart doctor", icon: <HeartPulse className="h-5 w-5" />, href: "/smart-doctor" },
   ];
   
   const coachNavItems = [
