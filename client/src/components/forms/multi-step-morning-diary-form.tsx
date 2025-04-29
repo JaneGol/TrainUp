@@ -449,20 +449,20 @@ export default function MultiStepMorningDiaryForm() {
                           type="button" 
                           className="flex items-center justify-center w-10 h-10 text-white hover:bg-gray-700"
                           onClick={() => {
-                            const newValue = Math.max(0, (field.value || 7) - 1);
+                            const newValue = Math.max(0, (field.value || 7) - 0.5);
                             field.onChange(newValue);
                           }}
                         >
                           <span className="text-xl font-bold">−</span>
                         </button>
                         <div className="flex items-center justify-center min-w-16 px-3 text-white font-medium">
-                          {field.value || 7}
+                          {field.value?.toFixed(1).replace(/\.0$/, '') || '7'}
                         </div>
                         <button 
                           type="button" 
                           className="flex items-center justify-center w-10 h-10 text-white hover:bg-gray-700"
                           onClick={() => {
-                            const newValue = Math.min(24, (field.value || 7) + 1);
+                            const newValue = Math.min(24, (field.value || 7) + 0.5);
                             field.onChange(newValue);
                           }}
                         >

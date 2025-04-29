@@ -43,7 +43,7 @@ export const morningDiary = pgTable("morning_diary", {
   date: timestamp("date").defaultNow().notNull(),
   // Step 1: Sleep & Emotional State
   sleepQuality: text("sleep_quality", { enum: ["good", "average", "poor"] }).notNull(),
-  sleepHours: integer("sleep_hours").notNull(),
+  sleepHours: text("sleep_hours").notNull(),
   stressLevel: text("stress_level", { enum: ["low", "medium", "high"] }).notNull(),
   mood: text("mood", { enum: ["positive", "neutral", "negative"] }).notNull(),
   
