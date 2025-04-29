@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import { useLocation } from "wouter";
 import { insertMorningDiarySchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -162,17 +163,28 @@ export default function MorningControlDiaryForm() {
     return Math.round((score / maxScore) * 100);
   }
 
-  // If form is already submitted, show success message and current readiness score
+  // If form is already submitted, show success message and redirect after a delay
   if (isSubmitted) {
     const readinessScore = calculateReadinessScore(form.getValues());
+    const [, setLocation] = useLocation();
+    
+    // Auto-redirect after 3 seconds
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        // Navigate back to athlete home screen
+        setLocation("/athlete");
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }, [setLocation]);
     
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm">
+      <div className="bg-black p-6 rounded-xl shadow-sm border border-gray-800">
         <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
-          <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-4">
+          <div className="w-20 h-20 rounded-full bg-primary bg-opacity-20 flex items-center justify-center mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-10 w-10 text-green-500"
+              className="h-10 w-10 text-primary"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -185,28 +197,23 @@ export default function MorningControlDiaryForm() {
               />
             </svg>
           </div>
-          <h3 className="text-2xl font-bold text-gray-800">Thank You!</h3>
-          <p className="text-gray-600 max-w-md mx-auto">
-            Your morning control diary has been submitted successfully.
+          <h3 className="text-2xl font-bold text-white">Thank you for your answers!</h3>
+          <p className="text-gray-300 max-w-md mx-auto">
+            Have a great day!
           </p>
           <div className="mt-2">
-            <p className="text-sm text-gray-500">Your readiness score</p>
+            <p className="text-sm text-gray-400">Your readiness score</p>
             <p className="text-3xl font-bold text-primary">{readinessScore}%</p>
           </div>
-          <Button 
-            className="mt-6" 
-            onClick={() => setIsSubmitted(false)}
-          >
-            Submit Another Entry
-          </Button>
+          <p className="text-sm text-gray-500 mt-4">Returning to home screen...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm">
-      <h3 className="text-xl font-bold text-gray-800 mb-6">Daily Morning Self-Control Diary</h3>
+    <div className="bg-black p-6 rounded-xl shadow-sm border border-gray-800">
+      <h3 className="text-xl font-bold text-white mb-6">Daily Morning Self-Control Diary</h3>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Sleep Quality */}
@@ -215,7 +222,7 @@ export default function MorningControlDiaryForm() {
             name="sleepQuality"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>How was your sleep quality last night?</FormLabel>
+                <FormLabel className="text-white">How was your sleep quality last night?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -253,7 +260,7 @@ export default function MorningControlDiaryForm() {
             name="restedness"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>How rested do you feel this morning?</FormLabel>
+                <FormLabel className="text-white">How rested do you feel this morning?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -291,7 +298,7 @@ export default function MorningControlDiaryForm() {
             name="mood"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>What is your mood today?</FormLabel>
+                <FormLabel className="text-white">What is your mood today?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
