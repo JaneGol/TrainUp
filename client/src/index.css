@@ -126,8 +126,13 @@
 /* Custom button styles matching the screenshot */
 .btn-athletic {
   @apply rounded-2xl font-semibold transition-all duration-200
-         flex items-center justify-center gap-2 text-black text-lg
+         flex items-start justify-between p-5 text-black text-lg
          bg-primary;
+}
+
+/* Sport app icon style for navigation buttons */
+.sport-icon {
+  @apply h-9 w-9 mr-3 text-current;
 }
 
 /* Add custom hover behavior to all buttons using this class */

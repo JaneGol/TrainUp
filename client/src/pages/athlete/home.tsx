@@ -2,14 +2,15 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
-  ClipboardList,
+  ClipboardCheck,
   BarChart3,
-  Activity,
+  Dumbbell,
   Heart,
   Loader2,
   Trophy,
   ArrowRight,
-  LogOut
+  LogOut,
+  LineChart
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -82,19 +83,22 @@ export default function AthleteHomePage() {
               <Loader2 className="h-6 w-6 animate-spin text-white" />
             ) : (
               <>
-                <ClipboardList className="h-7 w-7" />
-                <div className="flex flex-col items-center">
-                  <span className="text-xl font-bold">Self-Control Diary</span>
-                  {hasCompletedDiaryToday ? (
-                    <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full mt-1">
-                      Completed Today
-                    </span>
-                  ) : (
-                    <span className="text-xs flex items-center mt-1">
-                      Complete now <ArrowRight className="h-3 w-3 ml-1" />
-                    </span>
-                  )}
+                <div className="flex items-center">
+                  <ClipboardList className="sport-icon" />
+                  <div className="flex flex-col items-start">
+                    <span className="text-xl font-bold">Self-Control Diary</span>
+                    {hasCompletedDiaryToday ? (
+                      <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full mt-1">
+                        Completed Today
+                      </span>
+                    ) : (
+                      <span className="text-xs flex items-center mt-1">
+                        Complete now <ArrowRight className="h-3 w-3 ml-1" />
+                      </span>
+                    )}
+                  </div>
                 </div>
+                <ArrowRight className="h-5 w-5 opacity-70" />
               </>
             )}
           </Button>
@@ -104,8 +108,11 @@ export default function AthleteHomePage() {
             onClick={() => navigate("/athlete/training-entry")}
             className="btn-athletic h-24 bg-gray-600 text-primary hover:text-primary"
           >
-            <Activity className="h-7 w-7" />
-            <span className="text-xl font-bold">RPE Form</span>
+            <div className="flex items-center">
+              <Activity className="sport-icon" />
+              <span className="text-xl font-bold">RPE Form</span>
+            </div>
+            <ArrowRight className="h-5 w-5 opacity-70" />
           </Button>
 
           {/* Fitness Progress Button */}
@@ -113,8 +120,11 @@ export default function AthleteHomePage() {
             onClick={() => navigate("/athlete/fitness-progress")}
             className="btn-athletic h-24 bg-primary text-black"
           >
-            <BarChart3 className="h-7 w-7" />
-            <span className="text-xl font-bold">Fitness Progress</span>
+            <div className="flex items-center">
+              <BarChart3 className="sport-icon" />
+              <span className="text-xl font-bold">Fitness Progress</span>
+            </div>
+            <ArrowRight className="h-5 w-5 opacity-70" />
           </Button>
 
           {/* Smart Doctor Button */}
@@ -122,8 +132,11 @@ export default function AthleteHomePage() {
             onClick={() => navigate("/athlete/smart-doctor")}
             className="btn-athletic h-24 bg-primary text-black"
           >
-            <Heart className="h-7 w-7" />
-            <span className="text-xl font-bold">Smart Doctor</span>
+            <div className="flex items-center">
+              <Heart className="sport-icon" />
+              <span className="text-xl font-bold">Smart Doctor</span>
+            </div>
+            <ArrowRight className="h-5 w-5 opacity-70" />
           </Button>
         </div>
       </main>
