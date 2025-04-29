@@ -7,11 +7,15 @@ import NotFound from "@/pages/not-found";
 import { AuthProvider } from "./hooks/use-auth";
 import AuthPage from "@/pages/auth-page";
 import { ProtectedRoute } from "./lib/protected-route";
-import AthleteDashboard from "@/pages/athlete/dashboard";
-import TrainingDiary from "@/pages/athlete/training-diary";
-import FitnessProgress from "@/pages/athlete/fitness-progress";
-import SmartDoctor from "@/pages/athlete/smart-doctor";
+
+// Athlete pages
+import AthleteHomePage from "@/pages/athlete/home";
+import FitnessProgressPage from "@/pages/athlete/fitness-progress";
+import SmartDoctorPage from "@/pages/athlete/smart-doctor";
 import MorningDiaryPage from "@/pages/athlete/morning-diary";
+import TrainingEntryForm from "@/pages/athlete/training-entry";
+
+// Coach pages
 import CoachDashboard from "@/pages/coach/dashboard";
 import AthleteLogsPage from "@/pages/coach/athlete-logs";
 import TeamOverviewPage from "@/pages/coach/team-overview";
@@ -24,11 +28,12 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       
       {/* Athlete routes */}
-      <ProtectedRoute path="/" component={AthleteDashboard} />
-      <ProtectedRoute path="/morning-diary" component={MorningDiaryPage} />
-      <ProtectedRoute path="/training-diary" component={TrainingDiary} />
-      <ProtectedRoute path="/fitness-progress" component={FitnessProgress} />
-      <ProtectedRoute path="/smart-doctor" component={SmartDoctor} />
+      <ProtectedRoute path="/" component={AthleteHomePage} />
+      <ProtectedRoute path="/athlete" component={AthleteHomePage} />
+      <ProtectedRoute path="/athlete/morning-diary" component={MorningDiaryPage} />
+      <ProtectedRoute path="/athlete/training-entry" component={TrainingEntryForm} />
+      <ProtectedRoute path="/athlete/fitness-progress" component={FitnessProgressPage} />
+      <ProtectedRoute path="/athlete/smart-doctor" component={SmartDoctorPage} />
       
       {/* Coach routes */}
       <ProtectedRoute path="/coach" component={CoachDashboard} />
