@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BarChart,
   LineChart,
-  HeatMap,
   PieChart,
   RadarChart,
 } from "recharts";
@@ -241,7 +240,10 @@ export function ACWRChart({
                 color: 'white'
               }}
               itemStyle={{ color: 'white' }}
-              formatter={(value, name) => [`${value.toFixed(2)}`, `${name}`]}
+              formatter={(value, name) => {
+                const numValue = typeof value === 'number' ? value.toFixed(2) : value;
+                return [`${numValue}`, `${name}`];
+              }}
               labelFormatter={(label) => `Date: ${label}`}
             />
             <Legend />
@@ -323,7 +325,7 @@ export function WellnessTrendsChart({
   const categories = Array.from(new Set(data.map(item => item.category)));
   
   // Group by date to create a proper dataset for the line chart
-  const groupedData: Record<string, Record<string, number>> = {};
+  const groupedData: Record<string, Record<string, number | string>> = {};
   
   data.forEach(({ date, category, value }) => {
     const formattedDate = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });

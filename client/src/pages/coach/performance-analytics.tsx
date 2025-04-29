@@ -355,164 +355,17 @@ export default function PerformanceAnalyticsPage() {
             </div>
             
             <div className="grid grid-cols-1 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Training Load by Type</CardTitle>
-                  <CardDescription>
-                    Training load calculated as RPE (1-10) × Duration (minutes)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {trainingLoadLoading ? (
-                    <div className="h-80 flex items-center justify-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : trainingLoadError ? (
-                    <Alert variant="destructive" className="mb-6">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        Failed to load training data. Please try again later.
-                      </AlertDescription>
-                    </Alert>
-                  ) : (
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={trainingLoadByType}
-                          margin={{
-                            top: 20,
-                            right: 30,
-                            left: 20,
-                            bottom: 5,
-                          }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis 
-                            dataKey="date" 
-                            tickFormatter={(date) => {
-                              const d = new Date(date);
-                              return `${d.getDate()}/${d.getMonth() + 1}`;
-                            }}
-                            tick={{ fontSize: 12 }}
-                          />
-                          <YAxis 
-                            label={{ 
-                              value: 'Training Load (arbitrary units)', 
-                              angle: -90, 
-                              position: 'insideLeft' 
-                            }}
-                          />
-                          <Tooltip 
-                            formatter={(value, name) => [value, name]}
-                            labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                          />
-                          <Legend />
-                          {uniqueTrainingTypes.map((type) => (
-                            <Bar 
-                              key={type} 
-                              dataKey={type} 
-                              stackId="a" 
-                              fill={TRAINING_TYPES_COLORS[type] || TRAINING_TYPES_COLORS.Other} 
-                              name={type}
-                            />
-                          ))}
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <TrainingLoadChart 
+                data={processedTrainingLoad}
+                loading={trainingLoadLoading}
+                error={trainingLoadError}
+              />
               
-              <Card>
-                <CardHeader>
-                  <CardTitle>Acute:Chronic Workload Ratio</CardTitle>
-                  <CardDescription>
-                    ACWR compares 7-day workload (acute) to 28-day workload (chronic)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {acwrLoading ? (
-                    <div className="h-80 flex items-center justify-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : acwrError ? (
-                    <Alert variant="destructive" className="mb-6">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        Failed to load ACWR data. Please try again later.
-                      </AlertDescription>
-                    </Alert>
-                  ) : (
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={processedAcwr}
-                          margin={{
-                            top: 20,
-                            right: 30,
-                            left: 20,
-                            bottom: 5,
-                          }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis 
-                            dataKey="date" 
-                            tickFormatter={(date) => {
-                              const d = new Date(date);
-                              return `${d.getDate()}/${d.getMonth() + 1}`;
-                            }}
-                            tick={{ fontSize: 12 }}
-                          />
-                          <YAxis 
-                            label={{ 
-                              value: 'ACWR', 
-                              angle: -90, 
-                              position: 'insideLeft' 
-                            }}
-                            domain={[0, 2]}
-                          />
-                          <Tooltip 
-                            formatter={(value, name) => {
-                              if (name === "ratio") return [value, "ACWR"];
-                              if (name === "acute") return [value, "Acute load (7-day)"];
-                              if (name === "chronic") return [value, "Chronic load (28-day)"];
-                              return [value, name];
-                            }}
-                            labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                          />
-                          <Legend />
-                          
-                          {/* Safe zone reference */}
-                          <ReferenceLine y={0.8} stroke="#22c55e" strokeDasharray="3 3" />
-                          <ReferenceLine y={1.3} stroke="#f97316" strokeDasharray="3 3" />
-                          
-                          {/* Danger zone label */}
-                          <ReferenceLine 
-                            y={1.5} 
-                            label={{ 
-                              value: 'High Injury Risk', 
-                              position: 'right',
-                              fill: '#ef4444',
-                              fontSize: 12
-                            }} 
-                            stroke="#ef4444" 
-                            strokeDasharray="3 3" 
-                          />
-                          
-                          <Line 
-                            type="monotone" 
-                            dataKey="ratio" 
-                            stroke="#0062cc"
-                            strokeWidth={2}
-                            dot={{ r: 3 }}
-                            activeDot={{ r: 8 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <ACWRChart 
+                data={processedAcwr}
+                loading={acwrLoading}
+                error={acwrError}
+              />
               
               <Card>
                 <CardHeader>
@@ -597,10 +450,9 @@ export default function PerformanceAnalyticsPage() {
               
               {/* Team wellness trends component - Only shown when no athlete is selected */}
               {!selectedAthlete && (
-                <TeamWellnessTrends
+                <WellnessTrendsChart
                   data={processedWellnessTrends}
-                  categories={wellnessCategories}
-                  isLoading={wellnessTrendsLoading}
+                  loading={wellnessTrendsLoading}
                   error={wellnessTrendsError}
                 />
               )}
@@ -608,14 +460,14 @@ export default function PerformanceAnalyticsPage() {
               {/* Recovery readiness dashboard component */}
               <RecoveryReadinessDashboard
                 data={selectedAthlete ? filteredRecoveryReadiness : recoveryReadinessData}
-                isLoading={recoveryReadinessLoading}
+                loading={recoveryReadinessLoading}
                 error={recoveryReadinessError}
               />
               
               {/* Injury risk analysis component */}
-              <InjuryRiskAnalysis
+              <InjuryRiskFactorAnalysis
                 data={selectedAthlete ? filteredInjuryRisk : injuryRiskData}
-                isLoading={injuryRiskLoading}
+                loading={injuryRiskLoading}
                 error={injuryRiskError}
               />
             </div>
