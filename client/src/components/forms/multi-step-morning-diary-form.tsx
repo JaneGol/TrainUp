@@ -448,8 +448,7 @@ export default function MultiStepMorningDiaryForm() {
                         type="number"
                         min={0}
                         max={24}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        className="w-20"
+                        className="w-20 bg-gray-800 border-gray-700 text-white"
                         value={field.value || 0}
                         onChange={(e) => {
                           const value = parseInt(e.target.value);
@@ -722,7 +721,7 @@ export default function MultiStepMorningDiaryForm() {
                         <FormControl>
                           <Textarea 
                             placeholder="Describe your symptoms..."
-                            className="resize-none"
+                            className="resize-none bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
                             {...field}
                           />
                         </FormControl>
@@ -1248,7 +1247,7 @@ export default function MultiStepMorningDiaryForm() {
               {/* Comment about soreness/pain */}
               <Textarea
                 placeholder="Describe any pain or discomfort (optional)"
-                className="resize-none h-20"
+                className="resize-none h-20 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
                 value={form.getValues("injuryNotes") || ""}
                 onChange={(e) => form.setValue("injuryNotes", e.target.value)}
               />
