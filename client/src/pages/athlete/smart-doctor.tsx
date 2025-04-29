@@ -10,7 +10,8 @@ import {
   Utensils,
   AlertCircle,
   CheckCircle2,
-  Info
+  Info,
+  Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -191,8 +192,14 @@ export default function SmartDoctorPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2 mb-1">
+                  <Activity className="h-5 w-5 text-primary" />
                   <CardTitle>Current Health Status</CardTitle>
+                </div>
+                <div className="flex justify-between items-center">
+                  <CardDescription>
+                    Based on your latest morning self-assessment
+                  </CardDescription>
                   <Badge className={assessment.color} variant="outline">
                     <span className="flex items-center gap-1">
                       {assessment.statusIcon}
@@ -200,9 +207,6 @@ export default function SmartDoctorPage() {
                     </span>
                   </Badge>
                 </div>
-                <CardDescription>
-                  Based on your latest morning self-assessment
-                </CardDescription>
               </CardHeader>
               <CardContent className="pb-2">
                 <div className="mb-4">

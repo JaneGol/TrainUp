@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Loader2, ChevronLeft, AlertCircle } from "lucide-react";
+import { Loader2, ChevronLeft, AlertCircle, Activity, BarChart2, PieChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -213,7 +213,13 @@ export default function FitnessProgressPage() {
             <>
               <Card>
                 <CardHeader>
-                  <CardTitle>Training Load Over Time</CardTitle>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Activity className="h-5 w-5 text-primary" />
+                    <CardTitle>Training Load Over Time</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Your training intensity based on RPE entries
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-64">
