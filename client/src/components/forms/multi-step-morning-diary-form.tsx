@@ -390,7 +390,7 @@ export default function MultiStepMorningDiaryForm() {
       case 1:
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-200">Step 1: Sleep & Emotional State</h3>
+            <h3 className="text-2xl font-semibold text-gray-100 mb-4">Sleep & Emotional State</h3>
             
             {/* Sleep Quality Slider */}
             <FormField
@@ -520,7 +520,7 @@ export default function MultiStepMorningDiaryForm() {
       case 2:
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-200">Step 2: Recovery & Health</h3>
+            <h3 className="text-2xl font-semibold text-gray-100 mb-4">Recovery & Health</h3>
             
             {/* Recovery Level Slider */}
             <FormField
@@ -651,7 +651,7 @@ export default function MultiStepMorningDiaryForm() {
       case 3:
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-gray-200">Step 3: Muscle Soreness & Injury Check</h3>
+            <h3 className="text-2xl font-semibold text-gray-100 mb-4">Muscle Soreness & Injury Check</h3>
             
             {/* Body Map with Front/Back Toggle */}
             <div className="space-y-4">
@@ -674,7 +674,7 @@ export default function MultiStepMorningDiaryForm() {
                 </Button>
               </div>
               
-              <div className="bg-gray-900 rounded-lg p-4">
+              <div className="bg-[#1a1d22] rounded-lg p-4">
                 <FormLabel className="text-gray-200 block mb-2">
                   Select areas where you feel soreness (required):
                 </FormLabel>
@@ -1299,8 +1299,9 @@ export default function MultiStepMorningDiaryForm() {
   }
   
   return (
-    <div className="bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-800">
-      <h3 className="text-xl font-bold text-gray-100 mb-4">Daily Morning Self-Control Diary</h3>
+    <div className="bg-[#1a1d22] p-6 rounded-xl shadow-sm border border-gray-800">
+      <h2 className="text-3xl font-bold text-gray-100 mb-1">Daily Morning Self-Control Diary</h2>
+      <p className="text-gray-400 mb-6">Track your sleep, recovery, health, and soreness levels</p>
       
       {/* Progress Steps */}
       <div className="mb-6">
