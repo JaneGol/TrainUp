@@ -122,6 +122,7 @@ export default function MultiStepMorningDiaryForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [bodyView, setBodyView] = useState<'front' | 'back'>('front');
+  const [, setLocation] = useLocation();
   
   // Create form with default values
   const form = useForm<MorningDiaryFormValues>({
@@ -335,20 +336,21 @@ export default function MultiStepMorningDiaryForm() {
     submitMutation.mutate(data);
   }
   
-  // If form is already submitted, show success message and redirect after a delay
-  if (isSubmitted) {
-    const readinessScore = calculateReadinessScore(form.getValues());
-    const [, setLocation] = useLocation();
-    
-    // Auto-redirect after 3 seconds
-    useEffect(() => {
+  // Auto-redirect after successful submission
+  useEffect(() => {
+    if (isSubmitted) {
       const timer = setTimeout(() => {
         // Navigate back to athlete home screen
         setLocation("/athlete");
       }, 3000);
       
       return () => clearTimeout(timer);
-    }, [setLocation]);
+    }
+  }, [isSubmitted, setLocation]);
+  
+  // If form is already submitted, show success message
+  if (isSubmitted) {
+    const readinessScore = calculateReadinessScore(form.getValues());
     
     return (
       <div className="bg-black p-6 rounded-xl shadow-sm border border-gray-800">
