@@ -35,18 +35,21 @@ const morningDiarySchema = z.object({
   userId: z.number(),
   
   // Step 1: Sleep & Emotional State
-  sleepQuality: z.enum(["good", "average", "poor"]),
+  sleepQuality: z.number().min(1).max(10),
   sleepHours: z.number().min(0).max(24),
-  stressLevel: z.enum(["low", "medium", "high"]),
-  mood: z.enum(["positive", "neutral", "negative"]),
+  stressLevel: z.number().min(1).max(10),
+  mood: z.number().min(1).max(10),
   
   // Step 2: Recovery & Health
-  recoveryLevel: z.enum(["good", "moderate", "poor"]),
+  recoveryLevel: z.number().min(1).max(10),
   symptoms: z.array(z.string()),
-  motivationLevel: z.enum(["high", "moderate", "low"]),
+  motivationLevel: z.number().min(1).max(10),
   
   // Step 3: Muscle Soreness & Injury
-  sorenessMap: z.record(z.string(), z.number()),
+  sorenessMap: z.record(z.string(), z.number()).refine(
+    (map) => Object.keys(map).length > 0 || map._no_soreness === 1, 
+    { message: "Please select at least one body part or confirm you have no soreness" }
+  ),
   hasInjury: z.boolean(),
   painLevel: z.number().min(0).max(10).optional(),
   injuryImproving: z.enum(["yes", "no", "unchanged"]).optional(),
@@ -131,15 +134,15 @@ export default function MultiStepMorningDiaryForm() {
       userId: user?.id ?? 0,
       
       // Step 1 defaults
-      sleepQuality: "average",
+      sleepQuality: 5, // Middle of 1-10 scale
       sleepHours: 7,
-      stressLevel: "medium",
-      mood: "neutral",
+      stressLevel: 5, // Middle of 1-10 scale
+      mood: 5, // Middle of 1-10 scale
       
       // Step 2 defaults
-      recoveryLevel: "moderate",
+      recoveryLevel: 5, // Middle of 1-10 scale
       symptoms: [],
-      motivationLevel: "moderate",
+      motivationLevel: 5, // Middle of 1-10 scale
       
       // Step 3 defaults
       sorenessMap: {},
