@@ -6,74 +6,79 @@
 @tailwind utilities;
 
 :root {
-  /* Modern sports-themed color palette */
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
-  --muted: 210 40% 93%;
-  --muted-foreground: 215 25% 40%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
+  /* Dark sports app color palette - matching the screenshot */
+  --background: 0 0% 13%; /* Dark gray, almost black #212121 */
+  --foreground: 0 0% 98%; /* Off-white for text */
+  --muted: 0 0% 20%; /* Slightly lighter gray for muted elements */
+  --muted-foreground: 0 0% 80%; /* Light gray for muted text */
+  --popover: 0 0% 13%; /* Same as background */
+  --popover-foreground: 0 0% 98%; /* Same as foreground */
+  --card: 0 0% 15%; /* Slightly lighter than background for cards #262626 */
+  --card-foreground: 0 0% 98%; /* Same as foreground */
+  --border: 0 0% 20%; /* Dark border color */
+  --input: 0 0% 20%; /* Dark input color */
   
-  /* Energetic blue as primary color */
-  --primary: 212 100% 47%;
-  --primary-foreground: 210 40% 98%;
+  /* Neon yellow-green as primary color from screenshot #CBFF00 */
+  --primary: 73 100% 50%;
+  --primary-foreground: 0 0% 10%; /* Dark text on bright background */
   
-  /* Secondary color - sporty mint green */
-  --secondary: 152 76% 44%;
-  --secondary-foreground: 210 40% 98%;
+  /* Secondary color - dark gray with green tint */
+  --secondary: 73 10% 20%;
+  --secondary-foreground: 0 0% 98%;
   
-  /* Accent color - vibrant orange */
-  --accent: 25 95% 53%;
-  --accent-foreground: 210 40% 98%;
+  /* Accent color - matching the neon yellow-green */
+  --accent: 73 100% 50%;
+  --accent-foreground: 0 0% 10%;
   
   /* Alert red */
   --destructive: 0 84% 60%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive-foreground: 0 0% 98%;
   
-  /* Other sports accent colors */
-  --success: 142 76% 36%;
+  /* Other accent colors */
+  --success: 142 70% 45%;
   --warning: 38 92% 50%;
-  --info: 199 89% 48%;
+  --info: 196 80% 50%;
   
-  --ring: 212 100% 47%;
-  --radius: 0.75rem;
+  --ring: 73 100% 50%;
+  --radius: 1rem; /* More rounded corners like in the screenshot */
 }
 
+/* Since we're always using dark mode by default, keep both consistent */
 .dark {
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
-  --popover: 222 47% 11%;
-  --popover-foreground: 210 40% 98%;
-  --card: 222 47% 11%;
-  --card-foreground: 210 40% 98%;
-  --border: 217 33% 17%;
-  --input: 217 33% 17%;
+  --background: 0 0% 13%; /* Dark gray, almost black #212121 */
+  --foreground: 0 0% 98%; /* Off-white for text */
+  --muted: 0 0% 20%; /* Slightly lighter gray for muted elements */
+  --muted-foreground: 0 0% 80%; /* Light gray for muted text */
+  --popover: 0 0% 13%; /* Same as background */
+  --popover-foreground: 0 0% 98%; /* Same as foreground */
+  --card: 0 0% 15%; /* Slightly lighter than background for cards #262626 */
+  --card-foreground: 0 0% 98%; /* Same as foreground */
+  --border: 0 0% 20%; /* Dark border color */
+  --input: 0 0% 20%; /* Dark input color */
   
-  /* Slightly brighter in dark mode */
-  --primary: 212 100% 50%;
-  --primary-foreground: 210 40% 98%;
+  /* Neon yellow-green as primary color from screenshot #CBFF00 */
+  --primary: 73 100% 50%;
+  --primary-foreground: 0 0% 10%; /* Dark text on bright background */
   
-  --secondary: 152 76% 50%;
-  --secondary-foreground: 210 40% 98%;
+  /* Secondary color - dark gray with green tint */
+  --secondary: 73 10% 20%;
+  --secondary-foreground: 0 0% 98%;
   
-  --accent: 25 95% 53%;
-  --accent-foreground: 210 40% 98%;
+  /* Accent color - matching the neon yellow-green */
+  --accent: 73 100% 50%;
+  --accent-foreground: 0 0% 10%;
   
+  /* Alert red */
   --destructive: 0 84% 60%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive-foreground: 0 0% 98%;
   
-  --success: 142 76% 42%;
+  /* Other accent colors */
+  --success: 142 70% 45%;
   --warning: 38 92% 50%;
-  --info: 199 89% 48%;
+  --info: 196 80% 50%;
   
-  --ring: 212 100% 50%;
-  --radius: 0.75rem;
+  --ring: 73 100% 50%;
+  --radius: 1rem; /* More rounded corners like in the screenshot */
 }
 
 @layer base {
@@ -99,28 +104,36 @@
   
   /* Sport-themed gradient text */
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-info to-secondary;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary;
   }
   
-  /* Sport-themed gradient backgrounds */
+  /* Dark gradient backgrounds with subtle variation */
   .gradient-bg {
-    @apply bg-gradient-to-r from-primary to-info;
+    @apply bg-gradient-to-b from-black to-background;
   }
   
+  /* Neon gradient button matching screenshot */
   .gradient-btn {
-    @apply bg-gradient-to-r from-accent to-primary text-white font-semibold;
+    @apply bg-primary text-black font-semibold hover:brightness-110;
   }
   
-  /* Card with subtle sports-themed highlight */
+  /* Card with sports-themed highlight */
   .card-highlight {
-    @apply border-l-4 border-accent shadow-md;
+    @apply border-l-4 border-primary bg-card rounded-lg shadow-md;
   }
 }
 
-/* Custom button styles for strong athletic look */
+/* Custom button styles matching the screenshot */
 .btn-athletic {
-  @apply rounded-xl font-semibold shadow-md transition-all duration-300 
-         flex items-center justify-center gap-2 
-         hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
+  @apply rounded-2xl font-semibold transition-all duration-200
+         flex items-center justify-center gap-2 text-black
+         bg-primary hover:brightness-110 active:brightness-90;
+}
+
+/* Dark button style for contrast */
+.btn-dark {
+  @apply rounded-2xl font-semibold transition-all duration-200
+         flex items-center justify-center gap-2 text-white
+         bg-background border border-gray-700 hover:border-primary;
 }
 
