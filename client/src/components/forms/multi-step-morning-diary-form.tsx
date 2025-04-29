@@ -441,12 +441,13 @@ export default function MultiStepMorningDiaryForm() {
                           min={0}
                           max={5}
                           step={1}
-                          value={[field.value === "low" ? 1 : field.value === "medium" ? 3 : field.value === "high" ? 5 : 1]}
+                          defaultValue={[field.value === "low" ? 1 : field.value === "medium" ? 3 : field.value === "high" ? 5 : 1]}
                           onValueChange={(vals) => {
                             const val = vals[0];
-                            if (val <= 2) field.onChange("low");
+                            if (val <= 1) field.onChange("low");
+                            else if (val === 2) field.onChange("low");
+                            else if (val === 3) field.onChange("medium");
                             else if (val >= 4) field.onChange("high");
-                            else field.onChange("medium");
                           }}
                           className="py-3"
                         />
@@ -487,12 +488,13 @@ export default function MultiStepMorningDiaryForm() {
                           min={0}
                           max={5}
                           step={1}
-                          value={[field.value === "negative" ? 1 : field.value === "neutral" ? 3 : field.value === "positive" ? 5 : 3]}
+                          defaultValue={[field.value === "negative" ? 1 : field.value === "neutral" ? 3 : field.value === "positive" ? 5 : 3]}
                           onValueChange={(vals) => {
                             const val = vals[0];
-                            if (val <= 2) field.onChange("negative");
+                            if (val <= 1) field.onChange("negative");
+                            else if (val === 2) field.onChange("negative");
+                            else if (val === 3) field.onChange("neutral");
                             else if (val >= 4) field.onChange("positive");
-                            else field.onChange("neutral");
                           }}
                           className="py-3"
                         />
@@ -540,12 +542,13 @@ export default function MultiStepMorningDiaryForm() {
                           min={0}
                           max={5}
                           step={1}
-                          value={[field.value === "poor" ? 1 : field.value === "moderate" ? 3 : field.value === "good" ? 5 : 3]}
+                          defaultValue={[field.value === "poor" ? 1 : field.value === "moderate" ? 3 : field.value === "good" ? 5 : 3]}
                           onValueChange={(vals) => {
                             const val = vals[0];
-                            if (val <= 2) field.onChange("poor");
+                            if (val <= 1) field.onChange("poor");
+                            else if (val === 2) field.onChange("poor");
+                            else if (val === 3) field.onChange("moderate");
                             else if (val >= 4) field.onChange("good");
-                            else field.onChange("moderate");
                           }}
                           className="py-3"
                         />
@@ -620,12 +623,13 @@ export default function MultiStepMorningDiaryForm() {
                           min={0}
                           max={5}
                           step={1}
-                          value={[field.value === "low" ? 1 : field.value === "moderate" ? 3 : field.value === "high" ? 5 : 3]}
+                          defaultValue={[field.value === "low" ? 1 : field.value === "moderate" ? 3 : field.value === "high" ? 5 : 3]}
                           onValueChange={(vals) => {
                             const val = vals[0];
-                            if (val <= 2) field.onChange("low");
+                            if (val <= 1) field.onChange("low");
+                            else if (val === 2) field.onChange("low");
+                            else if (val === 3) field.onChange("moderate");
                             else if (val >= 4) field.onChange("high");
-                            else field.onChange("moderate");
                           }}
                           className="py-3"
                         />
