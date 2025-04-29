@@ -43,7 +43,7 @@ export default function MorningControlDiaryForm() {
   const form = useForm<MorningDiaryFormValues>({
     resolver: zodResolver(morningDiarySchema),
     defaultValues: {
-      userId: user?.id,
+      userId: user?.id ?? 0, // Default to 0 if user is not loaded yet
       sleepQuality: "okay",
       restedness: "somewhat",
       mood: "neutral",
@@ -68,7 +68,22 @@ export default function MorningControlDiaryForm() {
   // Submit the diary entry to the API
   const submitMutation = useMutation({
     mutationFn: async (data: MorningDiaryFormValues) => {
+      console.log("Submitting data:", data); // Debug log
+      
+      // Make sure userId is set properly
+      if (!data.userId && user) {
+        data.userId = user.id;
+      }
+      
       const res = await apiRequest("POST", "/api/morning-diary", data);
+      
+      // Check for errors
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("API error:", errorData);
+        throw new Error(errorData.error ? JSON.stringify(errorData.error) : "Failed to submit diary entry");
+      }
+      
       return await res.json();
     },
     onSuccess: () => {
@@ -85,8 +100,10 @@ export default function MorningControlDiaryForm() {
       setIsSubmitted(true);
     },
     onError: (error: Error) => {
+      console.error("Submission error:", error);
+      
       toast({
-        title: "Error",
+        title: "Submission Error",
         description: error.message || "Failed to submit morning diary.",
         variant: "destructive",
       });
