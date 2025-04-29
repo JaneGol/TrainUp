@@ -148,19 +148,29 @@ export default function FitnessProgressPage() {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
-      {/* Simple header with back button */}
-      <header className="bg-white border-b p-4 flex items-center shadow-sm">
+      {/* Header with back button and menu button */}
+      <header className="bg-white border-b p-4 flex items-center justify-between shadow-sm">
+        <div className="flex items-center">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate("/athlete")}
+            className="mr-2"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-bold text-gray-800">
+            Fitness Progress
+          </h1>
+        </div>
         <Button 
-          variant="ghost" 
-          size="icon" 
+          variant="default"
+          size="sm"
           onClick={() => navigate("/athlete")}
-          className="mr-2"
+          className="bg-primary text-white hover:bg-primary/90"
         >
-          <ChevronLeft className="h-5 w-5" />
+          Main Menu
         </Button>
-        <h1 className="text-xl font-bold text-gray-800 flex-1 text-center pr-8">
-          Fitness Progress
-        </h1>
       </header>
 
       {/* Main content */}
