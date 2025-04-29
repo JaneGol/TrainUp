@@ -27,7 +27,7 @@ export default function MorningDiaryPage() {
   // If loading, show loading state
   if (diaryLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-[#1a1d22] flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -36,7 +36,7 @@ export default function MorningDiaryPage() {
   // If already completed today, show confirmation
   if (hasCompletedToday && !submitting) {
     return (
-      <div className="min-h-screen bg-black flex flex-col">
+      <div className="min-h-screen bg-[#1a1d22] flex flex-col">
         <header className="bg-[#1a1d22] border-b border-gray-800 p-4 flex items-center shadow-sm">
           <Button 
             variant="ghost" 
@@ -52,7 +52,7 @@ export default function MorningDiaryPage() {
         </header>
         
         <main className="flex-1 p-4 flex flex-col items-center justify-center">
-          <Card className="w-full max-w-md bg-black border border-gray-800">
+          <Card className="w-full max-w-md bg-[#1a1d22] border border-gray-800">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
                 <CheckCircle className="h-5 w-5 text-green-500" />
@@ -89,7 +89,7 @@ export default function MorningDiaryPage() {
   
   // Show the new multi-step form
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="min-h-screen bg-[#1a1d22] flex flex-col">
       <header className="bg-[#1a1d22] border-b border-gray-800 p-4 flex items-center shadow-sm">
         <Button 
           variant="ghost" 
