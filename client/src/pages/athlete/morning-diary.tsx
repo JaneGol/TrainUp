@@ -37,7 +37,7 @@ export default function MorningDiaryPage() {
   if (hasCompletedToday && !submitting) {
     return (
       <div className="min-h-screen bg-black flex flex-col">
-        <header className="bg-gray-900 border-b border-gray-800 p-4 flex items-center shadow-sm">
+        <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
           <Button 
             variant="ghost" 
             size="icon" 
@@ -90,7 +90,7 @@ export default function MorningDiaryPage() {
   // Show the new multi-step form
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      <header className="bg-gray-900 border-b border-gray-800 p-4 flex items-center shadow-sm">
+      <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
         <Button 
           variant="ghost" 
           size="icon" 

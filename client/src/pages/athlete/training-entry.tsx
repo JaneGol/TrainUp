@@ -135,8 +135,8 @@ export default function TrainingEntryForm() {
   if (submitting) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
-        <header className="bg-white border-b p-4 flex items-center shadow-sm">
-          <h1 className="text-xl font-bold text-gray-800 flex-1 text-center">
+        <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
+          <h1 className="text-xl font-bold text-white flex-1 text-center">
             Submitting Entry
           </h1>
         </header>
@@ -158,7 +158,7 @@ export default function TrainingEntryForm() {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
-      <header className="bg-white border-b p-4 flex items-center shadow-sm">
+      <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
         <Button 
           variant="ghost" 
           size="icon" 
@@ -167,7 +167,7 @@ export default function TrainingEntryForm() {
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-800 flex-1 text-center pr-8">
+        <h1 className="text-xl font-bold text-white flex-1 text-center pr-8">
           Training Entry
         </h1>
       </header>
