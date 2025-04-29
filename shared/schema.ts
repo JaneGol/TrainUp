@@ -53,7 +53,7 @@ export const morningDiary = pgTable("morning_diary", {
   motivationLevel: text("motivation_level", { enum: ["high", "moderate", "low"] }).notNull(),
   
   // Step 3: Muscle Soreness & Injury
-  sorenessMap: json("soreness_map").notNull(), // Object with body parts and soreness levels
+  sorenessMap: json("soreness_map").notNull(), // Object with selected muscle groups e.g., { "shoulders": true, "back": true }
   hasInjury: boolean("has_injury").notNull(),
   painLevel: integer("pain_level"), // Scale 0-10, null if hasInjury is false
   injuryImproving: text("injury_improving", { enum: ["yes", "no", "unchanged"] }),

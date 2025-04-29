@@ -8,6 +8,7 @@ import { insertMorningDiarySchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import InteractiveMuscleMap, { MuscleGroup } from "@/components/muscle-map/interactive-muscle-map";
 
 import {
   Form,
@@ -53,9 +54,9 @@ const morningDiarySchema = z.object({
   motivationLevel: z.number().min(1).max(10),
   
   // Step 3: Muscle Soreness & Injury
-  sorenessMap: z.record(z.string(), z.number()).refine(
-    (map) => Object.keys(map).length > 0 || map._no_soreness === 1, 
-    { message: "Please select at least one body part or confirm you have no soreness" }
+  sorenessMap: z.record(z.string(), z.boolean()).refine(
+    (map) => Object.keys(map).length > 0 || map._no_soreness === true, 
+    { message: "Please select at least one muscle group or confirm you have no soreness" }
   ),
   hasInjury: z.boolean(),
   painLevel: z.number().min(0).max(10).optional(),
