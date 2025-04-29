@@ -32,6 +32,7 @@ const trainingEntryFormSchema = z.object({
   trainingType: z.string().min(1, "Training type is required"),
   effortLevel: z.number().min(1).max(10),
   duration: z.number().min(5, "Duration must be at least 5 minutes"),
+  date: z.date().default(() => new Date()),
   mood: z.enum(["happy", "neutral", "tired", "exhausted"]),
   notes: z.string().optional(),
 });
