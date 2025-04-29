@@ -429,7 +429,7 @@ export default function MultiStepMorningDiaryForm() {
               name="sleepHours"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white">How many hours did you sleep?</FormLabel>
+                  <FormLabel className="text-gray-200">How many hours did you sleep?</FormLabel>
                   <FormControl>
                     <div className="flex items-center space-x-2">
                       <Input
@@ -445,7 +445,7 @@ export default function MultiStepMorningDiaryForm() {
                           }
                         }}
                       />
-                      <span className="text-white">hours</span>
+                      <span className="text-gray-200">hours</span>
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -459,14 +459,14 @@ export default function MultiStepMorningDiaryForm() {
               name="stressLevel"
               render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
-                  <FormLabel className="text-white">What is your current stress level?</FormLabel>
+                  <FormLabel className="text-gray-200">What is your current stress level?</FormLabel>
                   <div className="space-y-2">
                     <FormControl>
                       <Slider
                         min={1}
                         max={10}
                         step={1}
-                        defaultValue={[value]}
+                        value={[value || 1]}
                         onValueChange={(vals) => onChange(vals[0])}
                         className="py-3"
                       />
@@ -475,8 +475,8 @@ export default function MultiStepMorningDiaryForm() {
                       <span>Low (1)</span>
                       <span>High (10)</span>
                     </div>
-                    <div className="text-center text-white">
-                      Selected: <span className="font-semibold">{value}</span>
+                    <div className="text-center text-gray-200">
+                      Selected: <span className="font-semibold">{value || 1}</span>
                     </div>
                   </div>
                   <FormMessage />
@@ -490,14 +490,14 @@ export default function MultiStepMorningDiaryForm() {
               name="mood"
               render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
-                  <FormLabel className="text-white">What is your mood this morning?</FormLabel>
+                  <FormLabel className="text-gray-200">What is your mood this morning?</FormLabel>
                   <div className="space-y-2">
                     <FormControl>
                       <Slider
                         min={1}
                         max={10}
                         step={1}
-                        defaultValue={[value]}
+                        value={[value || 1]}
                         onValueChange={(vals) => onChange(vals[0])}
                         className="py-3"
                       />
@@ -506,8 +506,8 @@ export default function MultiStepMorningDiaryForm() {
                       <span>Negative (1)</span>
                       <span>Positive (10)</span>
                     </div>
-                    <div className="text-center text-white">
-                      Selected: <span className="font-semibold">{value}</span>
+                    <div className="text-center text-gray-200">
+                      Selected: <span className="font-semibold">{value || 1}</span>
                     </div>
                   </div>
                   <FormMessage />
@@ -555,7 +555,7 @@ export default function MultiStepMorningDiaryForm() {
             
             {/* Symptoms */}
             <div className="space-y-2">
-              <FormLabel className="text-white block">Do you have any symptoms today?</FormLabel>
+              <FormLabel className="text-gray-200 block">Do you have any symptoms today?</FormLabel>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox 
@@ -651,7 +651,7 @@ export default function MultiStepMorningDiaryForm() {
       case 3:
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-white">Step 3: Muscle Soreness & Injury Check</h3>
+            <h3 className="text-lg font-semibold text-gray-200">Step 3: Muscle Soreness & Injury Check</h3>
             
             {/* Body Map with Front/Back Toggle */}
             <div className="space-y-4">
@@ -675,7 +675,7 @@ export default function MultiStepMorningDiaryForm() {
               </div>
               
               <div className="bg-gray-900 rounded-lg p-4">
-                <FormLabel className="text-white block mb-2">
+                <FormLabel className="text-gray-200 block mb-2">
                   Select areas where you feel soreness (required):
                 </FormLabel>
                 
@@ -1142,7 +1142,7 @@ export default function MultiStepMorningDiaryForm() {
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormLabel className="text-white font-medium">Do you currently have an injury?</FormLabel>
+                    <FormLabel className="text-gray-200 font-medium">Do you currently have an injury?</FormLabel>
                   </div>
                 </FormItem>
               )}
@@ -1157,7 +1157,7 @@ export default function MultiStepMorningDiaryForm() {
                   name="painLevel"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white">Rate your pain level (0-10)</FormLabel>
+                      <FormLabel className="text-gray-200">Rate your pain level (0-10)</FormLabel>
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs text-gray-400">
                           <span>0</span>
@@ -1173,7 +1173,7 @@ export default function MultiStepMorningDiaryForm() {
                             onValueChange={(value) => field.onChange(value[0])}
                           />
                         </FormControl>
-                        <div className="text-center text-lg font-semibold text-primary mt-2">
+                        <div className="text-center text-lg font-semibold text-gray-300 mt-2">
                           {field.value || 0}
                         </div>
                       </div>
@@ -1188,7 +1188,7 @@ export default function MultiStepMorningDiaryForm() {
                   name="injuryImproving"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white">Is the injury improving?</FormLabel>
+                      <FormLabel className="text-gray-200">Is the injury improving?</FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
