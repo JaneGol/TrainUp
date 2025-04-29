@@ -1,11 +1,21 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Loader2, AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import React from "react";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  BarChart,
   LineChart,
+  HeatMap,
+  PieChart,
+  RadarChart,
+} from "recharts";
+import {
+  Bar,
   Line,
   XAxis,
   YAxis,
@@ -13,16 +23,41 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
+  Pie,
+  Radar,
+  RadarChart as RechartsRadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
 } from "recharts";
+import { Button } from "@/components/ui/button";
+import { Loader2, AlertTriangle, Download } from "lucide-react";
 
-// Define interfaces for our component props
-interface WellnessTrend {
+/**
+ * Types for Enhanced Analytics
+ */
+
+export interface TrainingLoad {
+  date: string;
+  load: number;
+  trainingType: string;
+}
+
+export interface AcuteChronicWorkloadRatio {
+  date: string;
+  acute: number;
+  chronic: number;
+  ratio: number;
+}
+
+export interface WellnessTrend {
   date: string;
   value: number;
   category: string;
 }
 
-interface AthleteRecoveryReadiness {
+export interface AthleteRecoveryReadiness {
   athleteId: number;
   name: string;
   readinessScore: number;
@@ -30,292 +65,644 @@ interface AthleteRecoveryReadiness {
   issues: string[];
 }
 
-interface InjuryRiskFactor {
+export interface InjuryRiskFactor {
   athleteId: number;
   name: string;
   riskScore: number;
   factors: string[];
 }
 
-interface TeamWellnessTrendsProps {
-  data: WellnessTrend[] | undefined;
-  categories: string[];
-  isLoading: boolean;
-  error: Error | null;
-}
-
-interface RecoveryReadinessDashboardProps {
-  data: AthleteRecoveryReadiness[] | undefined;
-  isLoading: boolean;
-  error: Error | null;
-}
-
-interface InjuryRiskAnalysisProps {
-  data: InjuryRiskFactor[] | undefined;
-  isLoading: boolean;
-  error: Error | null;
-}
-
-export const TeamWellnessTrends: React.FC<TeamWellnessTrendsProps> = ({ 
+/**
+ * Training Load Chart Component
+ */
+export function TrainingLoadChart({ 
   data, 
-  categories, 
-  isLoading, 
+  loading, 
   error 
-}) => {
+}: { 
+  data?: TrainingLoad[],
+  loading?: boolean,
+  error?: Error | null
+}) {
+  if (loading) {
+    return (
+      <div className="w-full h-80 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="w-full h-80 flex flex-col items-center justify-center gap-2 text-gray-400">
+        <AlertTriangle className="w-8 h-8" />
+        <p>Failed to load training load data</p>
+      </div>
+    );
+  }
+
+  // Group data by training type for stacked view
+  const formattedData = data.map(item => ({
+    ...item,
+    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+  }));
+
+  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088fe'];
+
   return (
-    <Card>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Training Load Analysis</CardTitle>
+        <CardDescription>
+          Training load over time based on RPE (Rate of Perceived Exertion)
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-end mb-4">
+          <Button variant="outline" size="sm" className="text-xs">
+            <Download className="h-3 w-3 mr-1" /> Export
+          </Button>
+        </div>
+        <ResponsiveContainer width="100%" height={320}>
+          <BarChart
+            data={formattedData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'rgba(17, 17, 17, 0.8)', 
+                border: 'none',
+                borderRadius: '4px',
+                color: 'white'
+              }}
+              itemStyle={{ color: 'white' }}
+              formatter={(value, name) => [`${value}`, `${name}`]}
+              labelFormatter={(label) => `Date: ${label}`}
+            />
+            <Legend />
+            <Bar dataKey="load" name="Training Load" fill="#6d28d9">
+              {formattedData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`}
+                  fill={COLORS[formattedData.findIndex(d => d.trainingType === entry.trainingType) % COLORS.length]}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+        <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
+          {Array.from(new Set(formattedData.map(item => item.trainingType))).map((type, index) => (
+            <div key={type} className="flex items-center gap-2">
+              <div 
+                className="h-3 w-3 rounded-full" 
+                style={{ backgroundColor: COLORS[index % COLORS.length] }}
+              />
+              <span className="text-xs">{type}</span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * Acute:Chronic Workload Ratio Chart Component
+ */
+export function ACWRChart({ 
+  data, 
+  loading, 
+  error 
+}: { 
+  data?: AcuteChronicWorkloadRatio[],
+  loading?: boolean,
+  error?: Error | null
+}) {
+  if (loading) {
+    return (
+      <div className="w-full h-80 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="w-full h-80 flex flex-col items-center justify-center gap-2 text-gray-400">
+        <AlertTriangle className="w-8 h-8" />
+        <p>Failed to load ACWR data</p>
+      </div>
+    );
+  }
+
+  // Format dates for display
+  const formattedData = data.map(item => ({
+    ...item,
+    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+  }));
+
+  // Add danger zone reference areas
+  const dangerZone = {
+    low: 0.8,
+    high: 1.3,
+    veryHigh: 1.5
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Acute:Chronic Workload Ratio</CardTitle>
+        <CardDescription>
+          Tracking acute vs chronic load to predict injury risk (optimal range: 0.8-1.3)
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-end mb-4">
+          <Button variant="outline" size="sm" className="text-xs">
+            <Download className="h-3 w-3 mr-1" /> Export
+          </Button>
+        </div>
+        <ResponsiveContainer width="100%" height={320}>
+          <LineChart
+            data={formattedData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'rgba(17, 17, 17, 0.8)', 
+                border: 'none',
+                borderRadius: '4px',
+                color: 'white'
+              }}
+              itemStyle={{ color: 'white' }}
+              formatter={(value, name) => [`${value.toFixed(2)}`, `${name}`]}
+              labelFormatter={(label) => `Date: ${label}`}
+            />
+            <Legend />
+            <Line 
+              type="monotone" 
+              dataKey="acute" 
+              name="Acute Load (7 days)" 
+              stroke="#8884d8" 
+              activeDot={{ r: 8 }} 
+              strokeWidth={2}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="chronic" 
+              name="Chronic Load (28 days)" 
+              stroke="#82ca9d" 
+              strokeWidth={2}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="ratio" 
+              name="ACWR" 
+              stroke="#ff8042" 
+              strokeWidth={3}
+            />
+            {/* Add reference lines for danger zones */}
+            <CartesianGrid strokeDasharray="3 3" />
+          </LineChart>
+        </ResponsiveContainer>
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="rounded-md bg-green-100/10 p-2 text-center border border-green-500/20">
+            <p className="text-xs font-medium text-green-500">Safe Zone</p>
+            <p className="text-xs text-gray-300">0.8 - 1.3</p>
+          </div>
+          <div className="rounded-md bg-yellow-100/10 p-2 text-center border border-yellow-500/20">
+            <p className="text-xs font-medium text-yellow-400">Warning Zone</p>
+            <p className="text-xs text-gray-300">1.3 - 1.5</p>
+          </div>
+          <div className="rounded-md bg-red-100/10 p-2 text-center border border-red-500/20">
+            <p className="text-xs font-medium text-red-500">Danger Zone</p>
+            <p className="text-xs text-gray-300">{"< 0.8 or > 1.5"}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * Team Wellness Trends Chart Component
+ */
+export function WellnessTrendsChart({ 
+  data, 
+  loading, 
+  error 
+}: { 
+  data?: WellnessTrend[],
+  loading?: boolean,
+  error?: Error | null
+}) {
+  if (loading) {
+    return (
+      <div className="w-full h-80 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="w-full h-80 flex flex-col items-center justify-center gap-2 text-gray-400">
+        <AlertTriangle className="w-8 h-8" />
+        <p>Failed to load wellness trends data</p>
+      </div>
+    );
+  }
+
+  // Format data for visualization
+  const categories = Array.from(new Set(data.map(item => item.category)));
+  
+  // Group by date to create a proper dataset for the line chart
+  const groupedData: Record<string, Record<string, number>> = {};
+  
+  data.forEach(({ date, category, value }) => {
+    const formattedDate = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    if (!groupedData[formattedDate]) {
+      groupedData[formattedDate] = { date: formattedDate };
+    }
+    groupedData[formattedDate][category] = value;
+  });
+  
+  const formattedData = Object.values(groupedData);
+  
+  // Colors for each category
+  const categoryColors: Record<string, string> = {
+    'sleep': '#8884d8',
+    'mood': '#82ca9d',
+    'stress': '#ffc658',
+    'soreness': '#ff8042',
+    'energy': '#0088fe',
+    'recovery': '#00C49F',
+    'motivation': '#FFBB28'
+  };
+
+  return (
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Team Wellness Trends</CardTitle>
         <CardDescription>
-          Tracking team-wide wellness metrics over time
+          Tracking key wellness metrics across the team over time
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="h-80 flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : error ? (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Failed to load wellness trends data. Please try again later.
-            </AlertDescription>
-          </Alert>
-        ) : (
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={data}
-                margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(date) => {
-                    const d = new Date(date);
-                    return `${d.getDate()}/${d.getMonth() + 1}`;
-                  }}
-                  tick={{ fontSize: 12 }}
-                />
-                <YAxis 
-                  label={{ 
-                    value: 'Score (0-5)', 
-                    angle: -90, 
-                    position: 'insideLeft' 
-                  }}
-                  domain={[0, 5]}
-                />
-                <Tooltip 
-                  formatter={(value, name) => [value, name]}
-                  labelFormatter={(label) => new Date(label).toLocaleDateString()}
-                />
-                <Legend />
-                {categories.map((category, index) => {
-                  // Generate a different color for each category
-                  const colors = ["#3b82f6", "#22c55e", "#f97316", "#a855f7", "#64748b"];
-                  const color = colors[index % colors.length];
-                  
-                  return (
-                    <Line 
-                      key={category} 
-                      type="monotone" 
-                      dataKey={category} 
-                      stroke={color} 
-                      strokeWidth={2}
+        <div className="flex justify-end mb-4">
+          <Tabs defaultValue="line" className="w-[200px]">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="line">Line</TabsTrigger>
+              <TabsTrigger value="radar">Radar</TabsTrigger>
+            </TabsList>
+            <TabsContent value="line" className="pt-2">
+              <ResponsiveContainer width="100%" height={320}>
+                <LineChart
+                  data={formattedData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis domain={[0, 10]} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(17, 17, 17, 0.8)', 
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: 'white'
+                    }}
+                    itemStyle={{ color: 'white' }}
+                  />
+                  <Legend />
+                  {categories.map(category => (
+                    <Line
+                      key={category}
+                      type="monotone"
+                      dataKey={category}
+                      name={category.charAt(0).toUpperCase() + category.slice(1)}
+                      stroke={categoryColors[category] || '#fff'}
                       activeDot={{ r: 8 }}
+                      strokeWidth={2}
                     />
-                  );
-                })}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </TabsContent>
+            <TabsContent value="radar" className="pt-2">
+              <ResponsiveContainer width="100%" height={320}>
+                <RechartsRadarChart
+                  cx="50%"
+                  cy="50%"
+                  outerRadius="80%"
+                  data={categories.map(category => {
+                    // Calculate average value for each category
+                    const values = data.filter(d => d.category === category).map(d => d.value);
+                    const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
+                    return {
+                      subject: category.charAt(0).toUpperCase() + category.slice(1),
+                      A: avg,
+                      fullMark: 10
+                    };
+                  })}
+                >
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="subject" />
+                  <PolarRadiusAxis angle={30} domain={[0, 10]} />
+                  <Radar
+                    name="Team Average"
+                    dataKey="A"
+                    stroke="#8884d8"
+                    fill="#8884d8"
+                    fillOpacity={0.6}
+                  />
+                  <Tooltip />
+                </RechartsRadarChart>
+              </ResponsiveContainer>
+            </TabsContent>
+          </Tabs>
+        </div>
       </CardContent>
     </Card>
   );
-};
+}
 
-export const RecoveryReadinessDashboard: React.FC<RecoveryReadinessDashboardProps> = ({ 
+/**
+ * Recovery Readiness Dashboard Component
+ */
+export function RecoveryReadinessDashboard({ 
   data, 
-  isLoading, 
+  loading, 
   error 
-}) => {
+}: { 
+  data?: AthleteRecoveryReadiness[],
+  loading?: boolean,
+  error?: Error | null
+}) {
+  if (loading) {
+    return (
+      <div className="w-full h-80 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="w-full h-80 flex flex-col items-center justify-center gap-2 text-gray-400">
+        <AlertTriangle className="w-8 h-8" />
+        <p>Failed to load recovery readiness data</p>
+      </div>
+    );
+  }
+
+  // Sort data by readiness score (ascending - worst first)
+  const sortedData = [...data].sort((a, b) => a.readinessScore - b.readinessScore);
+
+  // Get trend icons and colors
+  const getTrendStyle = (trend: string) => {
+    switch(trend) {
+      case 'improving':
+        return { icon: '↗️', color: 'text-green-500' };
+      case 'declining':
+        return { icon: '↘️', color: 'text-red-500' };
+      default: // stable
+        return { icon: '→', color: 'text-yellow-400' };
+    }
+  };
+
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Recovery Readiness Dashboard</CardTitle>
         <CardDescription>
-          Current athlete readiness scores and trends
+          Current recovery status for all athletes with potential risk areas
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="h-80 flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : error ? (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Failed to load recovery readiness data. Please try again later.
-            </AlertDescription>
-          </Alert>
-        ) : data && data.length === 0 ? (
-          <div className="text-center p-8 text-muted-foreground">
-            No recovery data available
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {data?.map((item) => (
-              <div key={item.athleteId} className="flex items-center p-4 bg-gray-50 rounded-md">
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center">
-                    <h4 className="font-semibold text-base">{item.name}</h4>
-                    <Badge 
-                      className={`ml-2 ${
-                        item.trend === "improving" 
-                          ? "bg-green-100 text-green-800" 
-                          : item.trend === "declining" 
-                            ? "bg-red-100 text-red-800" 
-                            : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      <span className="flex items-center">
-                        {item.trend === "improving" && <TrendingUp className="h-3 w-3 mr-1" />}
-                        {item.trend === "declining" && <TrendingDown className="h-3 w-3 mr-1" />}
-                        {item.trend === "stable" && <Minus className="h-3 w-3 mr-1" />}
-                        {item.trend}
+        <div className="w-full overflow-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-700">
+                <th className="text-left p-2 text-xs font-medium text-gray-400">Athlete</th>
+                <th className="text-center p-2 text-xs font-medium text-gray-400">Readiness</th>
+                <th className="text-center p-2 text-xs font-medium text-gray-400">Trend</th>
+                <th className="text-left p-2 text-xs font-medium text-gray-400">Issues</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedData.map((athlete) => {
+                const { icon, color } = getTrendStyle(athlete.trend);
+                
+                // Get readiness color
+                let readinessColor = 'text-green-500';
+                if (athlete.readinessScore < 50) readinessColor = 'text-red-500';
+                else if (athlete.readinessScore < 70) readinessColor = 'text-yellow-400';
+                
+                return (
+                  <tr key={athlete.athleteId} className="border-b border-gray-800 hover:bg-gray-800/30">
+                    <td className="p-2 text-sm">{athlete.name}</td>
+                    <td className="p-2 text-center">
+                      <span className={`font-semibold ${readinessColor}`}>
+                        {athlete.readinessScore}%
                       </span>
-                    </Badge>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <p className="text-sm text-gray-600">Readiness Score: {item.readinessScore}/10</p>
-                    <Progress 
-                      value={item.readinessScore * 10} 
-                      className={`h-2 w-32 ${
-                        item.readinessScore >= 7 
-                          ? "data-[value]:bg-green-500" 
-                          : item.readinessScore >= 5 
-                            ? "data-[value]:bg-amber-500" 
-                            : "data-[value]:bg-red-500"
-                      }`}
-                    />
-                  </div>
-                  {item.issues.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-xs text-gray-500 mb-1">Issues to monitor:</p>
+                    </td>
+                    <td className="p-2 text-center">
+                      <span className={`font-semibold ${color}`}>{icon}</span>
+                    </td>
+                    <td className="p-2 text-sm">
                       <div className="flex flex-wrap gap-1">
-                        {item.issues.map((issue, idx) => (
-                          <Badge 
-                            key={idx} 
-                            variant="outline" 
-                            className="bg-red-50 text-red-700 border-red-200 text-xs"
+                        {athlete.issues.map((issue, index) => (
+                          <span 
+                            key={index} 
+                            className="inline-block px-2 py-1 rounded-md text-xs bg-red-500/20 text-red-300"
                           >
                             {issue}
-                          </Badge>
+                          </span>
                         ))}
                       </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </CardContent>
     </Card>
   );
-};
+}
 
-export const InjuryRiskAnalysis: React.FC<InjuryRiskAnalysisProps> = ({ 
+/**
+ * Injury Risk Factor Analysis Component
+ */
+export function InjuryRiskFactorAnalysis({ 
   data, 
-  isLoading, 
+  loading, 
   error 
-}) => {
+}: { 
+  data?: InjuryRiskFactor[],
+  loading?: boolean,
+  error?: Error | null
+}) {
+  if (loading) {
+    return (
+      <div className="w-full h-80 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="w-full h-80 flex flex-col items-center justify-center gap-2 text-gray-400">
+        <AlertTriangle className="w-8 h-8" />
+        <p>Failed to load injury risk data</p>
+      </div>
+    );
+  }
+
+  // Sort data by risk score (descending - highest risk first)
+  const sortedData = [...data].sort((a, b) => b.riskScore - a.riskScore);
+
+  // Prepare data for pie chart - count athletes by risk level
+  const riskLevelDistribution = [
+    { name: 'High Risk', value: data.filter(a => a.riskScore >= 75).length, color: '#ef4444' },
+    { name: 'Medium Risk', value: data.filter(a => a.riskScore >= 50 && a.riskScore < 75).length, color: '#f59e0b' },
+    { name: 'Low Risk', value: data.filter(a => a.riskScore < 50).length, color: '#10b981' },
+  ].filter(item => item.value > 0);
+
+  // Count of each risk factor
+  const riskFactorCounts: Record<string, number> = {};
+  data.forEach(athlete => {
+    athlete.factors.forEach(factor => {
+      riskFactorCounts[factor] = (riskFactorCounts[factor] || 0) + 1;
+    });
+  });
+
+  // Convert to array and sort
+  const topRiskFactors = Object.entries(riskFactorCounts)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5); // Top 5 factors
+
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Injury Risk Factor Analysis</CardTitle>
         <CardDescription>
-          Identifying athletes with potential injury risks
+          Assessment of injury risk factors across the team
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="h-80 flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-sm font-medium text-gray-400 mb-4">Risk Level Distribution</h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={riskLevelDistribution}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                  {riskLevelDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value, name) => [`${value} athletes`, `${name}`]}
+                  contentStyle={{
+                    backgroundColor: 'rgba(17, 17, 17, 0.8)',
+                    border: 'none',
+                    borderRadius: '4px',
+                    color: 'white'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        ) : error ? (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Failed to load injury risk data. Please try again later.
-            </AlertDescription>
-          </Alert>
-        ) : data && data.length === 0 ? (
-          <div className="text-center p-8 text-muted-foreground">
-            No injury risk data available
+          <div>
+            <h3 className="text-sm font-medium text-gray-400 mb-4">Top Risk Factors</h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart
+                data={topRiskFactors}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis type="category" dataKey="name" width={100} />
+                <Tooltip
+                  formatter={(value) => [`${value} athletes`, 'Affected']}
+                  contentStyle={{
+                    backgroundColor: 'rgba(17, 17, 17, 0.8)',
+                    border: 'none',
+                    borderRadius: '4px',
+                    color: 'white'
+                  }}
+                />
+                <Bar dataKey="value" fill="#6d28d9" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {data?.map((item) => (
-              <div key={item.athleteId} className="flex items-center p-4 bg-gray-50 rounded-md">
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center">
-                    <h4 className="font-semibold text-base">{item.name}</h4>
-                    <Badge 
-                      className={`ml-2 ${
-                        item.riskScore >= 7 
-                          ? "bg-red-100 text-red-800" 
-                          : item.riskScore >= 4 
-                            ? "bg-amber-100 text-amber-800" 
-                            : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      Risk: {item.riskScore}/10
-                    </Badge>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <p className="text-sm text-gray-600">Risk Level:</p>
-                    <Progress 
-                      value={item.riskScore * 10} 
-                      className={`h-2 w-32 ${
-                        item.riskScore >= 7 
-                          ? "data-[value]:bg-red-500" 
-                          : item.riskScore >= 4 
-                            ? "data-[value]:bg-amber-500" 
-                            : "data-[value]:bg-green-500"
-                      }`}
-                    />
-                  </div>
-                  {item.factors.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-xs text-gray-500 mb-1">Contributing factors:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {item.factors.map((factor, idx) => (
-                          <Badge 
-                            key={idx} 
-                            variant="outline" 
-                            className="text-xs"
-                          >
-                            {factor}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+        </div>
+        
+        <div className="mt-6">
+          <h3 className="text-sm font-medium text-gray-400 mb-4">Athletes at Risk</h3>
+          <div className="w-full overflow-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="text-left p-2 text-xs font-medium text-gray-400">Athlete</th>
+                  <th className="text-center p-2 text-xs font-medium text-gray-400">Risk Score</th>
+                  <th className="text-left p-2 text-xs font-medium text-gray-400">Risk Factors</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedData.map((athlete) => {
+                  // Get risk color
+                  let riskColor = 'text-green-500';
+                  if (athlete.riskScore >= 75) riskColor = 'text-red-500';
+                  else if (athlete.riskScore >= 50) riskColor = 'text-yellow-400';
+                  
+                  return (
+                    <tr key={athlete.athleteId} className="border-b border-gray-800 hover:bg-gray-800/30">
+                      <td className="p-2 text-sm">{athlete.name}</td>
+                      <td className="p-2 text-center">
+                        <span className={`font-semibold ${riskColor}`}>
+                          {athlete.riskScore}
+                        </span>
+                      </td>
+                      <td className="p-2 text-sm">
+                        <div className="flex flex-wrap gap-1">
+                          {athlete.factors.map((factor, index) => (
+                            <span 
+                              key={index} 
+                              className="inline-block px-2 py-1 rounded-md text-xs bg-gray-700/40 text-gray-300"
+                            >
+                              {factor}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
-};
+}

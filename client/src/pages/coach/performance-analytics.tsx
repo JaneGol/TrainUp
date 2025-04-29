@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
-  TeamWellnessTrends, 
+  TrainingLoadChart,
+  ACWRChart,
+  WellnessTrendsChart, 
   RecoveryReadinessDashboard, 
-  InjuryRiskAnalysis 
+  InjuryRiskFactorAnalysis
 } from "@/components/coach/enhanced-analytics";
 import {
   BarChart,
