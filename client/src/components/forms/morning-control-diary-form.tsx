@@ -336,7 +336,7 @@ export default function MorningControlDiaryForm() {
             name="motivation"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Are you motivated to train today?</FormLabel>
+                <FormLabel className="text-white">Are you motivated to train today?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -374,7 +374,7 @@ export default function MorningControlDiaryForm() {
             name="bodyFeeling"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>How does your body feel today?</FormLabel>
+                <FormLabel className="text-white">How does your body feel today?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -412,7 +412,7 @@ export default function MorningControlDiaryForm() {
             name="pain"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Do you have any pain or injury concerns?</FormLabel>
+                <FormLabel className="text-white">Do you have any pain or injury concerns?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -450,7 +450,7 @@ export default function MorningControlDiaryForm() {
             name="stressLevel"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>What is your current stress level?</FormLabel>
+                <FormLabel className="text-white">What is your current stress level?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -488,7 +488,7 @@ export default function MorningControlDiaryForm() {
             name="recovery"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Do you feel recovered from your last training session?</FormLabel>
+                <FormLabel className="text-white">Do you feel recovered from your last training session?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -526,7 +526,7 @@ export default function MorningControlDiaryForm() {
             name="focus"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Do you feel mentally focused today?</FormLabel>
+                <FormLabel className="text-white">Do you feel mentally focused today?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -564,7 +564,7 @@ export default function MorningControlDiaryForm() {
             name="readiness"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Do you feel ready to perform your best today?</FormLabel>
+                <FormLabel className="text-white">Do you feel ready to perform your best today?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -602,7 +602,7 @@ export default function MorningControlDiaryForm() {
             name="additionalNotes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Additional Notes (optional)</FormLabel>
+                <FormLabel className="text-white">Additional Notes (optional)</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Anything else you'd like to note about how you're feeling today?"
@@ -610,7 +610,7 @@ export default function MorningControlDiaryForm() {
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>
+                <FormDescription className="text-gray-300">
                   You can include any other factors affecting your readiness today.
                 </FormDescription>
                 <FormMessage />
