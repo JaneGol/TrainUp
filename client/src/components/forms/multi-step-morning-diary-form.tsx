@@ -437,28 +437,19 @@ export default function MultiStepMorningDiaryForm() {
                   <div className="space-y-2">
                     <FormControl>
                       <div className="py-3">
-                        <div className="flex justify-between mb-2">
-                          {[0, 1, 2, 3, 4, 5].map((value) => (
-                            <button
-                              key={value}
-                              type="button"
-                              onClick={() => {
-                                const val = value;
-                                if (val <= 2) field.onChange("low");
-                                else if (val >= 4) field.onChange("high");
-                                else field.onChange("medium");
-                              }}
-                              className={`w-10 h-10 rounded-full flex items-center justify-center 
-                                ${(field.value === "low" && value <= 2) || 
-                                  (field.value === "medium" && value === 3) || 
-                                  (field.value === "high" && value >= 4) 
-                                    ? "bg-primary text-black font-bold" 
-                                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
-                            >
-                              {value}
-                            </button>
-                          ))}
-                        </div>
+                        <Slider
+                          min={0}
+                          max={5}
+                          step={1}
+                          value={[field.value === "low" ? 1 : field.value === "medium" ? 3 : field.value === "high" ? 5 : 1]}
+                          onValueChange={(vals) => {
+                            const val = vals[0];
+                            if (val <= 2) field.onChange("low");
+                            else if (val >= 4) field.onChange("high");
+                            else field.onChange("medium");
+                          }}
+                          className="py-3"
+                        />
                       </div>
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400 mt-1">
@@ -505,28 +496,19 @@ export default function MultiStepMorningDiaryForm() {
                   <div className="space-y-2">
                     <FormControl>
                       <div className="py-3">
-                        <div className="flex justify-between mb-2">
-                          {[0, 1, 2, 3, 4, 5].map((value) => (
-                            <button
-                              key={value}
-                              type="button"
-                              onClick={() => {
-                                const val = value;
-                                if (val <= 2) field.onChange("negative");
-                                else if (val >= 4) field.onChange("positive");
-                                else field.onChange("neutral");
-                              }}
-                              className={`w-10 h-10 rounded-full flex items-center justify-center 
-                                ${(field.value === "negative" && value <= 2) || 
-                                  (field.value === "neutral" && value === 3) || 
-                                  (field.value === "positive" && value >= 4) 
-                                    ? "bg-primary text-black font-bold" 
-                                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
-                            >
-                              {value}
-                            </button>
-                          ))}
-                        </div>
+                        <Slider
+                          min={0}
+                          max={5}
+                          step={1}
+                          value={[field.value === "negative" ? 1 : field.value === "neutral" ? 3 : field.value === "positive" ? 5 : 3]}
+                          onValueChange={(vals) => {
+                            const val = vals[0];
+                            if (val <= 2) field.onChange("negative");
+                            else if (val >= 4) field.onChange("positive");
+                            else field.onChange("neutral");
+                          }}
+                          className="py-3"
+                        />
                       </div>
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400 mt-1">
@@ -580,28 +562,19 @@ export default function MultiStepMorningDiaryForm() {
                   <div className="space-y-2">
                     <FormControl>
                       <div className="py-3">
-                        <div className="flex justify-between mb-2">
-                          {[0, 1, 2, 3, 4, 5].map((value) => (
-                            <button
-                              key={value}
-                              type="button"
-                              onClick={() => {
-                                const val = value;
-                                if (val <= 2) field.onChange("poor");
-                                else if (val >= 4) field.onChange("good");
-                                else field.onChange("moderate");
-                              }}
-                              className={`w-10 h-10 rounded-full flex items-center justify-center 
-                                ${(field.value === "poor" && value <= 2) || 
-                                  (field.value === "moderate" && value === 3) || 
-                                  (field.value === "good" && value >= 4) 
-                                    ? "bg-primary text-black font-bold" 
-                                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
-                            >
-                              {value}
-                            </button>
-                          ))}
-                        </div>
+                        <Slider
+                          min={0}
+                          max={5}
+                          step={1}
+                          value={[field.value === "poor" ? 1 : field.value === "moderate" ? 3 : field.value === "good" ? 5 : 3]}
+                          onValueChange={(vals) => {
+                            const val = vals[0];
+                            if (val <= 2) field.onChange("poor");
+                            else if (val >= 4) field.onChange("good");
+                            else field.onChange("moderate");
+                          }}
+                          className="py-3"
+                        />
                       </div>
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400 mt-1">
@@ -682,28 +655,19 @@ export default function MultiStepMorningDiaryForm() {
                   <div className="space-y-2">
                     <FormControl>
                       <div className="py-3">
-                        <div className="flex justify-between mb-2">
-                          {[0, 1, 2, 3, 4, 5].map((value) => (
-                            <button
-                              key={value}
-                              type="button"
-                              onClick={() => {
-                                const val = value;
-                                if (val <= 2) field.onChange("low");
-                                else if (val >= 4) field.onChange("high");
-                                else field.onChange("moderate");
-                              }}
-                              className={`w-10 h-10 rounded-full flex items-center justify-center 
-                                ${(field.value === "low" && value <= 2) || 
-                                  (field.value === "moderate" && value === 3) || 
-                                  (field.value === "high" && value >= 4) 
-                                    ? "bg-primary text-black font-bold" 
-                                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
-                            >
-                              {value}
-                            </button>
-                          ))}
-                        </div>
+                        <Slider
+                          min={0}
+                          max={5}
+                          step={1}
+                          value={[field.value === "low" ? 1 : field.value === "moderate" ? 3 : field.value === "high" ? 5 : 3]}
+                          onValueChange={(vals) => {
+                            const val = vals[0];
+                            if (val <= 2) field.onChange("low");
+                            else if (val >= 4) field.onChange("high");
+                            else field.onChange("moderate");
+                          }}
+                          className="py-3"
+                        />
                       </div>
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400 mt-1">
