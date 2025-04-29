@@ -127,13 +127,13 @@
 .btn-athletic {
   @apply rounded-2xl font-semibold transition-all duration-200
          flex items-center justify-center gap-2 text-black text-lg
-         bg-primary hover:bg-gray-900 hover:text-primary active:bg-black;
+         bg-primary hover:bg-black hover:text-primary active:bg-black;
 }
 
 /* Dark button style for contrast */
 .btn-dark {
   @apply rounded-2xl font-semibold transition-all duration-200
          flex items-center justify-center gap-2 text-white text-lg
-         bg-background border border-gray-700 hover:bg-gray-900 hover:text-primary hover:border-primary active:bg-black;
+         bg-background border border-gray-700 hover:bg-black hover:text-primary hover:border-primary active:bg-black;
 }
 

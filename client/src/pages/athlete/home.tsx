@@ -64,8 +64,8 @@ export default function AthleteHomePage() {
             onClick={() => navigate("/athlete/morning-diary")}
             className={`btn-athletic h-24 ${
               hasCompletedDiaryToday
-                ? "bg-success text-white hover:bg-gray-400"
-                : "bg-primary text-black hover:bg-gray-400"
+                ? "bg-success text-white"
+                : "bg-primary text-black"
             }`}
           >
             {diaryLoading ? (
@@ -92,7 +92,7 @@ export default function AthleteHomePage() {
           {/* RPE Form Button */}
           <Button
             onClick={() => navigate("/athlete/training-entry")}
-            className="btn-athletic h-24 bg-primary text-black hover:bg-gray-400"
+            className="btn-dark h-24 bg-gray-600 text-primary"
           >
             <Activity className="h-7 w-7" />
             <span className="text-xl font-bold">RPE Form</span>
@@ -101,7 +101,7 @@ export default function AthleteHomePage() {
           {/* Fitness Progress Button */}
           <Button
             onClick={() => navigate("/athlete/fitness-progress")}
-            className="btn-athletic h-24 bg-primary text-black hover:bg-gray-400"
+            className="btn-athletic h-24 bg-primary text-black"
           >
             <BarChart3 className="h-7 w-7" />
             <span className="text-xl font-bold">Fitness Progress</span>
@@ -110,7 +110,7 @@ export default function AthleteHomePage() {
           {/* Smart Doctor Button */}
           <Button
             onClick={() => navigate("/athlete/smart-doctor")}
-            className="btn-athletic h-24 bg-primary text-black hover:bg-gray-400"
+            className="btn-athletic h-24 bg-primary text-black"
           >
             <Heart className="h-7 w-7" />
             <span className="text-xl font-bold">Smart Doctor</span>
