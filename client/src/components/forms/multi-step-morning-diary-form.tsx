@@ -30,7 +30,7 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 
-// Define Zod schema for the form based on new fields
+// Define Zod schema for the form based on slider inputs and validation
 const morningDiarySchema = z.object({
   userId: z.number(),
   
@@ -64,7 +64,7 @@ const SYMPTOMS = [
   "runny_nose",
   "sore_throat",
   "fever",
-  "diarrhea",
+  "diarrhea", 
   "no_symptoms"
 ];
 
@@ -232,38 +232,34 @@ export default function MultiStepMorningDiaryForm() {
     }
   }, [form.watch("hasInjury"), form]);
   
-  // Calculate readiness score based on all form values
+  // Calculate readiness score based on slider values
   function calculateReadinessScore(data: MorningDiaryFormValues): number {
     let score = 0;
     const maxScore = 10;
     
-    // Sleep quality (max 1 point)
-    if (data.sleepQuality === "good") score += 1;
-    else if (data.sleepQuality === "average") score += 0.5;
+    // Sleep quality (max 1 point) - Convert 1-10 scale to 0-1 point
+    score += Math.min(1, data.sleepQuality / 10);
     
     // Sleep hours (max 1 point)
     if (data.sleepHours >= 8) score += 1;
     else if (data.sleepHours >= 6) score += 0.5;
     
-    // Stress level (max 1 point)
-    if (data.stressLevel === "low") score += 1;
-    else if (data.stressLevel === "medium") score += 0.5;
+    // Stress level (max 1 point) - Higher stress means lower score
+    // Invert the scale: 10 = low stress, 1 = high stress
+    score += Math.min(1, (11 - data.stressLevel) / 10);
     
-    // Mood (max 1 point)
-    if (data.mood === "positive") score += 1;
-    else if (data.mood === "neutral") score += 0.5;
+    // Mood (max 1 point) - Convert 1-10 scale to 0-1 point
+    score += Math.min(1, data.mood / 10);
     
-    // Recovery level (max 1 point)
-    if (data.recoveryLevel === "good") score += 1;
-    else if (data.recoveryLevel === "moderate") score += 0.5;
+    // Recovery level (max 1 point) - Convert 1-10 scale to 0-1 point
+    score += Math.min(1, data.recoveryLevel / 10);
     
     // Symptoms (max 1 point)
     if (data.symptoms.includes("no_symptoms")) score += 1;
     else if (data.symptoms.length <= 1) score += 0.5;
     
-    // Motivation (max 1 point)
-    if (data.motivationLevel === "high") score += 1;
-    else if (data.motivationLevel === "moderate") score += 0.5;
+    // Motivation (max 1 point) - Convert 1-10 scale to 0-1 point
+    score += Math.min(1, data.motivationLevel / 10);
     
     // Soreness (max 1 point)
     const sorenessCount = Object.keys(data.sorenessMap).length;
@@ -280,7 +276,7 @@ export default function MultiStepMorningDiaryForm() {
       score += 1; // If no injury, full points
     }
     
-    // Convert to percentage
+    // Convert to percentage (0-100)
     return Math.round((score / maxScore) * 100);
   }
   
@@ -396,39 +392,32 @@ export default function MultiStepMorningDiaryForm() {
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-white">Step 1: Sleep & Emotional State</h3>
             
-            {/* Sleep Quality */}
+            {/* Sleep Quality Slider */}
             <FormField
               control={form.control}
               name="sleepQuality"
-              render={({ field }) => (
+              render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
                   <FormLabel className="text-white">Rate your sleep quality</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="good" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Good</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="average" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Average</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="poor" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Poor</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
+                  <div className="space-y-2">
+                    <FormControl>
+                      <Slider
+                        min={1}
+                        max={10}
+                        step={1}
+                        defaultValue={[value]}
+                        onValueChange={(vals) => onChange(vals[0])}
+                        className="py-3"
+                      />
+                    </FormControl>
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Poor (1)</span>
+                      <span>Good (10)</span>
+                    </div>
+                    <div className="text-center text-white">
+                      Selected: <span className="font-semibold">{value}</span>
+                    </div>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -464,77 +453,63 @@ export default function MultiStepMorningDiaryForm() {
               )}
             />
             
-            {/* Stress Level */}
+            {/* Stress Level Slider */}
             <FormField
               control={form.control}
               name="stressLevel"
-              render={({ field }) => (
+              render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
                   <FormLabel className="text-white">What is your current stress level?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="low" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Low</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="medium" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Medium</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="high" />
-                        </FormControl>
-                        <FormLabel className="font-normal">High</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
+                  <div className="space-y-2">
+                    <FormControl>
+                      <Slider
+                        min={1}
+                        max={10}
+                        step={1}
+                        defaultValue={[value]}
+                        onValueChange={(vals) => onChange(vals[0])}
+                        className="py-3"
+                      />
+                    </FormControl>
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Low (1)</span>
+                      <span>High (10)</span>
+                    </div>
+                    <div className="text-center text-white">
+                      Selected: <span className="font-semibold">{value}</span>
+                    </div>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            {/* Mood */}
+            {/* Mood Slider */}
             <FormField
               control={form.control}
               name="mood"
-              render={({ field }) => (
+              render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
                   <FormLabel className="text-white">What is your mood this morning?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="positive" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Positive</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="neutral" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Neutral</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="negative" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Negative</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
+                  <div className="space-y-2">
+                    <FormControl>
+                      <Slider
+                        min={1}
+                        max={10}
+                        step={1}
+                        defaultValue={[value]}
+                        onValueChange={(vals) => onChange(vals[0])}
+                        className="py-3"
+                      />
+                    </FormControl>
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Negative (1)</span>
+                      <span>Positive (10)</span>
+                    </div>
+                    <div className="text-center text-white">
+                      Selected: <span className="font-semibold">{value}</span>
+                    </div>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -547,39 +522,32 @@ export default function MultiStepMorningDiaryForm() {
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-white">Step 2: Recovery & Health</h3>
             
-            {/* Recovery Level */}
+            {/* Recovery Level Slider */}
             <FormField
               control={form.control}
               name="recoveryLevel"
-              render={({ field }) => (
+              render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
                   <FormLabel className="text-white">Rate your recovery level</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="good" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Good</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="moderate" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Moderate</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="poor" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Poor</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
+                  <div className="space-y-2">
+                    <FormControl>
+                      <Slider
+                        min={1}
+                        max={10}
+                        step={1}
+                        defaultValue={[value]}
+                        onValueChange={(vals) => onChange(vals[0])}
+                        className="py-3"
+                      />
+                    </FormControl>
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Poor (1)</span>
+                      <span>Excellent (10)</span>
+                    </div>
+                    <div className="text-center text-white">
+                      Selected: <span className="font-semibold">{value}</span>
+                    </div>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -640,41 +608,39 @@ export default function MultiStepMorningDiaryForm() {
                   </label>
                 </div>
               </div>
+              {form.formState.errors.symptoms && (
+                <p className="text-red-500 text-sm mt-1">
+                  Please select at least one option
+                </p>
+              )}
             </div>
             
-            {/* Motivation Level */}
+            {/* Motivation Level Slider */}
             <FormField
               control={form.control}
               name="motivationLevel"
-              render={({ field }) => (
+              render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
                   <FormLabel className="text-white">What is your motivation level today?</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="high" />
-                        </FormControl>
-                        <FormLabel className="font-normal">High</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="moderate" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Moderate</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="low" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Low</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
+                  <div className="space-y-2">
+                    <FormControl>
+                      <Slider
+                        min={1}
+                        max={10}
+                        step={1}
+                        defaultValue={[value]}
+                        onValueChange={(vals) => onChange(vals[0])}
+                        className="py-3"
+                      />
+                    </FormControl>
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Low (1)</span>
+                      <span>High (10)</span>
+                    </div>
+                    <div className="text-center text-white">
+                      Selected: <span className="font-semibold">{value}</span>
+                    </div>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -709,44 +675,405 @@ export default function MultiStepMorningDiaryForm() {
               </div>
               
               <div className="bg-gray-900 rounded-lg p-4">
-                <FormLabel className="text-white block mb-2">Select areas where you feel soreness:</FormLabel>
+                <FormLabel className="text-white block mb-2">
+                  Select areas where you feel soreness (required):
+                </FormLabel>
                 
-                <div className="relative w-48 h-80 mx-auto">
-                  {/* Body Silhouette */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-32 h-64 bg-gray-800 rounded-3xl relative">
-                      {/* Simple body silhouette outline */}
-                      {bodyView === 'front' ? (
-                        // Front view clickable regions
-                        <>
-                          {FRONT_BODY_PARTS.map(part => (
-                            <button
-                              key={part}
-                              type="button"
-                              className={`absolute ${getBodyPartPosition(part)} w-6 h-6 rounded-full border border-gray-600 ${
-                                getSorenessColor(form.getValues("sorenessMap")[part] || 0)
-                              } hover:bg-opacity-70 transition-colors`}
-                              onClick={() => handleBodyPartClick(part)}
-                            />
-                          ))}
-                        </>
-                      ) : (
-                        // Back view clickable regions
-                        <>
-                          {BACK_BODY_PARTS.map(part => (
-                            <button
-                              key={part}
-                              type="button"
-                              className={`absolute ${getBodyPartPosition(part)} w-6 h-6 rounded-full border border-gray-600 ${
-                                getSorenessColor(form.getValues("sorenessMap")[part] || 0)
-                              } hover:bg-opacity-70 transition-colors`}
-                              onClick={() => handleBodyPartClick(part)}
-                            />
-                          ))}
-                        </>
-                      )}
+                <div className="relative w-64 h-96 mx-auto">
+                  {/* Human Body Silhouette SVG - Front View */}
+                  {bodyView === 'front' ? (
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      <svg 
+                        className="w-48 h-80" 
+                        viewBox="0 0 200 400" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        {/* Base body silhouette */}
+                        <path 
+                          d="M100,30 C120,30 135,45 135,60 C135,75 125,85 120,95 C115,105 115,110 115,110 L115,140 C115,140 130,150 130,170 C130,190 125,220 120,240 C115,260 115,280 115,300 C115,320 115,340 110,350 C105,360 100,370 100,370 L100,390 L90,390 L90,370 C90,370 85,360 80,350 C75,340 75,320 75,300 C75,280 75,260 70,240 C65,220 60,190 60,170 C60,150 75,140 75,140 L75,110 C75,110 75,105 70,95 C65,85 55,75 55,60 C55,45 70,30 90,30 Z" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="2"
+                        />
+                        {/* Right shoulder (anatomical left) */}
+                        <ellipse 
+                          cx="130" 
+                          cy="90" 
+                          rx="15" 
+                          ry="15" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1" 
+                          onClick={() => handleBodyPartClick('left_shoulder')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['left_shoulder'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Left shoulder (anatomical right) */}
+                        <ellipse 
+                          cx="70" 
+                          cy="90" 
+                          rx="15" 
+                          ry="15" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('right_shoulder')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['right_shoulder'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Right arm (anatomical left) */}
+                        <rect 
+                          x="140" 
+                          y="100" 
+                          width="10" 
+                          height="50" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('left_arm')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['left_arm'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Left arm (anatomical right) */}
+                        <rect 
+                          x="50" 
+                          y="100" 
+                          width="10" 
+                          height="50" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('right_arm')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['right_arm'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Head */}
+                        <circle 
+                          cx="100" 
+                          cy="40" 
+                          r="25" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('head')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['head'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Chest */}
+                        <rect 
+                          x="85" 
+                          y="110" 
+                          width="30" 
+                          height="30" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('chest')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['chest'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Abs */}
+                        <rect 
+                          x="85" 
+                          y="145" 
+                          width="30" 
+                          height="40" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('abs')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['abs'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Right thigh (anatomical left) */}
+                        <rect 
+                          x="100" 
+                          y="200" 
+                          width="20" 
+                          height="60" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('left_quad')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['left_quad'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Left thigh (anatomical right) */}
+                        <rect 
+                          x="80" 
+                          y="200" 
+                          width="20" 
+                          height="60" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('right_quad')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['right_quad'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Right knee (anatomical left) */}
+                        <circle 
+                          cx="110" 
+                          cy="280" 
+                          r="10" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('left_knee')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['left_knee'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Left knee (anatomical right) */}
+                        <circle 
+                          cx="90" 
+                          cy="280" 
+                          r="10" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('right_knee')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['right_knee'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Right shin (anatomical left) */}
+                        <rect 
+                          x="105" 
+                          y="295" 
+                          width="10" 
+                          height="40" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('left_shin')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['left_shin'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Left shin (anatomical right) */}
+                        <rect 
+                          x="85" 
+                          y="295" 
+                          width="10" 
+                          height="40" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('right_shin')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['right_shin'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Right foot (anatomical left) */}
+                        <rect 
+                          x="105" 
+                          y="340" 
+                          width="15" 
+                          height="10" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('left_foot')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['left_foot'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Left foot (anatomical right) */}
+                        <rect 
+                          x="80" 
+                          y="340" 
+                          width="15" 
+                          height="10" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('right_foot')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['right_foot'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                      </svg>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      <svg 
+                        className="w-48 h-80" 
+                        viewBox="0 0 200 400" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        {/* Base body silhouette - Back view */}
+                        <path 
+                          d="M100,30 C120,30 135,45 135,60 C135,75 125,85 120,95 C115,105 115,110 115,110 L115,140 C115,140 130,150 130,170 C130,190 125,220 120,240 C115,260 115,280 115,300 C115,320 115,340 110,350 C105,360 100,370 100,370 L100,390 L90,390 L90,370 C90,370 85,360 80,350 C75,340 75,320 75,300 C75,280 75,260 70,240 C65,220 60,190 60,170 C60,150 75,140 75,140 L75,110 C75,110 75,105 70,95 C65,85 55,75 55,60 C55,45 70,30 90,30 Z" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="2"
+                        />
+                        {/* Head back */}
+                        <circle 
+                          cx="100" 
+                          cy="40" 
+                          r="25" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('head_back')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['head_back'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Neck back */}
+                        <rect 
+                          x="90" 
+                          y="70" 
+                          width="20" 
+                          height="15" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('neck_back')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['neck_back'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Upper back */}
+                        <rect 
+                          x="80" 
+                          y="90" 
+                          width="40" 
+                          height="30" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('upper_back')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['upper_back'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Mid back */}
+                        <rect 
+                          x="80" 
+                          y="125" 
+                          width="40" 
+                          height="30" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('mid_back')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['mid_back'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Lower back */}
+                        <rect 
+                          x="80" 
+                          y="160" 
+                          width="40" 
+                          height="30" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('lower_back')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['lower_back'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Right glute (anatomical left) */}
+                        <rect 
+                          x="100" 
+                          y="195" 
+                          width="20" 
+                          height="25" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('left_glute')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['left_glute'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Left glute (anatomical right) */}
+                        <rect 
+                          x="80" 
+                          y="195" 
+                          width="20" 
+                          height="25" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('right_glute')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['right_glute'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Right hamstring (anatomical left) */}
+                        <rect 
+                          x="100" 
+                          y="225" 
+                          width="20" 
+                          height="50" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('left_hamstring')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['left_hamstring'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Left hamstring (anatomical right) */}
+                        <rect 
+                          x="80" 
+                          y="225" 
+                          width="20" 
+                          height="50" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('right_hamstring')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['right_hamstring'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Right calf (anatomical left) */}
+                        <rect 
+                          x="105" 
+                          y="280" 
+                          width="15" 
+                          height="40" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('left_calf')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['left_calf'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Left calf (anatomical right) */}
+                        <rect 
+                          x="80" 
+                          y="280" 
+                          width="15" 
+                          height="40" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('right_calf')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['right_calf'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Right achilles (anatomical left) */}
+                        <rect 
+                          x="107" 
+                          y="325" 
+                          width="10" 
+                          height="15" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('left_achilles')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['left_achilles'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                        {/* Left achilles (anatomical right) */}
+                        <rect 
+                          x="83" 
+                          y="325" 
+                          width="10" 
+                          height="15" 
+                          fill="#3e4955" 
+                          stroke="#1a1d22" 
+                          strokeWidth="1"
+                          onClick={() => handleBodyPartClick('right_achilles')}
+                          className={getSorenessColor(form.getValues("sorenessMap")['right_achilles'] || 0)}
+                          style={{cursor: 'pointer'}}
+                        />
+                      </svg>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex justify-center mt-4 space-x-4 text-xs">
@@ -763,6 +1090,34 @@ export default function MultiStepMorningDiaryForm() {
                     <span className="text-gray-300">Severe</span>
                   </div>
                 </div>
+                
+                {/* No soreness option */}
+                <div className="flex items-center justify-center mt-4">
+                  <Checkbox 
+                    id="no_soreness"
+                    checked={form.getValues("sorenessMap")?._no_soreness === 1}
+                    onCheckedChange={(checked) => {
+                      const currentMap = { ...form.getValues("sorenessMap") };
+                      if (checked) {
+                        // Clear all other selections and set _no_soreness flag
+                        form.setValue("sorenessMap", { _no_soreness: 1 }, { shouldValidate: true });
+                      } else {
+                        // Remove the _no_soreness flag
+                        const { _no_soreness, ...rest } = currentMap;
+                        form.setValue("sorenessMap", rest, { shouldValidate: true });
+                      }
+                    }}
+                  />
+                  <label htmlFor="no_soreness" className="ml-2 text-sm font-medium text-gray-300">
+                    I have no muscle soreness today
+                  </label>
+                </div>
+                
+                {form.formState.errors.sorenessMap && (
+                  <p className="text-sm text-red-500 mt-2 block text-center">
+                    Please select at least one body part or confirm you have no soreness
+                  </p>
+                )}
               </div>
               
               {/* Comment about soreness/pain */}
