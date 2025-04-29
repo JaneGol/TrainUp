@@ -309,6 +309,250 @@ export class MemStorage implements IStorage {
     return result.length > 0 ? result : generateDefaultTrainingLoad();
   }
   
+  // Enhanced analytics for coaches
+  async getTeamWellnessTrends(): Promise<{ date: string; value: number; category: string; }[]> {
+    // Get all morning diaries
+    const diaries = Array.from(this.morningDiaries.values());
+    if (diaries.length === 0) {
+      return generateDefaultWellnessTrends();
+    }
+    
+    // Group diaries by date to get daily averages
+    const diariesByDate: Record<string, MorningDiary[]> = {};
+    diaries.forEach(diary => {
+      const dateStr = diary.date.toISOString().split('T')[0];
+      if (!diariesByDate[dateStr]) {
+        diariesByDate[dateStr] = [];
+      }
+      diariesByDate[dateStr].push(diary);
+    });
+    
+    // Calculate wellness metrics for each date
+    const result: { date: string; value: number; category: string; }[] = [];
+    
+    Object.entries(diariesByDate).forEach(([date, diariesOnDate]) => {
+      // Calculate average readiness score
+      const avgReadiness = diariesOnDate.reduce((sum, diary) => sum + diary.readinessScore, 0) / diariesOnDate.length;
+      result.push({
+        date,
+        value: parseFloat(avgReadiness.toFixed(1)),
+        category: 'Readiness'
+      });
+      
+      // Calculate average mood score (positive/neutral/negative -> 1/0.5/0)
+      const moodScore = diariesOnDate.reduce((sum, diary) => {
+        if (diary.mood === 'positive') return sum + 1;
+        if (diary.mood === 'neutral') return sum + 0.5;
+        return sum;
+      }, 0) / diariesOnDate.length;
+      
+      result.push({
+        date, 
+        value: parseFloat(moodScore.toFixed(1)),
+        category: 'Mood'
+      });
+      
+      // Calculate average recovery score (good/moderate/poor -> 1/0.5/0)
+      const recoveryScore = diariesOnDate.reduce((sum, diary) => {
+        if (diary.recoveryLevel === 'good') return sum + 1;
+        if (diary.recoveryLevel === 'moderate') return sum + 0.5;
+        return sum;
+      }, 0) / diariesOnDate.length;
+      
+      result.push({
+        date,
+        value: parseFloat(recoveryScore.toFixed(1)),
+        category: 'Recovery'
+      });
+    });
+    
+    // Sort by date
+    result.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    return result;
+  }
+  
+  async getAthleteRecoveryReadiness(): Promise<{ athleteId: number; name: string; readinessScore: number; trend: string; issues: string[] }[]> {
+    // Get all athletes
+    const athletes = Array.from(this.users.values()).filter(user => user.role === 'athlete');
+    
+    // For each athlete, get their latest morning diary
+    const result = await Promise.all(athletes.map(async (athlete) => {
+      const diaries = await this.getMorningDiariesByUserId(athlete.id);
+      
+      if (diaries.length === 0) {
+        // No data for this athlete
+        return {
+          athleteId: athlete.id,
+          name: `${athlete.firstName} ${athlete.lastName}`,
+          readinessScore: 0,
+          trend: 'neutral',
+          issues: ['No recent data']
+        };
+      }
+      
+      // Get latest diary
+      const latestDiary = diaries[0];
+      
+      // Get the diary from the day before (if any)
+      const previousDiary = diaries.length > 1 ? diaries[1] : null;
+      
+      // Determine trend
+      let trend = 'neutral';
+      if (previousDiary) {
+        if (latestDiary.readinessScore > previousDiary.readinessScore) {
+          trend = 'improving';
+        } else if (latestDiary.readinessScore < previousDiary.readinessScore) {
+          trend = 'declining';
+        }
+      }
+      
+      // Identify potential issues
+      const issues: string[] = [];
+      
+      if (latestDiary.sleepQuality === 'poor') {
+        issues.push('Poor sleep quality');
+      }
+      
+      if (latestDiary.stressLevel === 'high') {
+        issues.push('High stress level');
+      }
+      
+      if (latestDiary.mood === 'negative') {
+        issues.push('Negative mood');
+      }
+      
+      if (latestDiary.recoveryLevel === 'poor') {
+        issues.push('Poor recovery');
+      }
+      
+      if (latestDiary.motivationLevel === 'low') {
+        issues.push('Low motivation');
+      }
+      
+      if (latestDiary.hasInjury) {
+        issues.push('Reported injury');
+      }
+      
+      // Check for muscle soreness
+      const sorenessMap = latestDiary.sorenessMap as Record<string, boolean>;
+      const soreAreas = Object.entries(sorenessMap)
+        .filter(([key, value]) => value && key !== '_no_soreness')
+        .map(([key]) => key);
+      
+      if (soreAreas.length > 0) {
+        issues.push(`Muscle soreness: ${soreAreas.join(', ')}`);
+      }
+      
+      return {
+        athleteId: athlete.id,
+        name: `${athlete.firstName} ${athlete.lastName}`,
+        readinessScore: latestDiary.readinessScore,
+        trend,
+        issues
+      };
+    }));
+    
+    // Sort by readiness score (ascending, so most at-risk athletes are first)
+    return result.sort((a, b) => a.readinessScore - b.readinessScore);
+  }
+  
+  async getInjuryRiskFactors(): Promise<{ athleteId: number; name: string; riskScore: number; factors: string[] }[]> {
+    // Get all athletes
+    const athletes = Array.from(this.users.values()).filter(user => user.role === 'athlete');
+    
+    // For each athlete, calculate their injury risk
+    const result = await Promise.all(athletes.map(async (athlete) => {
+      const diaries = await this.getMorningDiariesByUserId(athlete.id);
+      const entries = await this.getTrainingEntriesByUserId(athlete.id);
+      
+      // Default risk factors if no data
+      if (diaries.length === 0 && entries.length === 0) {
+        return {
+          athleteId: athlete.id,
+          name: `${athlete.firstName} ${athlete.lastName}`,
+          riskScore: 0,
+          factors: ['Insufficient data']
+        };
+      }
+      
+      // Calculate risk score and identify risk factors
+      let riskScore = 0;
+      const factors: string[] = [];
+      
+      // Check for recent injuries
+      if (diaries.length > 0 && diaries[0].hasInjury) {
+        riskScore += 30;
+        factors.push('Current injury reported');
+      }
+      
+      // Check for chronic poor recovery
+      const recentDiaries = diaries.slice(0, Math.min(7, diaries.length));
+      const poorRecoveryCount = recentDiaries.filter(d => d.recoveryLevel === 'poor').length;
+      if (poorRecoveryCount >= 3) {
+        riskScore += 20;
+        factors.push('Chronic poor recovery');
+      }
+      
+      // Check for consistent muscle soreness
+      const consistentSoreness: Record<string, number> = {};
+      recentDiaries.forEach(diary => {
+        const sorenessMap = diary.sorenessMap as Record<string, boolean>;
+        Object.entries(sorenessMap)
+          .filter(([key, value]) => value && key !== '_no_soreness')
+          .forEach(([key]) => {
+            if (!consistentSoreness[key]) consistentSoreness[key] = 0;
+            consistentSoreness[key]++;
+          });
+      });
+      
+      const chronicSoreAreas = Object.entries(consistentSoreness)
+        .filter(([_, count]) => count >= 3)
+        .map(([area]) => area);
+      
+      if (chronicSoreAreas.length > 0) {
+        riskScore += 15;
+        factors.push(`Chronic soreness: ${chronicSoreAreas.join(', ')}`);
+      }
+      
+      // Check for high acute workload
+      if (entries.length > 0) {
+        const last7Days = new Date();
+        last7Days.setDate(last7Days.getDate() - 7);
+        
+        const recentHighEffortEntries = entries.filter(e => 
+          e.date >= last7Days && e.effortLevel >= 8
+        );
+        
+        if (recentHighEffortEntries.length >= 3) {
+          riskScore += 25;
+          factors.push('Multiple high-effort sessions in past week');
+        }
+      }
+      
+      // Check for acute:chronic workload ratio if we have enough data
+      if (entries.length >= 28) {
+        const acwrData = await this.getAcuteChronicLoadRatio(athlete.id);
+        const latestRatio = acwrData[acwrData.length - 1]?.ratio;
+        
+        if (latestRatio > 1.3) {
+          riskScore += 10 + Math.round((latestRatio - 1.3) * 50); // Higher penalty for higher ratio
+          factors.push(`High ACWR ratio: ${latestRatio.toFixed(2)}`);
+        }
+      }
+      
+      return {
+        athleteId: athlete.id,
+        name: `${athlete.firstName} ${athlete.lastName}`,
+        riskScore: Math.min(100, riskScore), // Cap at 100
+        factors
+      };
+    }));
+    
+    // Sort by risk score (descending)
+    return result.sort((a, b) => b.riskScore - a.riskScore);
+  }
+
   async getAcuteChronicLoadRatio(athleteId?: number): Promise<{ date: string; acute: number; chronic: number; ratio: number }[]> {
     // Get training entries for load calculation
     const trainingLoad = await this.getTrainingLoadByRPE(athleteId);
