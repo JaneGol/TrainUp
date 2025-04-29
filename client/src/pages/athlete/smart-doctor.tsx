@@ -1,339 +1,323 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import DashboardLayout from "@/components/layout/dashboard-layout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  ChevronLeft,
+  Heart,
+  Loader2,
+  Battery,
+  Coffee,
+  Utensils,
+  AlertCircle,
+  CheckCircle2,
+  Info
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { Activity, AlertTriangle, CheckCircle2, Clock, FileText } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
-const bodyParts = [
-  "Head", "Neck", "Shoulder", "Arm", "Elbow", "Wrist", "Hand", 
-  "Chest", "Back", "Abdomen", "Hip", "Thigh", "Knee", "Calf", "Ankle", "Foot"
-];
+interface MorningDiary {
+  id: number;
+  userId: number;
+  date: string;
+  readinessScore: number;
+  sleepQuality: string;
+  hydrationLevel: string;
+  sleepHours: number;
+  mood: string;
+  stress: string;
+  fatigue: string;
+  soreness: string;
+  recovery: string;
+  motivation: string;
+  pain: string;
+  mentalState: string;
+  additionalNotes: string | null;
+}
 
-const symptomsFormSchema = z.object({
-  symptom: z.string().min(3, {
-    message: "Symptom must be at least 3 characters.",
-  }),
-  severity: z.number().min(1).max(10),
-  bodyPart: z.string().min(1, {
-    message: "Please select a body part.",
-  }),
-  notes: z.string().optional(),
-});
-
-type SymptomsFormValues = z.infer<typeof symptomsFormSchema>;
-
-export default function SmartDoctor() {
+export default function SmartDoctorPage() {
+  const { user } = useAuth();
   const [, navigate] = useLocation();
-  const { toast } = useToast();
-  const [result, setResult] = useState<string | null>(null);
-  
-  // Get health reports
-  const { data: healthReports, isLoading: healthReportsLoading } = useQuery({
-    queryKey: ["/api/health-reports"],
-  });
-  
-  const form = useForm<SymptomsFormValues>({
-    resolver: zodResolver(symptomsFormSchema),
-    defaultValues: {
-      symptom: "",
-      severity: 5,
-      bodyPart: "",
-      notes: "",
-    },
-  });
-  
-  const reportMutation = useMutation({
-    mutationFn: async (data: SymptomsFormValues) => {
-      const res = await apiRequest("POST", "/api/health-reports", data);
+
+  // Fetch latest morning diary
+  const { data: latestDiary, isLoading } = useQuery<MorningDiary>({
+    queryKey: ["/api/morning-diary/latest"],
+    queryFn: async () => {
+      const res = await fetch("/api/morning-diary/latest");
+      if (!res.ok) throw new Error("Failed to fetch latest diary");
       return await res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/health-reports"] });
-      toast({
-        title: "Symptom reported",
-        description: "Your health report has been submitted.",
-      });
-      
-      // Generate advice based on the symptom
-      const symptom = form.getValues("symptom").toLowerCase();
-      const severity = form.getValues("severity");
-      const bodyPart = form.getValues("bodyPart");
-      
-      let advice = "";
-      
-      if (severity >= 8) {
-        advice = `Your ${symptom} in the ${bodyPart} area is severe. Please consult with a medical professional immediately. Avoid training until cleared by a doctor.`;
-      } else if (severity >= 5) {
-        advice = `For moderate ${symptom} in the ${bodyPart}, consider rest, ice, compression, and elevation (RICE). Reduce training intensity for the next few days and monitor your symptoms.`;
-      } else {
-        advice = `Your ${symptom} in the ${bodyPart} area appears to be mild. Monitor the condition, ensure proper warm-up before training, and consider light stretching exercises.`;
-      }
-      
-      setResult(advice);
-      form.reset();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: `Failed to submit report: ${error.message}`,
-        variant: "destructive",
-      });
-    },
+    }
   });
-  
-  function onSubmit(data: SymptomsFormValues) {
-    reportMutation.mutate(data);
-  }
-  
+
+  // Fetch health reports
+  const { data: healthReports = [] } = useQuery({
+    queryKey: ["/api/health-reports"],
+    queryFn: async () => {
+      const res = await fetch("/api/health-reports");
+      if (!res.ok) throw new Error("Failed to fetch health reports");
+      return await res.json();
+    }
+  });
+
+  // Check if athlete submitted a morning diary today
+  const today = new Date().toISOString().split('T')[0];
+  const hasSubmittedToday = latestDiary?.date?.split('T')[0] === today;
+
+  // Generate AI health assessment based on latest diary
+  const generateHealthAssessment = () => {
+    if (!latestDiary) return null;
+
+    const readinessScore = latestDiary.readinessScore;
+    let status = "Normal";
+    let recommendation = "";
+    let color = "bg-green-100 text-green-800";
+    let statusIcon = <CheckCircle2 className="h-5 w-5 text-green-500" />;
+
+    if (readinessScore < 40) {
+      status = "Recovery needed";
+      recommendation = "Today should be a rest day or very light activity only.";
+      color = "bg-red-100 text-red-800";
+      statusIcon = <AlertCircle className="h-5 w-5 text-red-500" />;
+    } else if (readinessScore < 60) {
+      status = "Low readiness";
+      recommendation = "Light to moderate training only, focus on technique.";
+      color = "bg-amber-100 text-amber-800";
+      statusIcon = <Info className="h-5 w-5 text-amber-500" />;
+    } else if (readinessScore < 80) {
+      status = "Moderate readiness";
+      recommendation = "Moderate training load is appropriate.";
+      color = "bg-blue-100 text-blue-800";
+      statusIcon = <Info className="h-5 w-5 text-blue-500" />;
+    } else {
+      status = "High readiness";
+      recommendation = "You're ready for high-intensity training.";
+      color = "bg-green-100 text-green-800";
+      statusIcon = <CheckCircle2 className="h-5 w-5 text-green-500" />;
+    }
+
+    // Sleep advice
+    let sleepAdvice = "";
+    if (latestDiary.sleepHours < 7) {
+      sleepAdvice = "Aim for 7-9 hours of sleep tonight to improve recovery.";
+    } else if (latestDiary.sleepQuality === "poor") {
+      sleepAdvice = "Consider improving sleep quality with a wind-down routine.";
+    }
+
+    // Recovery advice based on soreness
+    let recoveryAdvice = "";
+    if (latestDiary.soreness === "high") {
+      recoveryAdvice = "Apply ice to sore areas and consider gentle stretching.";
+    } else if (latestDiary.recovery === "not at all") {
+      recoveryAdvice = "Focus on proper nutrition and hydration today.";
+    }
+
+    // Hydration advice
+    let hydrationAdvice = "";
+    if (latestDiary.hydrationLevel === "poor") {
+      hydrationAdvice = "Increase water intake throughout the day.";
+    }
+
+    // Nutrition advice
+    let nutritionAdvice = "Focus on balanced meals with protein, carbs, and vegetables.";
+    if (latestDiary.readinessScore < 60) {
+      nutritionAdvice = "Prioritize protein and carbohydrates to support recovery.";
+    }
+
+    return {
+      status,
+      statusIcon,
+      color,
+      recommendation,
+      sleepAdvice,
+      recoveryAdvice,
+      hydrationAdvice,
+      nutritionAdvice
+    };
+  };
+
+  const assessment = generateHealthAssessment();
+
   return (
-    <DashboardLayout>
-      <div className="p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Smart Doctor</h2>
-        
-        <Tabs defaultValue="smart-doctor" className="w-full">
-          <TabsList className="mb-6 border-b border-gray-200 w-full justify-start rounded-none bg-transparent p-0">
-            <TabsTrigger 
-              value="training-diary" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none py-4 px-1 font-medium"
-              onClick={() => navigate("/training-diary")}
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
+      {/* Simple header with back button */}
+      <header className="bg-white border-b p-4 flex items-center shadow-sm">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => navigate("/athlete")}
+          className="mr-2"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-xl font-bold text-gray-800 flex-1 text-center pr-8">
+          Smart Doctor
+        </h1>
+      </header>
+
+      {/* Main content */}
+      <main className="flex-1 p-4">
+        {isLoading ? (
+          <div className="h-64 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : !latestDiary ? (
+          <Alert className="mb-6">
+            <Info className="h-5 w-5" />
+            <AlertTitle>No diary entries found</AlertTitle>
+            <AlertDescription>
+              Complete your morning self-control diary to get personalized health recommendations.
+            </AlertDescription>
+          </Alert>
+        ) : !hasSubmittedToday ? (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-5 w-5" />
+            <AlertTitle>Today's diary missing</AlertTitle>
+            <AlertDescription>
+              You haven't completed your morning diary today. For the most accurate assessment, please fill out your diary.
+            </AlertDescription>
+            <Button
+              onClick={() => navigate("/athlete/morning-diary")}
+              className="mt-2 w-full"
+              variant="outline"
             >
-              Training Diary
-            </TabsTrigger>
-            <TabsTrigger 
-              value="fitness-progress" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none py-4 px-1 font-medium"
-              onClick={() => navigate("/fitness-progress")}
-            >
-              Fitness Progress
-            </TabsTrigger>
-            <TabsTrigger 
-              value="smart-doctor" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none py-4 px-1 font-medium"
-            >
-              Smart Doctor
-            </TabsTrigger>
-            <TabsTrigger 
-              value="feedback" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none py-4 px-1 font-medium"
-            >
-              Feedback
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="smart-doctor" className="mt-0">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Report Symptoms</CardTitle>
-                    <CardDescription>
-                      Describe any pain, discomfort, or health concerns you're experiencing
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <FormField
-                          control={form.control}
-                          name="symptom"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Symptom</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. Pain, Soreness, Stiffness" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="bodyPart"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Body Part</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select body part" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {bodyParts.map((part) => (
-                                    <SelectItem key={part} value={part.toLowerCase()}>
-                                      {part}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="severity"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Severity (1-10)</FormLabel>
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-xs text-gray-500 px-2">
-                                  <span>Mild</span>
-                                  <span>Moderate</span>
-                                  <span>Severe</span>
-                                </div>
-                                <FormControl>
-                                  <Slider
-                                    min={1}
-                                    max={10}
-                                    step={1}
-                                    defaultValue={[field.value]}
-                                    onValueChange={(vals) => field.onChange(vals[0])}
-                                  />
-                                </FormControl>
-                                <div className="text-center">
-                                  <span className="bg-primary text-white text-xs px-2 py-1 rounded-full">
-                                    {field.value}/10
-                                  </span>
-                                </div>
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="notes"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Additional Notes</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Provide any additional details about your symptoms..."
-                                  className="resize-none"
-                                  rows={4}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <Button 
-                          type="submit" 
-                          className="w-full" 
-                          disabled={reportMutation.isPending}
-                        >
-                          {reportMutation.isPending ? "Submitting..." : "Submit Report"}
-                        </Button>
-                      </form>
-                    </Form>
-                  </CardContent>
-                </Card>
-                
-                {result && (
-                  <Card className="mt-6">
-                    <CardHeader className="flex flex-row items-start gap-4">
-                      <Activity className="h-6 w-6 text-primary" />
-                      <div>
-                        <CardTitle>Health Advice</CardTitle>
-                        <CardDescription>Based on your reported symptoms</CardDescription>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-700">{result}</p>
-                    </CardContent>
-                    <CardFooter>
-                      <p className="text-xs text-gray-500 flex items-center">
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                        This is general advice. For persistent or severe symptoms, please consult a healthcare professional.
-                      </p>
-                    </CardFooter>
-                  </Card>
+              Complete Morning Diary
+            </Button>
+          </Alert>
+        ) : null}
+
+        {latestDiary && assessment && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-center">
+                  <CardTitle>Current Health Status</CardTitle>
+                  <Badge className={assessment.color} variant="outline">
+                    <span className="flex items-center gap-1">
+                      {assessment.statusIcon}
+                      {assessment.status}
+                    </span>
+                  </Badge>
+                </div>
+                <CardDescription>
+                  Based on your latest morning self-assessment
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="mb-4">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm font-medium">Readiness Score</span>
+                    <span className="text-sm font-medium">{latestDiary.readinessScore}%</span>
+                  </div>
+                  <Progress value={latestDiary.readinessScore} className="h-2" />
+                </div>
+                <p className="text-sm">{assessment.recommendation}</p>
+              </CardContent>
+              <CardFooter className="text-xs text-muted-foreground pt-1">
+                Last updated: {new Date(latestDiary.date).toLocaleString()}
+              </CardFooter>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Battery className="h-5 w-5 text-amber-500" />
+                  Recovery Recommendations
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {assessment.sleepAdvice && (
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                        <path d="M18 8.4C18 6.35 17.36 4.96 16.36 4C15.36 3.04 14.02 2.4 12 2.4C9.98 2.4 8.64 3.04 7.64 4C6.64 4.96 6 6.35 6 8.4C6 17.36 2 19.4 2 19.4H22C22 19.4 18 17.36 18 8.4Z" />
+                        <path d="M13.73 21.4C13.5 21.76 13.2 22.05 12.84 22.26C12.482 22.473 12.078 22.587 11.665 22.59C11.252 22.593 10.846 22.486 10.485 22.28C10.1247 22.0679 9.82091 21.7648 9.6 21.4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium">Sleep</h4>
+                      <p className="text-sm text-muted-foreground">{assessment.sleepAdvice}</p>
+                    </div>
+                  </div>
                 )}
-              </div>
-              
-              <div>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Health Reports</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {healthReportsLoading ? (
-                      <div className="flex justify-center p-4">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                      </div>
-                    ) : healthReports?.length > 0 ? (
-                      <div className="space-y-4">
-                        {healthReports.map((report: any) => (
-                          <div key={report.id} className="border-b border-gray-100 pb-4">
-                            <div className="flex justify-between">
-                              <div>
-                                <h4 className="font-semibold text-gray-800">{report.symptom}</h4>
-                                <p className="text-sm text-gray-500">
-                                  {new Date(report.createdAt).toLocaleDateString()} - {report.bodyPart}
-                                </p>
-                              </div>
-                              <span className={`bg-${
-                                report.severity > 7 ? "red" : report.severity > 4 ? "yellow" : "green"
-                              }-100 text-${
-                                report.severity > 7 ? "red" : report.severity > 4 ? "yellow" : "green"
-                              }-800 text-xs px-2 py-1 rounded-full`}>
-                                {report.severity}/10
-                              </span>
-                            </div>
-                            {report.notes && (
-                              <p className="mt-1 text-sm text-gray-600">{report.notes}</p>
-                            )}
-                            <div className="mt-2 flex items-center text-xs">
-                              {report.status === "reviewed" ? (
-                                <span className="text-accent flex items-center">
-                                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                                  Reviewed
-                                </span>
-                              ) : (
-                                <span className="text-gray-400 flex items-center">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  Pending review
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-6">
-                        <FileText className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-                        <p className="text-gray-500">No health reports yet</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </DashboardLayout>
+
+                {assessment.recoveryAdvice && (
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <Heart className="h-4 w-4 text-rose-500" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium">Recovery</h4>
+                      <p className="text-sm text-muted-foreground">{assessment.recoveryAdvice}</p>
+                    </div>
+                  </div>
+                )}
+
+                {assessment.hydrationAdvice && (
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <Coffee className="h-4 w-4 text-blue-500" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium">Hydration</h4>
+                      <p className="text-sm text-muted-foreground">{assessment.hydrationAdvice}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 mt-1">
+                    <Utensils className="h-4 w-4 text-green-500" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium">Nutrition</h4>
+                    <p className="text-sm text-muted-foreground">{assessment.nutritionAdvice}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {healthReports.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                    Health Issues
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {healthReports.map((report: any) => (
+                      <li key={report.id} className="bg-gray-50 p-3 rounded-md">
+                        <div className="flex justify-between">
+                          <span className="font-medium">{report.symptom}</span>
+                          <Badge variant={report.severity > 7 ? "destructive" : "outline"}>
+                            Severity: {report.severity}/10
+                          </Badge>
+                        </div>
+                        {report.bodyPart && (
+                          <p className="text-sm text-muted-foreground">Area: {report.bodyPart}</p>
+                        )}
+                        {report.notes && (
+                          <p className="text-sm mt-1">{report.notes}</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            <Button 
+              className="w-full mt-4"
+              onClick={() => navigate("/athlete/morning-diary")}
+            >
+              Update Morning Diary
+            </Button>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
