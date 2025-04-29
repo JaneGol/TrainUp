@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface SorenessSelectorProps {
@@ -6,34 +6,54 @@ interface SorenessSelectorProps {
   onChange: (value: Record<string, boolean>) => void;
 }
 
-export function SorenessSelector({ value, onChange }: SorenessSelectorProps) {
+export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps) {
+  // Initialize local state to manage UI updates more responsively
+  const [localSelections, setLocalSelections] = useState<Record<string, boolean>>(value || {});
+  
+  // Sync local state with incoming value prop when it changes externally
+  useEffect(() => {
+    setLocalSelections(value || {});
+  }, [value]);
+  
   const upperBodyMuscles = ["shoulders", "chest", "arms", "back", "neck", "core"];
   const lowerBodyMuscles = ["hips", "glutes", "thighs", "hamstrings", "knees", "calves"];
   
-  const handleNoSorenessChange = (checked: boolean) => {
-    if (checked) {
-      onChange({ _no_soreness: true });
-    } else {
-      onChange({});
-    }
+  const hasNoSoreness = !!localSelections._no_soreness;
+  
+  // Toggle "No soreness" option
+  const toggleNoSoreness = () => {
+    const newState = !hasNoSoreness;
+    const newSelections = newState ? { _no_soreness: true } : {};
+    
+    // Update local state immediately for responsive UI
+    setLocalSelections(newSelections);
+    
+    // Propagate change to parent component
+    onChange(newSelections);
   };
   
-  const handleMuscleChange = (muscle: string, checked: boolean) => {
-    const updatedMap = { ...value };
+  // Toggle individual muscle selection
+  const toggleMuscle = (muscle: string) => {
+    // Create a new object to avoid mutating current state
+    const newSelections = { ...localSelections };
     
-    // Remove _no_soreness if selecting a muscle
-    if (checked && updatedMap._no_soreness) {
-      delete updatedMap._no_soreness;
+    // If "No soreness" is selected, clear it first
+    if (newSelections._no_soreness) {
+      delete newSelections._no_soreness;
     }
     
-    // Update the muscle
-    if (checked) {
-      updatedMap[muscle] = true;
+    // Toggle the selected muscle
+    if (newSelections[muscle]) {
+      delete newSelections[muscle];
     } else {
-      delete updatedMap[muscle];
+      newSelections[muscle] = true;
     }
     
-    onChange(updatedMap);
+    // Update local state immediately for responsive UI
+    setLocalSelections(newSelections);
+    
+    // Propagate change to parent component
+    onChange(newSelections);
   };
   
   return (
@@ -42,13 +62,17 @@ export function SorenessSelector({ value, onChange }: SorenessSelectorProps) {
       
       {/* No Soreness Option */}
       <div 
-        className="flex items-center space-x-2 p-4 mb-4 bg-[rgb(30,30,30)] rounded-md border border-gray-700 cursor-pointer"
-        onClick={() => handleNoSorenessChange(!value._no_soreness)}
+        className={`flex items-center space-x-2 p-4 mb-4 rounded-md border cursor-pointer transition-colors
+          ${hasNoSoreness 
+            ? "bg-primary/10 border-primary" 
+            : "bg-[rgb(30,30,30)] border-gray-700 hover:bg-gray-800/30"}`}
+        onClick={toggleNoSoreness}
       >
         <Checkbox 
           id="no_soreness"
-          checked={!!value._no_soreness}
-          onCheckedChange={(checked) => handleNoSorenessChange(!!checked)}
+          checked={hasNoSoreness}
+          className="text-primary"
+          onCheckedChange={() => toggleNoSoreness()}
         />
         <label 
           htmlFor="no_soreness" 
@@ -59,51 +83,63 @@ export function SorenessSelector({ value, onChange }: SorenessSelectorProps) {
       </div>
       
       {/* Only show muscle groups if "No soreness" is not checked */}
-      {!value._no_soreness && (
+      {!hasNoSoreness && (
         <div className="space-y-4">
           <div className="border border-gray-800 rounded-lg overflow-hidden">
             {/* Two-column layout for muscle groups */}
             <div className="grid grid-cols-2">
               {/* Column 1 */}
               <div className="border-r border-gray-800">
-                {upperBodyMuscles.map((muscle) => (
-                  <div 
-                    key={muscle}
-                    className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
-                    onClick={() => handleMuscleChange(muscle, !value[muscle])}
-                  >
-                    <Checkbox 
-                      id={`soreness-${muscle}`}
-                      className="mr-3"
-                      checked={!!value[muscle]}
-                      onCheckedChange={(checked) => handleMuscleChange(muscle, !!checked)}
-                    />
-                    <span className="flex-1 text-gray-200 capitalize cursor-pointer">
-                      {muscle}
-                    </span>
-                  </div>
-                ))}
+                {upperBodyMuscles.map((muscle) => {
+                  const isSelected = !!localSelections[muscle];
+                  return (
+                    <div 
+                      key={muscle}
+                      className={`flex items-center p-3 cursor-pointer border-b border-gray-800 transition-colors
+                        ${isSelected 
+                          ? "bg-primary/10" 
+                          : "hover:bg-gray-800/30"}`}
+                      onClick={() => toggleMuscle(muscle)}
+                    >
+                      <Checkbox 
+                        id={`soreness-${muscle}`}
+                        className="mr-3 text-primary"
+                        checked={isSelected}
+                        onCheckedChange={() => toggleMuscle(muscle)}
+                      />
+                      <span className="flex-1 text-gray-200 capitalize cursor-pointer">
+                        {muscle}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
               
               {/* Column 2 */}
               <div>
-                {lowerBodyMuscles.map((muscle) => (
-                  <div 
-                    key={muscle}
-                    className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
-                    onClick={() => handleMuscleChange(muscle, !value[muscle])}
-                  >
-                    <Checkbox 
-                      id={`soreness-${muscle}`}
-                      className="mr-3"
-                      checked={!!value[muscle]}
-                      onCheckedChange={(checked) => handleMuscleChange(muscle, !!checked)}
-                    />
-                    <span className="flex-1 text-gray-200 capitalize cursor-pointer">
-                      {muscle}
-                    </span>
-                  </div>
-                ))}
+                {lowerBodyMuscles.map((muscle) => {
+                  const isSelected = !!localSelections[muscle];
+                  return (
+                    <div 
+                      key={muscle}
+                      className={`flex items-center p-3 cursor-pointer border-b border-gray-800 transition-colors
+                        ${isSelected 
+                          ? "bg-primary/10" 
+                          : "hover:bg-gray-800/30"}`}
+                      onClick={() => toggleMuscle(muscle)}
+                    >
+                      <Checkbox 
+                        id={`soreness-${muscle}`}
+                        className="mr-3 text-primary"
+                        checked={isSelected}
+                        onCheckedChange={() => toggleMuscle(muscle)}
+                      />
+                      <span className="flex-1 text-gray-200 capitalize cursor-pointer">
+                        {muscle}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
