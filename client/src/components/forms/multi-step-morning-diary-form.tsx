@@ -448,6 +448,7 @@ export default function MultiStepMorningDiaryForm() {
                         type="number"
                         min={0}
                         max={24}
+                        className="bg-gray-800 border-gray-700 text-white"
                         className="w-20"
                         value={field.value || 0}
                         onChange={(e) => {
@@ -1423,27 +1424,27 @@ export default function MultiStepMorningDiaryForm() {
   }
   
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
+    <div className="bg-[#1a1d22] p-6 rounded-lg shadow-sm">
       <div className="flex items-center gap-2 mb-2">
         <Activity className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold">Daily Self-Assessment</h3>
+        <h3 className="text-lg font-semibold text-white">Daily Self-Assessment</h3>
       </div>
-      <p className="text-muted-foreground mb-6">Track your sleep, recovery, health, and soreness levels</p>
+      <p className="text-gray-400 mb-6">Track your sleep, recovery, health, and soreness levels</p>
       
       {/* Progress Steps */}
       <div className="mb-6">
         <div className="flex justify-between">
-          <div className={`text-xs font-medium ${currentStep >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
+          <div className={`text-xs font-medium ${currentStep >= 1 ? 'text-primary' : 'text-gray-400'}`}>
             Sleep & Emotional State
           </div>
-          <div className={`text-xs font-medium ${currentStep >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
+          <div className={`text-xs font-medium ${currentStep >= 2 ? 'text-primary' : 'text-gray-400'}`}>
             Recovery & Health
           </div>
-          <div className={`text-xs font-medium ${currentStep >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
+          <div className={`text-xs font-medium ${currentStep >= 3 ? 'text-primary' : 'text-gray-400'}`}>
             Soreness & Injury
           </div>
         </div>
-        <div className="w-full bg-gray-200 h-1.5 mt-2 rounded-full">
+        <div className="w-full bg-gray-700 h-1.5 mt-2 rounded-full">
           <div 
             className="bg-primary h-1.5 rounded-full transition-all duration-300"
             style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
