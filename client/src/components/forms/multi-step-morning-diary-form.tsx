@@ -31,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Loader2, ChevronLeft, ChevronRight, Activity } from "lucide-react";
+import { Loader2, ArrowLeft, Activity } from "lucide-react";
 
 // Define Zod schema for the form based on the database schema requirements
 const morningDiarySchema = z.object({
@@ -455,9 +455,16 @@ export default function MultiStepMorningDiaryForm() {
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400">
-                      <span>Low (0)</span>
-                      <span>Medium (3)</span>
-                      <span>High (5)</span>
+                      <span>0</span>
+                      <span>1</span>
+                      <span>2</span>
+                      <span>3</span>
+                      <span>4</span>
+                      <span>5</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>Low</span>
+                      <span className="ml-auto">High</span>
                     </div>
                     <div className="text-center text-gray-200">
                       Selected: <span className="font-semibold">{field.value}</span>
@@ -499,9 +506,16 @@ export default function MultiStepMorningDiaryForm() {
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400">
-                      <span>Negative (0)</span>
-                      <span>Neutral (3)</span>
-                      <span>Positive (5)</span>
+                      <span>0</span>
+                      <span>1</span>
+                      <span>2</span>
+                      <span>3</span>
+                      <span>4</span>
+                      <span>5</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>Negative</span>
+                      <span className="ml-auto">Positive</span>
                     </div>
                     <div className="text-center text-gray-200">
                       Selected: <span className="font-semibold">{field.value}</span>
@@ -550,9 +564,16 @@ export default function MultiStepMorningDiaryForm() {
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400">
-                      <span>Not Recovered (0)</span>
-                      <span>Moderate (3)</span>
-                      <span>Fully Recovered (5)</span>
+                      <span>0</span>
+                      <span>1</span>
+                      <span>2</span>
+                      <span>3</span>
+                      <span>4</span>
+                      <span>5</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>Not Recovered</span>
+                      <span className="ml-auto">Fully Recovered</span>
                     </div>
                     <div className="text-center text-gray-200">
                       Selected: <span className="font-semibold">
@@ -632,9 +653,16 @@ export default function MultiStepMorningDiaryForm() {
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400">
-                      <span>Low (0)</span>
-                      <span>Moderate (3)</span>
-                      <span>High (5)</span>
+                      <span>0</span>
+                      <span>1</span>
+                      <span>2</span>
+                      <span>3</span>
+                      <span>4</span>
+                      <span>5</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>Low</span>
+                      <span className="ml-auto">High</span>
                     </div>
                     <div className="text-center text-gray-200">
                       Selected: <span className="font-semibold">
@@ -694,78 +722,38 @@ export default function MultiStepMorningDiaryForm() {
                   {/* Only show muscle groups if "No soreness" is not checked */}
                   {!(field.value as Record<string, boolean>)?._no_soreness && (
                     <div className="space-y-4">
-                      <div className="divide-y divide-gray-800 border border-gray-800 rounded-lg overflow-hidden">
-                        {/* Upper Body Group */}
-                        <div className="p-2 bg-gray-900 text-gray-300 text-sm font-medium">
-                          Upper Body
-                        </div>
-                        {["shoulders", "chest", "arms"].map((muscle) => (
-                          <div 
-                            key={muscle}
-                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-800/30"
-                            onClick={() => {
-                              const current = { ...(field.value || {}) } as Record<string, boolean>;
-                              current[muscle] = !current[muscle];
-                              form.setValue("sorenessMap", current as any, { shouldValidate: true });
-                            }}
-                          >
-                            <div className="flex items-center">
-                              <span className="text-gray-200 capitalize">{muscle}</span>
+                      <div className="border border-gray-800 rounded-lg overflow-hidden">
+                        {/* Simple flat list of all muscle groups */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2">
+                          {["shoulders", "chest", "arms", "back", "core", "hips", "legs", "calves"].map((muscle) => (
+                            <div 
+                              key={muscle}
+                              className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
+                              onClick={() => {
+                                const current = { ...(field.value || {}) } as Record<string, boolean>;
+                                current[muscle] = !current[muscle];
+                                form.setValue("sorenessMap", current as any, { shouldValidate: true });
+                              }}
+                            >
+                              <Checkbox 
+                                id={`soreness-${muscle}`}
+                                className="mr-3"
+                                checked={(field.value as Record<string, boolean>)?.[muscle] || false}
+                                onCheckedChange={(checked) => {
+                                  const current = { ...(field.value || {}) } as Record<string, boolean>;
+                                  current[muscle] = !!checked;
+                                  form.setValue("sorenessMap", current as any, { shouldValidate: true });
+                                }}
+                              />
+                              <label 
+                                htmlFor={`soreness-${muscle}`}
+                                className="flex-1 text-gray-200 capitalize cursor-pointer"
+                              >
+                                {muscle}
+                              </label>
                             </div>
-                            <Checkbox 
-                              checked={(field.value as Record<string, boolean>)?.[muscle] || false}
-                              onCheckedChange={() => {}}
-                            />
-                          </div>
-                        ))}
-                        
-                        {/* Core/Back Group */}
-                        <div className="p-2 bg-gray-900 text-gray-300 text-sm font-medium">
-                          Core & Back
+                          ))}
                         </div>
-                        {["back", "core"].map((muscle) => (
-                          <div 
-                            key={muscle}
-                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-800/30"
-                            onClick={() => {
-                              const current = { ...(field.value || {}) } as Record<string, boolean>;
-                              current[muscle] = !current[muscle];
-                              form.setValue("sorenessMap", current as any, { shouldValidate: true });
-                            }}
-                          >
-                            <div className="flex items-center">
-                              <span className="text-gray-200 capitalize">{muscle}</span>
-                            </div>
-                            <Checkbox 
-                              checked={(field.value as Record<string, boolean>)?.[muscle] || false}
-                              onCheckedChange={() => {}}
-                            />
-                          </div>
-                        ))}
-                        
-                        {/* Lower Body Group */}
-                        <div className="p-2 bg-gray-900 text-gray-300 text-sm font-medium">
-                          Lower Body
-                        </div>
-                        {["hips", "legs", "calves"].map((muscle) => (
-                          <div 
-                            key={muscle}
-                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-800/30"
-                            onClick={() => {
-                              const current = { ...(field.value || {}) } as Record<string, boolean>;
-                              current[muscle] = !current[muscle];
-                              form.setValue("sorenessMap", current as any, { shouldValidate: true });
-                            }}
-                          >
-                            <div className="flex items-center">
-                              <span className="text-gray-200 capitalize">{muscle}</span>
-                            </div>
-                            <Checkbox 
-                              checked={(field.value as Record<string, boolean>)?.[muscle] || false}
-                              onCheckedChange={() => {}}
-                            />
-                          </div>
-                        ))}
                       </div>
                       
                       {/* Notes about soreness */}
@@ -943,14 +931,14 @@ export default function MultiStepMorningDiaryForm() {
               variant="outline"
               onClick={prevStep}
               disabled={currentStep === 1}
-              className={`${currentStep === 1 ? "invisible" : ""}`}
+              className={`flex items-center ${currentStep === 1 ? "invisible" : ""}`}
             >
-              <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+              <ArrowLeft className="mr-3 h-5 w-5" /> Previous
             </Button>
             
             {currentStep < 3 ? (
-              <Button type="button" onClick={nextStep}>
-                Next <ChevronRight className="ml-2 h-4 w-4" />
+              <Button type="button" onClick={nextStep} className="flex items-center">
+                Next <Activity className="ml-3 h-5 w-5" />
               </Button>
             ) : (
               <Button 
