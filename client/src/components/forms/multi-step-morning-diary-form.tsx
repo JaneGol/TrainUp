@@ -390,7 +390,7 @@ export default function MultiStepMorningDiaryForm() {
       case 1:
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-white">Step 1: Sleep & Emotional State</h3>
+            <h3 className="text-lg font-semibold text-gray-200">Step 1: Sleep & Emotional State</h3>
             
             {/* Sleep Quality Slider */}
             <FormField
@@ -398,14 +398,14 @@ export default function MultiStepMorningDiaryForm() {
               name="sleepQuality"
               render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
-                  <FormLabel className="text-white">Rate your sleep quality</FormLabel>
+                  <FormLabel className="text-gray-200">Rate your sleep quality</FormLabel>
                   <div className="space-y-2">
                     <FormControl>
                       <Slider
                         min={1}
                         max={10}
                         step={1}
-                        defaultValue={[value]}
+                        value={[value || 1]}
                         onValueChange={(vals) => onChange(vals[0])}
                         className="py-3"
                       />
@@ -414,8 +414,8 @@ export default function MultiStepMorningDiaryForm() {
                       <span>Poor (1)</span>
                       <span>Good (10)</span>
                     </div>
-                    <div className="text-center text-white">
-                      Selected: <span className="font-semibold">{value}</span>
+                    <div className="text-center text-gray-200">
+                      Selected: <span className="font-semibold">{value || 1}</span>
                     </div>
                   </div>
                   <FormMessage />
@@ -520,7 +520,7 @@ export default function MultiStepMorningDiaryForm() {
       case 2:
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-white">Step 2: Recovery & Health</h3>
+            <h3 className="text-lg font-semibold text-gray-200">Step 2: Recovery & Health</h3>
             
             {/* Recovery Level Slider */}
             <FormField
@@ -528,14 +528,14 @@ export default function MultiStepMorningDiaryForm() {
               name="recoveryLevel"
               render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
-                  <FormLabel className="text-white">Rate your recovery level</FormLabel>
+                  <FormLabel className="text-gray-200">Rate your recovery level</FormLabel>
                   <div className="space-y-2">
                     <FormControl>
                       <Slider
                         min={1}
                         max={10}
                         step={1}
-                        defaultValue={[value]}
+                        value={[value || 1]}
                         onValueChange={(vals) => onChange(vals[0])}
                         className="py-3"
                       />
@@ -544,8 +544,8 @@ export default function MultiStepMorningDiaryForm() {
                       <span>Poor (1)</span>
                       <span>Excellent (10)</span>
                     </div>
-                    <div className="text-center text-white">
-                      Selected: <span className="font-semibold">{value}</span>
+                    <div className="text-center text-gray-200">
+                      Selected: <span className="font-semibold">{value || 1}</span>
                     </div>
                   </div>
                   <FormMessage />
@@ -621,14 +621,14 @@ export default function MultiStepMorningDiaryForm() {
               name="motivationLevel"
               render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
-                  <FormLabel className="text-white">What is your motivation level today?</FormLabel>
+                  <FormLabel className="text-gray-200">What is your motivation level today?</FormLabel>
                   <div className="space-y-2">
                     <FormControl>
                       <Slider
                         min={1}
                         max={10}
                         step={1}
-                        defaultValue={[value]}
+                        value={[value || 1]}
                         onValueChange={(vals) => onChange(vals[0])}
                         className="py-3"
                       />
@@ -637,8 +637,8 @@ export default function MultiStepMorningDiaryForm() {
                       <span>Low (1)</span>
                       <span>High (10)</span>
                     </div>
-                    <div className="text-center text-white">
-                      Selected: <span className="font-semibold">{value}</span>
+                    <div className="text-center text-gray-200">
+                      Selected: <span className="font-semibold">{value || 1}</span>
                     </div>
                   </div>
                   <FormMessage />
@@ -1299,25 +1299,25 @@ export default function MultiStepMorningDiaryForm() {
   }
   
   return (
-    <div className="bg-black p-6 rounded-xl shadow-sm border border-gray-800">
-      <h3 className="text-xl font-bold text-white mb-4">Daily Morning Self-Control Diary</h3>
+    <div className="bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-800">
+      <h3 className="text-xl font-bold text-gray-100 mb-4">Daily Morning Self-Control Diary</h3>
       
       {/* Progress Steps */}
       <div className="mb-6">
         <div className="flex justify-between">
-          <div className={`text-xs font-medium ${currentStep >= 1 ? 'text-primary' : 'text-gray-500'}`}>
+          <div className={`text-xs font-medium ${currentStep >= 1 ? 'text-gray-200' : 'text-gray-500'}`}>
             Sleep & Emotional State
           </div>
-          <div className={`text-xs font-medium ${currentStep >= 2 ? 'text-primary' : 'text-gray-500'}`}>
+          <div className={`text-xs font-medium ${currentStep >= 2 ? 'text-gray-200' : 'text-gray-500'}`}>
             Recovery & Health
           </div>
-          <div className={`text-xs font-medium ${currentStep >= 3 ? 'text-primary' : 'text-gray-500'}`}>
+          <div className={`text-xs font-medium ${currentStep >= 3 ? 'text-gray-200' : 'text-gray-500'}`}>
             Soreness & Injury
           </div>
         </div>
         <div className="w-full bg-gray-700 h-1.5 mt-2 rounded-full">
           <div 
-            className="bg-primary h-1.5 rounded-full transition-all duration-300"
+            className="bg-gray-300 h-1.5 rounded-full transition-all duration-300"
             style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
           ></div>
         </div>
