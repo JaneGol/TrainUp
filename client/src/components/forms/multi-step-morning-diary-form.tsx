@@ -20,15 +20,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import {
-  RadioGroup,
-  RadioGroupItem
-} from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Select,
   SelectContent,
@@ -36,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Loader2, ChevronLeft, ChevronRight, X, Activity } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Activity } from "lucide-react";
 
 // Define Zod schema for the form based on slider inputs and validation
 const morningDiarySchema = z.object({
@@ -76,63 +72,12 @@ const SYMPTOMS = [
   "no_symptoms"
 ];
 
-// Body parts for the body map
-const FRONT_BODY_PARTS = [
-  "head",
-  "neck",
-  "chest",
-  "abs",
-  "left_shoulder",
-  "right_shoulder",
-  "left_arm",
-  "right_arm",
-  "left_forearm",
-  "right_forearm",
-  "left_wrist",
-  "right_wrist",
-  "left_hip",
-  "right_hip",
-  "left_quad",
-  "right_quad",
-  "left_knee",
-  "right_knee",
-  "left_shin",
-  "right_shin",
-  "left_ankle",
-  "right_ankle",
-  "left_foot",
-  "right_foot"
-];
-
-const BACK_BODY_PARTS = [
-  "head_back",
-  "neck_back",
-  "upper_back",
-  "mid_back",
-  "lower_back",
-  "left_shoulder_back",
-  "right_shoulder_back",
-  "left_tricep",
-  "right_tricep",
-  "left_elbow",
-  "right_elbow",
-  "left_glute",
-  "right_glute",
-  "left_hamstring",
-  "right_hamstring",
-  "left_calf",
-  "right_calf",
-  "left_achilles",
-  "right_achilles"
-];
-
 export default function MultiStepMorningDiaryForm() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [bodyView, setBodyView] = useState<'front' | 'back'>('front');
   const [, setLocation] = useLocation();
   
   // Create form with default values
@@ -179,8 +124,6 @@ export default function MultiStepMorningDiaryForm() {
         newSymptoms = newSymptoms.filter(s => s !== "no_symptoms");
       }
       // Add the symptom if it's not already in the array
-      // Add the symptom, but remove "no_symptoms" if it was there
-      newSymptoms = newSymptoms.filter(s => s !== "no_symptoms");
       if (!newSymptoms.includes(symptom)) {
         newSymptoms.push(symptom);
       }
@@ -192,24 +135,16 @@ export default function MultiStepMorningDiaryForm() {
     form.setValue("symptoms", newSymptoms, { shouldValidate: true });
   };
   
-  // Handler for body map clicks
-  const handleBodyPartClick = (bodyPart: string) => {
-    const currentMap = { ...form.getValues("sorenessMap") };
-    
-    // Toggle between no soreness (0) and moderate soreness (1)
-    if (currentMap[bodyPart]) {
-      // If already has a value, increment or reset
-      if (currentMap[bodyPart] >= 2) {
-        delete currentMap[bodyPart]; // Remove if at max level
-      } else {
-        currentMap[bodyPart] = currentMap[bodyPart] + 1; // Increment soreness level
-      }
+  // Handler for muscle map changes
+  const handleMuscleMapChange = (muscles: Partial<Record<MuscleGroup, boolean>>) => {
+    // If selecting new muscles while "no soreness" is checked, remove the "no soreness" flag
+    if (form.getValues("sorenessMap")._no_soreness && Object.values(muscles).some(v => v)) {
+      const updatedMuscles = { ...muscles };
+      delete updatedMuscles._no_soreness;
+      form.setValue("sorenessMap", updatedMuscles, { shouldValidate: true });
     } else {
-      // Set initial soreness
-      currentMap[bodyPart] = 1;
+      form.setValue("sorenessMap", muscles, { shouldValidate: true });
     }
-    
-    form.setValue("sorenessMap", currentMap, { shouldValidate: true });
   };
   
   // Navigation between steps
@@ -276,7 +211,7 @@ export default function MultiStepMorningDiaryForm() {
     
     // Soreness (max 1 point)
     const sorenessCount = Object.keys(data.sorenessMap).length;
-    if (sorenessCount === 0) score += 1;
+    if (sorenessCount === 0 || data.sorenessMap._no_soreness) score += 1;
     else if (sorenessCount <= 3) score += 0.5;
     
     // Injury (max 1 point)
@@ -528,8 +463,8 @@ export default function MultiStepMorningDiaryForm() {
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400">
-                      <span>Negative (1)</span>
-                      <span>Positive (10)</span>
+                      <span>Bad (1)</span>
+                      <span>Good (10)</span>
                     </div>
                     <div className="text-center text-gray-200">
                       Selected: <span className="font-semibold">{value || 1}</span>
@@ -541,7 +476,7 @@ export default function MultiStepMorningDiaryForm() {
             />
           </div>
         );
-      
+        
       case 2:
         return (
           <div className="space-y-6">
@@ -553,7 +488,7 @@ export default function MultiStepMorningDiaryForm() {
               name="recoveryLevel"
               render={({ field: { value, onChange, ...fieldProps } }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">Rate your recovery level</FormLabel>
+                  <FormLabel className="text-gray-200">How recovered do you feel?</FormLabel>
                   <div className="space-y-2">
                     <FormControl>
                       <Slider
@@ -566,8 +501,8 @@ export default function MultiStepMorningDiaryForm() {
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400">
-                      <span>Poor (1)</span>
-                      <span>Excellent (10)</span>
+                      <span>Not at all (1)</span>
+                      <span>Fully (10)</span>
                     </div>
                     <div className="text-center text-gray-200">
                       Selected: <span className="font-semibold">{value || 1}</span>
@@ -580,170 +515,30 @@ export default function MultiStepMorningDiaryForm() {
             
             {/* Symptoms */}
             <div className="space-y-4">
-              <FormLabel className="text-gray-200 block">Do you have any symptoms today?</FormLabel>
-              
-              <div className="flex items-center space-x-2 mb-3">
-                <Checkbox 
-                  id="feel_healthy"
-                  checked={form.getValues("symptoms")?.includes("no_symptoms")}
-                  onCheckedChange={(checked) => {
-                    // Clear all symptom selections when selecting "I feel healthy"
-                    if (checked) {
-                      form.setValue("symptoms", ["no_symptoms"]);
-                    } else {
-                      form.setValue("symptoms", []);
-                    }
-                  }}
-                />
-                <label htmlFor="feel_healthy" className="text-base font-medium leading-none text-gray-200">
-                  I feel healthy
-                </label>
+              <FormLabel className="text-gray-200 block">Do you have any symptoms?</FormLabel>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {SYMPTOMS.map((symptom) => (
+                  <div key={symptom} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={symptom}
+                      checked={form.getValues("symptoms")?.includes(symptom)}
+                      onCheckedChange={(checked) => 
+                        handleSymptomChange(symptom, !!checked)
+                      }
+                    />
+                    <label
+                      htmlFor={symptom}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-200"
+                    >
+                      {symptom
+                        .replace('_', ' ')
+                        .split(' ')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ')}
+                    </label>
+                  </div>
+                ))}
               </div>
-              
-              {!form.getValues("symptoms")?.includes("no_symptoms") && (
-                <>
-                  <div className="space-y-3">
-                <FormLabel className="text-gray-200 block">Select symptoms (check all that apply):</FormLabel>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="runny_nose"
-                      checked={form.getValues("symptoms")?.includes("runny_nose")}
-                      onCheckedChange={(checked) => {
-                        handleSymptomChange("runny_nose", checked === true);
-                      }}
-                    />
-                    <label htmlFor="runny_nose" className="text-sm leading-none text-gray-200">
-                      Runny nose
-                    </label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="sore_throat"
-                      checked={form.getValues("symptoms")?.includes("sore_throat")}
-                      onCheckedChange={(checked) => {
-                        handleSymptomChange("sore_throat", checked === true);
-                      }}
-                    />
-                    <label htmlFor="sore_throat" className="text-sm leading-none text-gray-200">
-                      Sore throat
-                    </label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="fever"
-                      checked={form.getValues("symptoms")?.includes("fever")}
-                      onCheckedChange={(checked) => {
-                        handleSymptomChange("fever", checked === true);
-                      }}
-                    />
-                    <label htmlFor="fever" className="text-sm leading-none text-gray-200">
-                      Fever
-                    </label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="diarrhea"
-                      checked={form.getValues("symptoms")?.includes("diarrhea")}
-                      onCheckedChange={(checked) => {
-                        handleSymptomChange("diarrhea", checked === true);
-                      }}
-                    />
-                    <label htmlFor="diarrhea" className="text-sm leading-none text-gray-200">
-                      Diarrhea
-                    </label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="cough"
-                      checked={form.getValues("symptoms")?.includes("cough")}
-                      onCheckedChange={(checked) => {
-                        handleSymptomChange("cough", checked === true);
-                      }}
-                    />
-                    <label htmlFor="cough" className="text-sm leading-none text-gray-200">
-                      Cough
-                    </label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="headache"
-                      checked={form.getValues("symptoms")?.includes("headache")}
-                      onCheckedChange={(checked) => {
-                        handleSymptomChange("headache", checked === true);
-                      }}
-                    />
-                    <label htmlFor="headache" className="text-sm leading-none text-gray-200">
-                      Headache
-                    </label>
-                  </div>
-                </div>
-              </div>
-                  
-                  {/* Display selected symptoms as tags */}
-                  {form.getValues("symptoms")?.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {form.getValues("symptoms").map((symptom) => {
-                        if (symptom === "no_symptoms") return null;
-                        
-                        // Convert symptom value to display text
-                        const displayText = {
-                          "runny_nose": "Runny nose",
-                          "sore_throat": "Sore throat",
-                          "fever": "Fever",
-                          "diarrhea": "Diarrhea",
-                          "cough": "Cough",
-                          "headache": "Headache"
-                        }[symptom];
-                        
-                        return (
-                          <div 
-                            key={symptom} 
-                            className="bg-gray-800 text-gray-200 px-3 py-1 rounded-full text-sm flex items-center"
-                          >
-                            {displayText}
-                            <X 
-                              className="ml-1 h-3 w-3 cursor-pointer" 
-                              onClick={() => {
-                                const currentSymptoms = form.getValues("symptoms") || [];
-                                form.setValue(
-                                  "symptoms", 
-                                  currentSymptoms.filter(s => s !== symptom)
-                                );
-                              }}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  
-                  {/* Symptom comments */}
-                  <FormField
-                    control={form.control}
-                    name="injuryNotes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-gray-200">Additional details (optional)</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Describe your symptoms..."
-                            className="resize-none"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
               
               {form.formState.errors.symptoms && (
                 <p className="text-red-500 text-sm mt-1">
@@ -790,528 +585,97 @@ export default function MultiStepMorningDiaryForm() {
           <div className="space-y-6">
             <h3 className="text-2xl font-semibold text-gray-100 mb-4">Muscle Soreness & Injury Check</h3>
             
-            {/* Body Map with Front/Back Toggle */}
-            <div className="space-y-4">
-              <div className="flex justify-center space-x-2 mb-2">
-                <Button
-                  type="button"
-                  variant={bodyView === 'front' ? 'default' : 'outline'}
-                  onClick={() => setBodyView('front')}
-                  className="w-24"
-                >
-                  Front
-                </Button>
-                <Button
-                  type="button"
-                  variant={bodyView === 'back' ? 'default' : 'outline'}
-                  onClick={() => setBodyView('back')}
-                  className="w-24"
-                >
-                  Back
-                </Button>
-              </div>
-              
-              <div className="bg-[#1a1d22] rounded-lg p-4">
-                <FormLabel className="text-gray-200 block mb-2">
-                  Select areas where you feel soreness (required):
-                </FormLabel>
-                
-                <div className="relative w-64 h-96 mx-auto">
-                  {/* Human Body Silhouette SVG - Front View */}
-                  {bodyView === 'front' ? (
-                    <div className="relative w-full h-full flex items-center justify-center">
-                      <svg 
-                        className="w-48 h-80" 
-                        viewBox="0 0 200 400" 
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        {/* Base body silhouette */}
-                        <path 
-                          d="M100,30 C120,30 135,45 135,60 C135,75 125,85 120,95 C115,105 115,110 115,110 L115,140 C115,140 130,150 130,170 C130,190 125,220 120,240 C115,260 115,280 115,300 C115,320 115,340 110,350 C105,360 100,370 100,370 L100,390 L90,390 L90,370 C90,370 85,360 80,350 C75,340 75,320 75,300 C75,280 75,260 70,240 C65,220 60,190 60,170 C60,150 75,140 75,140 L75,110 C75,110 75,105 70,95 C65,85 55,75 55,60 C55,45 70,30 90,30 Z" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="2"
-                        />
-                        {/* Right shoulder (anatomical left) */}
-                        <ellipse 
-                          cx="130" 
-                          cy="90" 
-                          rx="15" 
-                          ry="15" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1" 
-                          onClick={() => handleBodyPartClick('left_shoulder')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['left_shoulder'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Left shoulder (anatomical right) */}
-                        <ellipse 
-                          cx="70" 
-                          cy="90" 
-                          rx="15" 
-                          ry="15" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('right_shoulder')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['right_shoulder'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Right arm (anatomical left) */}
-                        <rect 
-                          x="140" 
-                          y="100" 
-                          width="10" 
-                          height="50" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('left_arm')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['left_arm'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Left arm (anatomical right) */}
-                        <rect 
-                          x="50" 
-                          y="100" 
-                          width="10" 
-                          height="50" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('right_arm')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['right_arm'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Head */}
-                        <circle 
-                          cx="100" 
-                          cy="40" 
-                          r="25" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('head')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['head'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Chest */}
-                        <rect 
-                          x="85" 
-                          y="110" 
-                          width="30" 
-                          height="30" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('chest')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['chest'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Abs */}
-                        <rect 
-                          x="85" 
-                          y="145" 
-                          width="30" 
-                          height="40" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('abs')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['abs'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Right thigh (anatomical left) */}
-                        <rect 
-                          x="100" 
-                          y="200" 
-                          width="20" 
-                          height="60" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('left_quad')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['left_quad'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Left thigh (anatomical right) */}
-                        <rect 
-                          x="80" 
-                          y="200" 
-                          width="20" 
-                          height="60" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('right_quad')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['right_quad'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Right knee (anatomical left) */}
-                        <circle 
-                          cx="110" 
-                          cy="280" 
-                          r="10" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('left_knee')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['left_knee'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Left knee (anatomical right) */}
-                        <circle 
-                          cx="90" 
-                          cy="280" 
-                          r="10" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('right_knee')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['right_knee'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Right shin (anatomical left) */}
-                        <rect 
-                          x="105" 
-                          y="295" 
-                          width="10" 
-                          height="40" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('left_shin')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['left_shin'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Left shin (anatomical right) */}
-                        <rect 
-                          x="85" 
-                          y="295" 
-                          width="10" 
-                          height="40" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('right_shin')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['right_shin'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Right foot (anatomical left) */}
-                        <rect 
-                          x="105" 
-                          y="340" 
-                          width="15" 
-                          height="10" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('left_foot')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['left_foot'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Left foot (anatomical right) */}
-                        <rect 
-                          x="80" 
-                          y="340" 
-                          width="15" 
-                          height="10" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('right_foot')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['right_foot'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                      </svg>
-                    </div>
-                  ) : (
-                    <div className="relative w-full h-full flex items-center justify-center">
-                      <svg 
-                        className="w-48 h-80" 
-                        viewBox="0 0 200 400" 
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        {/* Base body silhouette - Back view */}
-                        <path 
-                          d="M100,30 C120,30 135,45 135,60 C135,75 125,85 120,95 C115,105 115,110 115,110 L115,140 C115,140 130,150 130,170 C130,190 125,220 120,240 C115,260 115,280 115,300 C115,320 115,340 110,350 C105,360 100,370 100,370 L100,390 L90,390 L90,370 C90,370 85,360 80,350 C75,340 75,320 75,300 C75,280 75,260 70,240 C65,220 60,190 60,170 C60,150 75,140 75,140 L75,110 C75,110 75,105 70,95 C65,85 55,75 55,60 C55,45 70,30 90,30 Z" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="2"
-                        />
-                        {/* Head back */}
-                        <circle 
-                          cx="100" 
-                          cy="40" 
-                          r="25" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('head_back')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['head_back'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Neck back */}
-                        <rect 
-                          x="90" 
-                          y="70" 
-                          width="20" 
-                          height="15" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('neck_back')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['neck_back'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Upper back */}
-                        <rect 
-                          x="80" 
-                          y="90" 
-                          width="40" 
-                          height="30" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('upper_back')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['upper_back'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Mid back */}
-                        <rect 
-                          x="80" 
-                          y="125" 
-                          width="40" 
-                          height="30" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('mid_back')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['mid_back'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Lower back */}
-                        <rect 
-                          x="80" 
-                          y="160" 
-                          width="40" 
-                          height="30" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('lower_back')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['lower_back'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Right glute (anatomical left) */}
-                        <rect 
-                          x="100" 
-                          y="195" 
-                          width="20" 
-                          height="25" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('left_glute')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['left_glute'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Left glute (anatomical right) */}
-                        <rect 
-                          x="80" 
-                          y="195" 
-                          width="20" 
-                          height="25" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('right_glute')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['right_glute'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Right hamstring (anatomical left) */}
-                        <rect 
-                          x="100" 
-                          y="225" 
-                          width="20" 
-                          height="50" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('left_hamstring')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['left_hamstring'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Left hamstring (anatomical right) */}
-                        <rect 
-                          x="80" 
-                          y="225" 
-                          width="20" 
-                          height="50" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('right_hamstring')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['right_hamstring'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Right calf (anatomical left) */}
-                        <rect 
-                          x="105" 
-                          y="280" 
-                          width="15" 
-                          height="40" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('left_calf')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['left_calf'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Left calf (anatomical right) */}
-                        <rect 
-                          x="80" 
-                          y="280" 
-                          width="15" 
-                          height="40" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('right_calf')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['right_calf'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Right achilles (anatomical left) */}
-                        <rect 
-                          x="107" 
-                          y="325" 
-                          width="10" 
-                          height="15" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('left_achilles')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['left_achilles'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                        {/* Left achilles (anatomical right) */}
-                        <rect 
-                          x="83" 
-                          y="325" 
-                          width="10" 
-                          height="15" 
-                          fill="#3e4955" 
-                          stroke="#1a1d22" 
-                          strokeWidth="1"
-                          onClick={() => handleBodyPartClick('right_achilles')}
-                          className={getSorenessColor(form.getValues("sorenessMap")['right_achilles'] || 0)}
-                          style={{cursor: 'pointer'}}
-                        />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex justify-center mt-4 space-x-4 text-xs">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-primary bg-opacity-30 mr-1"></div>
-                    <span className="text-gray-300">Mild</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-primary bg-opacity-60 mr-1"></div>
-                    <span className="text-gray-300">Moderate</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-primary mr-1"></div>
-                    <span className="text-gray-300">Severe</span>
-                  </div>
-                </div>
-                
-                {/* No soreness option */}
-                <div className="flex items-center justify-center mt-4">
-                  <Checkbox 
-                    id="no_soreness"
-                    checked={form.getValues("sorenessMap")?._no_soreness === 1}
-                    onCheckedChange={(checked) => {
-                      const currentMap = { ...form.getValues("sorenessMap") };
-                      if (checked) {
-                        // Clear all other selections and set _no_soreness flag
-                        form.setValue("sorenessMap", { _no_soreness: 1 }, { shouldValidate: true });
-                      } else {
-                        // Remove the _no_soreness flag
-                        const { _no_soreness, ...rest } = currentMap;
-                        form.setValue("sorenessMap", rest, { shouldValidate: true });
-                      }
-                    }}
-                  />
-                  <label htmlFor="no_soreness" className="ml-2 text-sm font-medium text-gray-300">
-                    I have no muscle soreness today
-                  </label>
-                </div>
-                
-                {form.formState.errors.sorenessMap && (
-                  <p className="text-sm text-red-500 mt-2 block text-center">
-                    Please select at least one body part or confirm you have no soreness
-                  </p>
-                )}
-              </div>
-              
-              {/* Comment about soreness/pain */}
-              <Textarea
-                placeholder="Describe any pain or discomfort (optional)"
-                className="resize-none h-20"
-                value={form.getValues("injuryNotes") || ""}
-                onChange={(e) => form.setValue("injuryNotes", e.target.value)}
+            {/* Interactive Muscle Map */}
+            <FormField
+              control={form.control}
+              name="sorenessMap"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-200 block mb-2">
+                    Select muscle groups where you feel soreness:
+                  </FormLabel>
+                  <FormControl>
+                    <InteractiveMuscleMap 
+                      selectedMuscles={field.value as Partial<Record<MuscleGroup, boolean>>} 
+                      onChange={handleMuscleMapChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* "No Soreness" Checkbox */}
+            <div className="flex items-center space-x-2 p-4 bg-[rgb(30,30,30)] rounded-md">
+              <Checkbox 
+                id="no_soreness"
+                checked={!!form.getValues("sorenessMap")._no_soreness}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    // If "No soreness" is selected, clear all other selections
+                    form.setValue("sorenessMap", { _no_soreness: true }, { shouldValidate: true });
+                  } else {
+                    // If unchecked, simply remove the _no_soreness flag
+                    const current = { ...form.getValues("sorenessMap") };
+                    delete current._no_soreness;
+                    form.setValue("sorenessMap", current, { shouldValidate: true });
+                  }
+                }}
               />
+              <label htmlFor="no_soreness" className="text-base font-medium leading-none text-gray-200">
+                I have no muscle soreness today
+              </label>
             </div>
             
-            {/* Injury Question */}
+            {/* Injury Toggle */}
             <FormField
               control={form.control}
               name="hasInjury"
               render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center space-x-2">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel className="text-gray-200 font-medium">Do you currently have an injury?</FormLabel>
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-700 p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base text-gray-200">Do you have an injury?</FormLabel>
+                    <FormDescription className="text-xs text-gray-400">
+                      Toggle this if you have an injury that needs attention
+                    </FormDescription>
                   </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />
             
             {/* Conditional Injury Fields */}
             {form.watch("hasInjury") && (
-              <div className="space-y-4 pl-4 border-l-2 border-gray-700">
+              <div className="space-y-6 bg-[rgb(28,28,28)] p-4 rounded-lg border border-gray-700">
                 {/* Pain Level Slider */}
                 <FormField
                   control={form.control}
                   name="painLevel"
-                  render={({ field }) => (
+                  render={({ field: { value, onChange, ...fieldProps } }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-200">Rate your pain level (0-10)</FormLabel>
+                      <FormLabel className="text-gray-200">How severe is your pain?</FormLabel>
                       <div className="space-y-2">
-                        <div className="flex justify-between text-xs text-gray-400">
-                          <span>0</span>
-                          <span>5</span>
-                          <span>10</span>
-                        </div>
                         <FormControl>
                           <Slider
-                            value={[field.value || 0]}
                             min={0}
                             max={10}
                             step={1}
-                            onValueChange={(value) => field.onChange(value[0])}
+                            value={[value || 0]}
+                            onValueChange={(vals) => onChange(vals[0])}
+                            className="py-3"
                           />
                         </FormControl>
-                        <div className="text-center text-lg font-semibold text-gray-300 mt-2">
-                          {field.value || 0}
+                        <div className="flex justify-between text-xs text-gray-400">
+                          <span>None (0)</span>
+                          <span>Severe (10)</span>
+                        </div>
+                        <div className="text-center text-gray-200">
+                          Selected: <span className="font-semibold">{value || 0}</span>
                         </div>
                       </div>
                       <FormMessage />
@@ -1325,32 +689,40 @@ export default function MultiStepMorningDiaryForm() {
                   name="injuryImproving"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-200">Is the injury improving?</FormLabel>
+                      <FormLabel className="text-gray-200">Is your injury improving?</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                            <SelectValue placeholder="Select an option" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                          <SelectItem value="yes">Yes, it's getting better</SelectItem>
+                          <SelectItem value="no">No, it's getting worse</SelectItem>
+                          <SelectItem value="unchanged">It's about the same</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Injury Notes */}
+                <FormField
+                  control={form.control}
+                  name="injuryNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-200">Additional notes about your injury</FormLabel>
                       <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          className="flex flex-col space-y-1"
-                        >
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="yes" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Yes</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="no" />
-                            </FormControl>
-                            <FormLabel className="font-normal">No</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="unchanged" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Unchanged</FormLabel>
-                          </FormItem>
-                        </RadioGroup>
+                        <Textarea
+                          placeholder="Describe your injury in more detail..."
+                          className="bg-[rgb(38,38,38)] text-white border-gray-700 resize-none min-h-[100px]"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1366,137 +738,55 @@ export default function MultiStepMorningDiaryForm() {
     }
   };
   
-  // Helper function to position body parts on the silhouette
-  function getBodyPartPosition(part: string): string {
-    // This is a simplified positioning - in a real app, you'd use more precise positioning
-    const positions: Record<string, string> = {
-      // Front positions
-      "head": "top-2 left-1/2 -translate-x-1/2",
-      "neck": "top-8 left-1/2 -translate-x-1/2",
-      "chest": "top-16 left-1/2 -translate-x-1/2",
-      "abs": "top-24 left-1/2 -translate-x-1/2",
-      "left_shoulder": "top-12 left-4",
-      "right_shoulder": "top-12 right-4",
-      "left_arm": "top-20 left-2",
-      "right_arm": "top-20 right-2",
-      "left_forearm": "top-28 left-2",
-      "right_forearm": "top-28 right-2",
-      "left_wrist": "top-36 left-2",
-      "right_wrist": "top-36 right-2",
-      "left_hip": "top-32 left-6",
-      "right_hip": "top-32 right-6",
-      "left_quad": "top-40 left-6",
-      "right_quad": "top-40 right-6",
-      "left_knee": "top-48 left-6",
-      "right_knee": "top-48 right-6",
-      "left_shin": "top-56 left-6",
-      "right_shin": "top-56 right-6",
-      "left_ankle": "bottom-4 left-6",
-      "right_ankle": "bottom-4 right-6",
-      "left_foot": "bottom-0 left-6",
-      "right_foot": "bottom-0 right-6",
-      
-      // Back positions
-      "head_back": "top-2 left-1/2 -translate-x-1/2",
-      "neck_back": "top-8 left-1/2 -translate-x-1/2",
-      "upper_back": "top-12 left-1/2 -translate-x-1/2",
-      "mid_back": "top-20 left-1/2 -translate-x-1/2",
-      "lower_back": "top-28 left-1/2 -translate-x-1/2",
-      "left_shoulder_back": "top-12 left-4",
-      "right_shoulder_back": "top-12 right-4",
-      "left_tricep": "top-20 left-2",
-      "right_tricep": "top-20 right-2",
-      "left_elbow": "top-28 left-2",
-      "right_elbow": "top-28 right-2",
-      "left_glute": "top-36 left-6",
-      "right_glute": "top-36 right-6",
-      "left_hamstring": "top-44 left-6",
-      "right_hamstring": "top-44 right-6",
-      "left_calf": "top-52 left-6",
-      "right_calf": "top-52 right-6",
-      "left_achilles": "bottom-8 left-6",
-      "right_achilles": "bottom-8 right-6"
-    };
-    
-    return positions[part] || "top-0 left-0";
-  }
-  
-  // Helper to get color based on soreness level
-  function getSorenessColor(level: number): string {
-    switch (level) {
-      case 1:
-        return "bg-primary bg-opacity-30";
-      case 2:
-        return "bg-primary bg-opacity-60";
-      case 3:
-        return "bg-primary";
-      default:
-        return "bg-transparent";
-    }
-  }
-  
   return (
-    <div className="bg-[rgb(38,38,38)] p-6 rounded-lg shadow-sm">
-      <div className="flex items-center gap-2 mb-2">
-        <Activity className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold text-white">Daily Self-Assessment</h3>
+    <div className="bg-[rgb(38,38,38)] rounded-xl p-6 shadow-lg max-w-3xl mx-auto">
+      <div className="mb-2 flex items-center">
+        <Activity className="mr-2 h-5 w-5 text-primary" />
+        <h2 className="text-lg font-medium text-gray-100">Morning Self-Control Diary</h2>
       </div>
-      <p className="text-gray-400 mb-6">Track your sleep, recovery, health, and soreness levels</p>
       
-      {/* Progress Steps */}
-      <div className="mb-6">
-        <div className="flex justify-between">
-          <div className={`text-xs font-medium ${currentStep >= 1 ? 'text-primary' : 'text-gray-400'}`}>
-            Sleep & Emotional State
-          </div>
-          <div className={`text-xs font-medium ${currentStep >= 2 ? 'text-primary' : 'text-gray-400'}`}>
-            Recovery & Health
-          </div>
-          <div className={`text-xs font-medium ${currentStep >= 3 ? 'text-primary' : 'text-gray-400'}`}>
-            Soreness & Injury
-          </div>
-        </div>
-        <div className="w-full bg-gray-700 h-1.5 mt-2 rounded-full">
-          <div 
-            className="bg-primary h-1.5 rounded-full transition-all duration-300"
-            style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
-          ></div>
-        </div>
-      </div>
+      <p className="text-gray-400 mb-6 text-sm">
+        Please complete this morning assessment to help us monitor your wellness and recovery.
+      </p>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Progress Steps */}
+          <div className="flex items-center justify-between mb-8">
+            {[1, 2, 3].map((step) => (
+              <div
+                key={step}
+                className={`flex-1 h-2 ${
+                  currentStep >= step ? "bg-primary" : "bg-gray-600"
+                } ${step > 1 ? "ml-2" : ""}`}
+              />
+            ))}
+          </div>
+          
+          {/* Dynamic Step Content */}
           {renderStepContent()}
           
-          <div className="flex justify-between mt-6">
-            {currentStep > 1 ? (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={prevStep}
-                className="flex items-center space-x-1"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                <span>Back</span>
-              </Button>
-            ) : (
-              <div></div> // Empty div to maintain flex alignment
-            )}
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-4 mt-8 border-t border-gray-700">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={prevStep}
+              disabled={currentStep === 1}
+              className={`${currentStep === 1 ? "invisible" : ""}`}
+            >
+              <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+            </Button>
             
             {currentStep < 3 ? (
-              <Button 
-                type="button" 
-                onClick={nextStep}
-                className="flex items-center space-x-1"
-              >
-                <span>Next</span>
-                <ChevronRight className="h-4 w-4" />
+              <Button type="button" onClick={nextStep}>
+                Next <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             ) : (
               <Button 
                 type="submit" 
-                className="w-32"
                 disabled={submitMutation.isPending}
+                className="bg-primary hover:bg-primary/90"
               >
                 {submitMutation.isPending ? (
                   <>
@@ -1504,7 +794,7 @@ export default function MultiStepMorningDiaryForm() {
                     Submitting...
                   </>
                 ) : (
-                  "Submit"
+                  <>Submit</>
                 )}
               </Button>
             )}

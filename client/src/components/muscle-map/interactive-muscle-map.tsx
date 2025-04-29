@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Check, ChevronRight } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
-// Define muscle group types
+// Type definitions for muscle views and groups
 export type MuscleView = 'front' | 'back';
 export type FrontMuscleGroup = 'shoulders' | 'chest' | 'abs' | 'legs' | 'neck';
 export type BackMuscleGroup = 'hamstrings' | 'back' | 'glutes' | 'calves';
@@ -16,7 +16,7 @@ interface InteractiveMuscleMapProps {
 }
 
 export default function InteractiveMuscleMap({ 
-  selectedMuscles, 
+  selectedMuscles = {}, 
   onChange 
 }: InteractiveMuscleMapProps) {
   // Default state for muscle view (front or back)
@@ -265,25 +265,34 @@ export default function InteractiveMuscleMap({
             <p className="text-gray-400 font-medium text-sm mb-2">Selected Areas:</p>
             <div className="flex flex-wrap gap-2">
               {Object.entries(selectedMuscles)
-                .filter(([_, isSelected]) => isSelected)
-                .map(([muscle]) => (
+                .filter(([key, isSelected]) => isSelected && key !== '_no_soreness')
+                .map(([key]) => (
                   <div 
-                    key={muscle}
-                    className="bg-[rgb(38,38,38)] text-white px-2 py-1 rounded-full text-xs flex items-center"
+                    key={key}
+                    className="bg-primary bg-opacity-20 text-primary text-xs px-2 py-1 rounded-full"
                   >
-                    <Check className="h-3 w-3 mr-1 text-primary" />
-                    {muscleLabels[muscle as MuscleGroup]}
+                    {muscleLabels[key as MuscleGroup] || key}
                   </div>
-                ))
-              }
+                ))}
             </div>
           </div>
         )}
       </div>
       
-      {/* Body diagram */}
-      <div className="w-full md:w-2/3 min-h-[360px] bg-[rgb(30,30,30)] rounded-md p-4 flex items-center justify-center">
-        {currentView === 'front' ? <FrontView /> : <BackView />}
+      {/* Body visualization */}
+      <div className="w-full md:w-2/3 relative">
+        <div className="bg-[rgb(30,30,30)] p-4 rounded-md h-full">
+          {/* Display the appropriate view */}
+          {currentView === 'front' ? <FrontView /> : <BackView />}
+          
+          {/* Color legend */}
+          <div className="flex justify-center mt-4 space-x-4 text-xs">
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full bg-[#98FB98] mr-1"></div>
+              <span className="text-gray-300">Selected</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
