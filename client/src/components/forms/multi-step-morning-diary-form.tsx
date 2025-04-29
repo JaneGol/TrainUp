@@ -533,8 +533,26 @@ export default function MultiStepMorningDiaryForm() {
                       <span>Negative</span>
                       <span className="ml-auto">Positive</span>
                     </div>
-                    <div className="text-center text-gray-200">
-                      Selected: <span className="font-semibold">{field.value}</span>
+                    
+                    <div className="text-sm text-gray-300 mt-2">
+                      {field.value === "negative" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">0 – Very negative</p>
+                          <p className="font-medium">1 – Low mood</p>
+                          <p className="font-medium">2 – Slightly down</p>
+                        </div>
+                      )}
+                      {field.value === "neutral" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">3 – Neutral</p>
+                        </div>
+                      )}
+                      {field.value === "positive" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">4 – Positive</p>
+                          <p className="font-medium">5 – Very positive / great mood</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <FormDescription className="text-xs text-gray-400">
@@ -590,12 +608,26 @@ export default function MultiStepMorningDiaryForm() {
                       <span>Not Recovered</span>
                       <span className="ml-auto">Fully Recovered</span>
                     </div>
-                    <div className="text-center text-gray-200">
-                      Selected: <span className="font-semibold">
-                        {field.value === "poor" ? "Not Recovered" : 
-                         field.value === "moderate" ? "Moderately Recovered" : 
-                         "Fully Recovered"}
-                      </span>
+                    
+                    <div className="text-sm text-gray-300 mt-2">
+                      {field.value === "poor" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">0 – Totally exhausted</p>
+                          <p className="font-medium">1 – Very tired</p>
+                          <p className="font-medium">2 – Slight fatigue</p>
+                        </div>
+                      )}
+                      {field.value === "moderate" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">3 – Neutral / average</p>
+                        </div>
+                      )}
+                      {field.value === "good" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">4 – Well recovered</p>
+                          <p className="font-medium">5 – Fully fresh and recovered</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <FormDescription className="text-xs text-gray-400">
@@ -678,12 +710,26 @@ export default function MultiStepMorningDiaryForm() {
                       <span>Low</span>
                       <span className="ml-auto">High</span>
                     </div>
-                    <div className="text-center text-gray-200">
-                      Selected: <span className="font-semibold">
-                        {field.value === "low" ? "Low Energy" : 
-                         field.value === "moderate" ? "Moderate Energy" : 
-                         "High Energy"}
-                      </span>
+                    
+                    <div className="text-sm text-gray-300 mt-2">
+                      {field.value === "low" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">0 – No motivation or energy</p>
+                          <p className="font-medium">1 – Very low</p>
+                          <p className="font-medium">2 – Low</p>
+                        </div>
+                      )}
+                      {field.value === "moderate" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">3 – Moderate</p>
+                        </div>
+                      )}
+                      {field.value === "high" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">4 – High</p>
+                          <p className="font-medium">5 – Extremely motivated and energized</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <FormDescription className="text-xs text-gray-400">
@@ -737,36 +783,77 @@ export default function MultiStepMorningDiaryForm() {
                   {!(field.value as Record<string, boolean>)?._no_soreness && (
                     <div className="space-y-4">
                       <div className="border border-gray-800 rounded-lg overflow-hidden">
-                        {/* Simple flat list of all muscle groups */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2">
-                          {["shoulders", "chest", "arms", "back", "core", "hips", "legs", "calves"].map((muscle) => (
-                            <div 
-                              key={muscle}
-                              className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
-                              onClick={() => {
-                                const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                current[muscle] = !current[muscle];
-                                form.setValue("sorenessMap", current as any, { shouldValidate: true });
-                              }}
-                            >
-                              <Checkbox 
-                                id={`soreness-${muscle}`}
-                                className="mr-3"
-                                checked={(field.value as Record<string, boolean>)?.[muscle] || false}
-                                onCheckedChange={(checked) => {
+                        {/* Two-column layout for muscle groups */}
+                        <div className="grid grid-cols-2">
+                          {/* Upper Body Column */}
+                          <div className="border-r border-gray-800">
+                            <div className="p-3 bg-gray-800/50 border-b border-gray-700 font-semibold text-center text-gray-200">
+                              Upper Body
+                            </div>
+                            {["shoulders", "chest", "arms", "back", "neck", "core"].map((muscle) => (
+                              <div 
+                                key={muscle}
+                                className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
+                                onClick={() => {
                                   const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                  current[muscle] = !!checked;
+                                  current[muscle] = !current[muscle];
                                   form.setValue("sorenessMap", current as any, { shouldValidate: true });
                                 }}
-                              />
-                              <label 
-                                htmlFor={`soreness-${muscle}`}
-                                className="flex-1 text-gray-200 capitalize cursor-pointer"
                               >
-                                {muscle}
-                              </label>
+                                <Checkbox 
+                                  id={`soreness-${muscle}`}
+                                  className="mr-3"
+                                  checked={(field.value as Record<string, boolean>)?.[muscle] || false}
+                                  onCheckedChange={(checked) => {
+                                    const current = { ...(field.value || {}) } as Record<string, boolean>;
+                                    current[muscle] = !!checked;
+                                    form.setValue("sorenessMap", current as any, { shouldValidate: true });
+                                  }}
+                                />
+                                <label 
+                                  htmlFor={`soreness-${muscle}`}
+                                  className="flex-1 text-gray-200 capitalize cursor-pointer"
+                                >
+                                  {muscle}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Lower Body Column */}
+                          <div>
+                            <div className="p-3 bg-gray-800/50 border-b border-gray-700 font-semibold text-center text-gray-200">
+                              Lower Body
                             </div>
-                          ))}
+                            {["hips", "glutes", "thighs", "hamstrings", "knees", "calves", "feet"].map((muscle) => (
+                              <div 
+                                key={muscle}
+                                className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
+                                onClick={() => {
+                                  const current = { ...(field.value || {}) } as Record<string, boolean>;
+                                  current[muscle] = !current[muscle];
+                                  form.setValue("sorenessMap", current as any, { shouldValidate: true });
+                                }}
+                              >
+                                <Checkbox 
+                                  id={`soreness-${muscle}`}
+                                  className="mr-3"
+                                  checked={(field.value as Record<string, boolean>)?.[muscle] || false}
+                                  onCheckedChange={(checked) => {
+                                    const current = { ...(field.value || {}) } as Record<string, boolean>;
+                                    current[muscle] = !!checked;
+                                    form.setValue("sorenessMap", current as any, { shouldValidate: true });
+                                  }}
+                                />
+                                <label 
+                                  htmlFor={`soreness-${muscle}`}
+                                  className="flex-1 text-gray-200 capitalize cursor-pointer"
+                                >
+                                  {muscle}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                       
