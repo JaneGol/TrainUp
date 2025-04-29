@@ -427,7 +427,7 @@ export default function MultiStepMorningDiaryForm() {
               )}
             />
             
-            {/* Stress Level Slider with Emojis */}
+            {/* Stress Level Slider */}
             <FormField
               control={form.control}
               name="stressLevel"
@@ -435,44 +435,35 @@ export default function MultiStepMorningDiaryForm() {
                 <FormItem>
                   <FormLabel className="text-gray-200">What is your current stress level?</FormLabel>
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center px-1 mb-1">
-                      <span className="text-xl">😎</span>
-                      <span className="text-xl">😌</span>
-                      <span className="text-xl">😐</span>
-                      <span className="text-xl">😟</span>
-                      <span className="text-xl">😰</span>
-                    </div>
                     <FormControl>
-                      <input
-                        type="range"
-                        min="1"
-                        max="5"
-                        step="1"
-                        value={
+                      <Slider
+                        min={0}
+                        max={5}
+                        step={1}
+                        value={[
                           field.value === "low" ? 1 :
                           field.value === "medium" ? 3 :
                           field.value === "high" ? 5 : 3
-                        }
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value);
+                        ]}
+                        onValueChange={(vals) => {
+                          const val = vals[0];
                           if (val <= 2) field.onChange("low");
                           else if (val >= 4) field.onChange("high");
                           else field.onChange("medium");
                         }}
-                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary"
+                        className="py-3"
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400">
-                      <span>Low Stress</span>
-                      <span>High Stress</span>
+                      <span>Low (0)</span>
+                      <span>Medium (3)</span>
+                      <span>High (5)</span>
                     </div>
-                    <div className="text-center text-gray-200 mt-1">
-                      <span className="font-semibold py-1 px-3 bg-gray-800 rounded-full">
-                        {field.value === "low" ? "Low" : field.value === "medium" ? "Medium" : "High"}
-                      </span>
+                    <div className="text-center text-gray-200">
+                      Selected: <span className="font-semibold">{field.value}</span>
                     </div>
                   </div>
-                  <FormDescription className="text-xs text-gray-400 mt-2">
+                  <FormDescription className="text-xs text-gray-400">
                     Lower stress levels indicate better recovery readiness
                   </FormDescription>
                   <FormMessage />
@@ -480,7 +471,7 @@ export default function MultiStepMorningDiaryForm() {
               )}
             />
             
-            {/* Mood Slider with Emojis */}
+            {/* Mood Slider */}
             <FormField
               control={form.control}
               name="mood"
@@ -488,44 +479,35 @@ export default function MultiStepMorningDiaryForm() {
                 <FormItem>
                   <FormLabel className="text-gray-200">What is your mood this morning?</FormLabel>
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center px-1 mb-1">
-                      <span className="text-xl">😞</span>
-                      <span className="text-xl">😐</span>
-                      <span className="text-xl">🙂</span>
-                      <span className="text-xl">😄</span>
-                      <span className="text-xl">😍</span>
-                    </div>
                     <FormControl>
-                      <input
-                        type="range"
-                        min="1"
-                        max="5"
-                        step="1"
-                        value={
+                      <Slider
+                        min={0}
+                        max={5}
+                        step={1}
+                        value={[
                           field.value === "negative" ? 1 : 
                           field.value === "neutral" ? 3 :
                           field.value === "positive" ? 5 : 3
-                        }
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value);
+                        ]}
+                        onValueChange={(vals) => {
+                          const val = vals[0];
                           if (val <= 2) field.onChange("negative");
                           else if (val >= 4) field.onChange("positive");
                           else field.onChange("neutral");
                         }}
-                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary"
+                        className="py-3"
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-gray-400">
-                      <span>Negative</span>
-                      <span>Positive</span>
+                      <span>Negative (0)</span>
+                      <span>Neutral (3)</span>
+                      <span>Positive (5)</span>
                     </div>
-                    <div className="text-center text-gray-200 mt-1">
-                      <span className="font-semibold py-1 px-3 bg-gray-800 rounded-full">
-                        {field.value === "negative" ? "Negative" : field.value === "neutral" ? "Neutral" : "Positive"}
-                      </span>
+                    <div className="text-center text-gray-200">
+                      Selected: <span className="font-semibold">{field.value}</span>
                     </div>
                   </div>
-                  <FormDescription className="text-xs text-gray-400 mt-2">
+                  <FormDescription className="text-xs text-gray-400">
                     Your mood can affect your performance and readiness
                   </FormDescription>
                   <FormMessage />
@@ -540,65 +522,47 @@ export default function MultiStepMorningDiaryForm() {
           <div className="space-y-6">
             <h3 className="text-2xl font-semibold text-gray-100 mb-4">Recovery & Health</h3>
             
-            {/* Recovery Level with Descriptive Slider */}
+            {/* Recovery Level Slider */}
             <FormField
               control={form.control}
               name="recoveryLevel"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-200">How recovered do you feel?</FormLabel>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-3">
-                      {/* Fresh and Energized */}
-                      <div 
-                        className={`flex items-center p-3 rounded-md cursor-pointer border-2 ${field.value === "good" 
-                          ? "border-primary bg-primary/10" 
-                          : "border-gray-700 hover:border-gray-600"}`}
-                        onClick={() => field.onChange("good")}
-                      >
-                        <div className="mr-3 bg-green-700/20 p-2 rounded-full">
-                          <span className="text-xl">⚡</span>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-200">Fresh and Energized</h4>
-                          <p className="text-xs text-gray-400">Ready for high intensity training</p>
-                        </div>
-                      </div>
-
-                      {/* Moderate - Well Rested */}
-                      <div 
-                        className={`flex items-center p-3 rounded-md cursor-pointer border-2 ${field.value === "moderate" 
-                          ? "border-primary bg-primary/10" 
-                          : "border-gray-700 hover:border-gray-600"}`}
-                        onClick={() => field.onChange("moderate")}
-                      >
-                        <div className="mr-3 bg-yellow-700/20 p-2 rounded-full">
-                          <span className="text-xl">🔋</span>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-200">Well Rested</h4>
-                          <p className="text-xs text-gray-400">Ready for moderate training</p>
-                        </div>
-                      </div>
-
-                      {/* Poor - Exhausted */}
-                      <div 
-                        className={`flex items-center p-3 rounded-md cursor-pointer border-2 ${field.value === "poor" 
-                          ? "border-primary bg-primary/10" 
-                          : "border-gray-700 hover:border-gray-600"}`}
-                        onClick={() => field.onChange("poor")}
-                      >
-                        <div className="mr-3 bg-red-700/20 p-2 rounded-full">
-                          <span className="text-xl">💤</span>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-200">Fatigued</h4>
-                          <p className="text-xs text-gray-400">Need recovery, low intensity only</p>
-                        </div>
-                      </div>
+                  <div className="space-y-2">
+                    <FormControl>
+                      <Slider
+                        min={0}
+                        max={5}
+                        step={1}
+                        value={[
+                          field.value === "poor" ? 1 : 
+                          field.value === "moderate" ? 3 :
+                          field.value === "good" ? 5 : 3
+                        ]}
+                        onValueChange={(vals) => {
+                          const val = vals[0];
+                          if (val <= 2) field.onChange("poor");
+                          else if (val >= 4) field.onChange("good");
+                          else field.onChange("moderate");
+                        }}
+                        className="py-3"
+                      />
+                    </FormControl>
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Not Recovered (0)</span>
+                      <span>Moderate (3)</span>
+                      <span>Fully Recovered (5)</span>
+                    </div>
+                    <div className="text-center text-gray-200">
+                      Selected: <span className="font-semibold">
+                        {field.value === "poor" ? "Not Recovered" : 
+                         field.value === "moderate" ? "Moderately Recovered" : 
+                         "Fully Recovered"}
+                      </span>
                     </div>
                   </div>
-                  <FormDescription className="text-xs text-gray-400 mt-2">
+                  <FormDescription className="text-xs text-gray-400">
                     Your recovery level is important for preventing injuries
                   </FormDescription>
                   <FormMessage />
@@ -648,47 +612,39 @@ export default function MultiStepMorningDiaryForm() {
                 <FormItem>
                   <FormLabel className="text-gray-200">What is your motivation & energy level today?</FormLabel>
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center px-1 mb-1">
-                      <span className="text-xl">💤</span>
-                      <span className="text-xl">🔋</span>
-                      <span className="text-xl">🚀</span>
-                    </div>
                     <FormControl>
-                      <input
-                        type="range"
-                        min="1"
-                        max="3"
-                        step="1"
-                        value={
-                          field.value === "low" ? 1 :
-                          field.value === "moderate" ? 2 :
-                          field.value === "high" ? 3 : 2
-                        }
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value);
-                          if (val === 1) field.onChange("low");
-                          else if (val === 2) field.onChange("moderate");
-                          else field.onChange("high");
+                      <Slider
+                        min={0}
+                        max={5}
+                        step={1}
+                        value={[
+                          field.value === "low" ? 1 : 
+                          field.value === "moderate" ? 3 :
+                          field.value === "high" ? 5 : 3
+                        ]}
+                        onValueChange={(vals) => {
+                          const val = vals[0];
+                          if (val <= 2) field.onChange("low");
+                          else if (val >= 4) field.onChange("high");
+                          else field.onChange("moderate");
                         }}
-                        className="w-full h-3 bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-lg appearance-none cursor-pointer"
+                        className="py-3"
                       />
                     </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400 mt-1">
-                      <span>Low</span>
-                      <span>Moderate</span>
-                      <span>High</span>
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Low (0)</span>
+                      <span>Moderate (3)</span>
+                      <span>High (5)</span>
                     </div>
-                    <div className="text-center text-gray-200 mt-2">
-                      <span className="font-semibold py-1 px-3 bg-gray-800 rounded-full">
-                        {field.value === "low" 
-                          ? "Low Energy" 
-                          : field.value === "moderate" 
-                          ? "Moderate Energy" 
-                          : "High Energy"}
+                    <div className="text-center text-gray-200">
+                      Selected: <span className="font-semibold">
+                        {field.value === "low" ? "Low Energy" : 
+                         field.value === "moderate" ? "Moderate Energy" : 
+                         "High Energy"}
                       </span>
                     </div>
                   </div>
-                  <FormDescription className="text-xs text-gray-400 mt-2">
+                  <FormDescription className="text-xs text-gray-400">
                     Your energy level affects your performance potential today
                   </FormDescription>
                   <FormMessage />
@@ -738,14 +694,15 @@ export default function MultiStepMorningDiaryForm() {
                   {/* Only show muscle groups if "No soreness" is not checked */}
                   {!(field.value as Record<string, boolean>)?._no_soreness && (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-3">
-                        {["shoulders", "chest", "back", "arms", "core", "hips", "legs", "calves"].map((muscle) => (
+                      <div className="divide-y divide-gray-800 border border-gray-800 rounded-lg overflow-hidden">
+                        {/* Upper Body Group */}
+                        <div className="p-2 bg-gray-900 text-gray-300 text-sm font-medium">
+                          Upper Body
+                        </div>
+                        {["shoulders", "chest", "arms"].map((muscle) => (
                           <div 
                             key={muscle}
-                            className={`flex items-center p-3 rounded-md cursor-pointer border-2 
-                              ${(field.value as Record<string, boolean>)?.[muscle] 
-                                ? "border-primary bg-primary/10" 
-                                : "border-gray-700 hover:border-gray-600"}`}
+                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-800/30"
                             onClick={() => {
                               const current = { ...(field.value || {}) } as Record<string, boolean>;
                               current[muscle] = !current[muscle];
@@ -753,13 +710,60 @@ export default function MultiStepMorningDiaryForm() {
                             }}
                           >
                             <div className="flex items-center">
-                              <Checkbox 
-                                className="mr-2"
-                                checked={(field.value as Record<string, boolean>)?.[muscle] || false}
-                                onCheckedChange={() => {}}
-                              />
                               <span className="text-gray-200 capitalize">{muscle}</span>
                             </div>
+                            <Checkbox 
+                              checked={(field.value as Record<string, boolean>)?.[muscle] || false}
+                              onCheckedChange={() => {}}
+                            />
+                          </div>
+                        ))}
+                        
+                        {/* Core/Back Group */}
+                        <div className="p-2 bg-gray-900 text-gray-300 text-sm font-medium">
+                          Core & Back
+                        </div>
+                        {["back", "core"].map((muscle) => (
+                          <div 
+                            key={muscle}
+                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-800/30"
+                            onClick={() => {
+                              const current = { ...(field.value || {}) } as Record<string, boolean>;
+                              current[muscle] = !current[muscle];
+                              form.setValue("sorenessMap", current as any, { shouldValidate: true });
+                            }}
+                          >
+                            <div className="flex items-center">
+                              <span className="text-gray-200 capitalize">{muscle}</span>
+                            </div>
+                            <Checkbox 
+                              checked={(field.value as Record<string, boolean>)?.[muscle] || false}
+                              onCheckedChange={() => {}}
+                            />
+                          </div>
+                        ))}
+                        
+                        {/* Lower Body Group */}
+                        <div className="p-2 bg-gray-900 text-gray-300 text-sm font-medium">
+                          Lower Body
+                        </div>
+                        {["hips", "legs", "calves"].map((muscle) => (
+                          <div 
+                            key={muscle}
+                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-800/30"
+                            onClick={() => {
+                              const current = { ...(field.value || {}) } as Record<string, boolean>;
+                              current[muscle] = !current[muscle];
+                              form.setValue("sorenessMap", current as any, { shouldValidate: true });
+                            }}
+                          >
+                            <div className="flex items-center">
+                              <span className="text-gray-200 capitalize">{muscle}</span>
+                            </div>
+                            <Checkbox 
+                              checked={(field.value as Record<string, boolean>)?.[muscle] || false}
+                              onCheckedChange={() => {}}
+                            />
                           </div>
                         ))}
                       </div>
