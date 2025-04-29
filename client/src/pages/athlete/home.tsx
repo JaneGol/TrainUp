@@ -92,7 +92,7 @@ export default function AthleteHomePage() {
           {/* RPE Form Button */}
           <Button
             onClick={() => navigate("/athlete/training-entry")}
-            className="btn-dark h-24 bg-gray-600 text-primary"
+            className="btn-athletic h-24 bg-gray-600 text-primary hover:text-primary"
           >
             <Activity className="h-7 w-7" />
             <span className="text-xl font-bold">RPE Form</span>
