@@ -5,10 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { 
+  TeamWellnessTrends, 
+  RecoveryReadinessDashboard, 
+  InjuryRiskAnalysis 
+} from "@/components/coach/enhanced-analytics";
 import {
   BarChart,
   Bar,
@@ -22,9 +25,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ReferenceLine,
-  ComposedChart,
-  Scatter
+  ReferenceLine
 } from "recharts";
 
 interface TrainingLoad {
