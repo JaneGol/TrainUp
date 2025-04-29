@@ -89,7 +89,7 @@ export default function MorningDiaryPage() {
   
   // Show the new multi-step form
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
       <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
         <Button 
           variant="ghost" 
@@ -105,7 +105,11 @@ export default function MorningDiaryPage() {
       </header>
       
       <main className="flex-1 p-4">
-        <MultiStepMorningDiaryForm />
+        <Card className="w-full">
+          <CardContent className="p-0">
+            <MultiStepMorningDiaryForm />
+          </CardContent>
+        </Card>
       </main>
     </div>
   );

@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Loader2, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, X, Activity } from "lucide-react";
 
 // Define Zod schema for the form based on slider inputs and validation
 const morningDiarySchema = z.object({
@@ -1423,25 +1423,29 @@ export default function MultiStepMorningDiaryForm() {
   }
   
   return (
-    <div className="bg-[#1a1d22] p-6 rounded-xl shadow-sm border border-gray-800">
-      <p className="text-gray-400 mb-6">Track your sleep, recovery, health, and soreness levels</p>
+    <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="flex items-center gap-2 mb-2">
+        <Activity className="h-5 w-5 text-primary" />
+        <h3 className="text-lg font-semibold">Daily Self-Assessment</h3>
+      </div>
+      <p className="text-muted-foreground mb-6">Track your sleep, recovery, health, and soreness levels</p>
       
       {/* Progress Steps */}
       <div className="mb-6">
         <div className="flex justify-between">
-          <div className={`text-xs font-medium ${currentStep >= 1 ? 'text-gray-200' : 'text-gray-500'}`}>
+          <div className={`text-xs font-medium ${currentStep >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
             Sleep & Emotional State
           </div>
-          <div className={`text-xs font-medium ${currentStep >= 2 ? 'text-gray-200' : 'text-gray-500'}`}>
+          <div className={`text-xs font-medium ${currentStep >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
             Recovery & Health
           </div>
-          <div className={`text-xs font-medium ${currentStep >= 3 ? 'text-gray-200' : 'text-gray-500'}`}>
+          <div className={`text-xs font-medium ${currentStep >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
             Soreness & Injury
           </div>
         </div>
-        <div className="w-full bg-gray-700 h-1.5 mt-2 rounded-full">
+        <div className="w-full bg-gray-200 h-1.5 mt-2 rounded-full">
           <div 
-            className="bg-gray-300 h-1.5 rounded-full transition-all duration-300"
+            className="bg-primary h-1.5 rounded-full transition-all duration-300"
             style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
           ></div>
         </div>
