@@ -443,21 +443,32 @@ export default function MultiStepMorningDiaryForm() {
                 <FormItem>
                   <FormLabel className="text-gray-200">How many hours did you sleep?</FormLabel>
                   <FormControl>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        min={0}
-                        max={24}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        className="w-20"
-                        value={field.value || 0}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (!isNaN(value) && value >= 0 && value <= 24) {
-                            field.onChange(value);
-                          }
-                        }}
-                      />
+                    <div className="flex items-center space-x-3">
+                      <div className="flex bg-gray-800 border border-gray-700 rounded-md">
+                        <button 
+                          type="button" 
+                          className="flex items-center justify-center w-10 h-10 text-white hover:bg-gray-700"
+                          onClick={() => {
+                            const newValue = Math.max(0, (field.value || 7) - 1);
+                            field.onChange(newValue);
+                          }}
+                        >
+                          <span className="text-xl font-bold">−</span>
+                        </button>
+                        <div className="flex items-center justify-center min-w-16 px-3 text-white font-medium">
+                          {field.value || 7}
+                        </div>
+                        <button 
+                          type="button" 
+                          className="flex items-center justify-center w-10 h-10 text-white hover:bg-gray-700"
+                          onClick={() => {
+                            const newValue = Math.min(24, (field.value || 7) + 1);
+                            field.onChange(newValue);
+                          }}
+                        >
+                          <span className="text-xl font-bold">+</span>
+                        </button>
+                      </div>
                       <span className="text-gray-200">hours</span>
                     </div>
                   </FormControl>
