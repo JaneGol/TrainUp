@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { Loader2, ChevronLeft, AlertCircle, Activity, BarChart2, PieChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -270,7 +270,13 @@ export default function FitnessProgressPage() {
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Weekly Training Volume</CardTitle>
+                  <div className="flex items-center gap-2 mb-1">
+                    <BarChart2 className="h-5 w-5 text-primary" />
+                    <CardTitle>Weekly Training Volume</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Total training load per week
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-64">
@@ -314,7 +320,13 @@ export default function FitnessProgressPage() {
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Training Type Distribution</CardTitle>
+                  <div className="flex items-center gap-2 mb-1">
+                    <PieChart className="h-5 w-5 text-primary" />
+                    <CardTitle>Training Type Distribution</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Breakdown of training by activity type
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-64">
