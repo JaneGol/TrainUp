@@ -53,6 +53,7 @@ const morningDiarySchema = z.object({
     (map) => Object.keys(map).length > 0 || map._no_soreness === true, 
     { message: "Please select at least one muscle group or confirm you have no soreness" }
   ),
+  sorenessNotes: z.string().optional(),
   hasInjury: z.boolean(),
   painLevel: z.number().min(0).max(10).optional(),
   injuryImproving: z.enum(["yes", "no", "unchanged"]).optional(),
@@ -98,6 +99,7 @@ export default function MultiStepMorningDiaryForm() {
       
       // Step 3 defaults
       sorenessMap: {},
+      sorenessNotes: "",
       hasInjury: false,
     },
   });
@@ -425,29 +427,52 @@ export default function MultiStepMorningDiaryForm() {
               )}
             />
             
-            {/* Stress Level Select */}
+            {/* Stress Level Slider with Emojis */}
             <FormField
               control={form.control}
               name="stressLevel"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-200">What is your current stress level?</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center px-1 mb-1">
+                      <span className="text-xl">😎</span>
+                      <span className="text-xl">😌</span>
+                      <span className="text-xl">😐</span>
+                      <span className="text-xl">😟</span>
+                      <span className="text-xl">😰</span>
+                    </div>
                     <FormControl>
-                      <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
-                        <SelectValue placeholder="Select stress level" />
-                      </SelectTrigger>
+                      <input
+                        type="range"
+                        min="1"
+                        max="5"
+                        step="1"
+                        value={
+                          field.value === "low" ? 1 :
+                          field.value === "medium" ? 3 :
+                          field.value === "high" ? 5 : 3
+                        }
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (val <= 2) field.onChange("low");
+                          else if (val >= 4) field.onChange("high");
+                          else field.onChange("medium");
+                        }}
+                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary"
+                      />
                     </FormControl>
-                    <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription className="text-xs text-gray-400">
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Low Stress</span>
+                      <span>High Stress</span>
+                    </div>
+                    <div className="text-center text-gray-200 mt-1">
+                      <span className="font-semibold py-1 px-3 bg-gray-800 rounded-full">
+                        {field.value === "low" ? "Low" : field.value === "medium" ? "Medium" : "High"}
+                      </span>
+                    </div>
+                  </div>
+                  <FormDescription className="text-xs text-gray-400 mt-2">
                     Lower stress levels indicate better recovery readiness
                   </FormDescription>
                   <FormMessage />
@@ -455,29 +480,52 @@ export default function MultiStepMorningDiaryForm() {
               )}
             />
             
-            {/* Mood Select */}
+            {/* Mood Slider with Emojis */}
             <FormField
               control={form.control}
               name="mood"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-200">What is your mood this morning?</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center px-1 mb-1">
+                      <span className="text-xl">😞</span>
+                      <span className="text-xl">😐</span>
+                      <span className="text-xl">🙂</span>
+                      <span className="text-xl">😄</span>
+                      <span className="text-xl">😍</span>
+                    </div>
                     <FormControl>
-                      <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
-                        <SelectValue placeholder="Select your mood" />
-                      </SelectTrigger>
+                      <input
+                        type="range"
+                        min="1"
+                        max="5"
+                        step="1"
+                        value={
+                          field.value === "negative" ? 1 : 
+                          field.value === "neutral" ? 3 :
+                          field.value === "positive" ? 5 : 3
+                        }
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (val <= 2) field.onChange("negative");
+                          else if (val >= 4) field.onChange("positive");
+                          else field.onChange("neutral");
+                        }}
+                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary"
+                      />
                     </FormControl>
-                    <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
-                      <SelectItem value="positive">Positive</SelectItem>
-                      <SelectItem value="neutral">Neutral</SelectItem>
-                      <SelectItem value="negative">Negative</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription className="text-xs text-gray-400">
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Negative</span>
+                      <span>Positive</span>
+                    </div>
+                    <div className="text-center text-gray-200 mt-1">
+                      <span className="font-semibold py-1 px-3 bg-gray-800 rounded-full">
+                        {field.value === "negative" ? "Negative" : field.value === "neutral" ? "Neutral" : "Positive"}
+                      </span>
+                    </div>
+                  </div>
+                  <FormDescription className="text-xs text-gray-400 mt-2">
                     Your mood can affect your performance and readiness
                   </FormDescription>
                   <FormMessage />
@@ -492,29 +540,65 @@ export default function MultiStepMorningDiaryForm() {
           <div className="space-y-6">
             <h3 className="text-2xl font-semibold text-gray-100 mb-4">Recovery & Health</h3>
             
-            {/* Recovery Level Select */}
+            {/* Recovery Level with Descriptive Slider */}
             <FormField
               control={form.control}
               name="recoveryLevel"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-200">How recovered do you feel?</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
-                        <SelectValue placeholder="Select recovery level" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
-                      <SelectItem value="good">Good</SelectItem>
-                      <SelectItem value="moderate">Moderate</SelectItem>
-                      <SelectItem value="poor">Poor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription className="text-xs text-gray-400">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-3">
+                      {/* Fresh and Energized */}
+                      <div 
+                        className={`flex items-center p-3 rounded-md cursor-pointer border-2 ${field.value === "good" 
+                          ? "border-primary bg-primary/10" 
+                          : "border-gray-700 hover:border-gray-600"}`}
+                        onClick={() => field.onChange("good")}
+                      >
+                        <div className="mr-3 bg-green-700/20 p-2 rounded-full">
+                          <span className="text-xl">⚡</span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-200">Fresh and Energized</h4>
+                          <p className="text-xs text-gray-400">Ready for high intensity training</p>
+                        </div>
+                      </div>
+
+                      {/* Moderate - Well Rested */}
+                      <div 
+                        className={`flex items-center p-3 rounded-md cursor-pointer border-2 ${field.value === "moderate" 
+                          ? "border-primary bg-primary/10" 
+                          : "border-gray-700 hover:border-gray-600"}`}
+                        onClick={() => field.onChange("moderate")}
+                      >
+                        <div className="mr-3 bg-yellow-700/20 p-2 rounded-full">
+                          <span className="text-xl">🔋</span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-200">Well Rested</h4>
+                          <p className="text-xs text-gray-400">Ready for moderate training</p>
+                        </div>
+                      </div>
+
+                      {/* Poor - Exhausted */}
+                      <div 
+                        className={`flex items-center p-3 rounded-md cursor-pointer border-2 ${field.value === "poor" 
+                          ? "border-primary bg-primary/10" 
+                          : "border-gray-700 hover:border-gray-600"}`}
+                        onClick={() => field.onChange("poor")}
+                      >
+                        <div className="mr-3 bg-red-700/20 p-2 rounded-full">
+                          <span className="text-xl">💤</span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-200">Fatigued</h4>
+                          <p className="text-xs text-gray-400">Need recovery, low intensity only</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <FormDescription className="text-xs text-gray-400 mt-2">
                     Your recovery level is important for preventing injuries
                   </FormDescription>
                   <FormMessage />
@@ -556,30 +640,56 @@ export default function MultiStepMorningDiaryForm() {
               )}
             </div>
             
-            {/* Motivation Level Select */}
+            {/* Motivation & Energy Slider */}
             <FormField
               control={form.control}
               name="motivationLevel"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">What is your motivation level today?</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
+                  <FormLabel className="text-gray-200">What is your motivation & energy level today?</FormLabel>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center px-1 mb-1">
+                      <span className="text-xl">💤</span>
+                      <span className="text-xl">🔋</span>
+                      <span className="text-xl">🚀</span>
+                    </div>
                     <FormControl>
-                      <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
-                        <SelectValue placeholder="Select motivation level" />
-                      </SelectTrigger>
+                      <input
+                        type="range"
+                        min="1"
+                        max="3"
+                        step="1"
+                        value={
+                          field.value === "low" ? 1 :
+                          field.value === "moderate" ? 2 :
+                          field.value === "high" ? 3 : 2
+                        }
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (val === 1) field.onChange("low");
+                          else if (val === 2) field.onChange("moderate");
+                          else field.onChange("high");
+                        }}
+                        className="w-full h-3 bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-lg appearance-none cursor-pointer"
+                      />
                     </FormControl>
-                    <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="moderate">Moderate</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription className="text-xs text-gray-400">
-                    How motivated you feel to train or compete today
+                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>Low</span>
+                      <span>Moderate</span>
+                      <span>High</span>
+                    </div>
+                    <div className="text-center text-gray-200 mt-2">
+                      <span className="font-semibold py-1 px-3 bg-gray-800 rounded-full">
+                        {field.value === "low" 
+                          ? "Low Energy" 
+                          : field.value === "moderate" 
+                          ? "Moderate Energy" 
+                          : "High Energy"}
+                      </span>
+                    </div>
+                  </div>
+                  <FormDescription className="text-xs text-gray-400 mt-2">
+                    Your energy level affects your performance potential today
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -593,7 +703,7 @@ export default function MultiStepMorningDiaryForm() {
           <div className="space-y-6">
             <h3 className="text-2xl font-semibold text-gray-100 mb-4">Muscle Soreness & Injury Check</h3>
             
-            {/* Interactive Muscle Map */}
+            {/* Simple Muscle Group Selection */}
             <FormField
               control={form.control}
               name="sorenessMap"
@@ -602,38 +712,86 @@ export default function MultiStepMorningDiaryForm() {
                   <FormLabel className="text-gray-200 block mb-2">
                     Select muscle groups where you feel soreness:
                   </FormLabel>
-                  <FormControl>
-                    <InteractiveMuscleMap 
-                      selectedMuscles={field.value as Partial<Record<MuscleGroup, boolean>>} 
-                      onChange={handleMuscleMapChange}
+                  
+                  {/* No Soreness Option */}
+                  <div className="flex items-center space-x-2 p-4 mb-4 bg-[rgb(30,30,30)] rounded-md border border-gray-700">
+                    <Checkbox 
+                      id="no_soreness"
+                      checked={!!(field.value as Record<string, boolean>)?._no_soreness}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          // If "No soreness" is selected, clear all other selections
+                          form.setValue("sorenessMap", { _no_soreness: true } as any, { shouldValidate: true });
+                        } else {
+                          // If unchecked, simply remove the _no_soreness flag
+                          const current = { ...field.value } as Record<string, boolean>;
+                          delete current._no_soreness;
+                          form.setValue("sorenessMap", current as any, { shouldValidate: true });
+                        }
+                      }}
                     />
-                  </FormControl>
+                    <label htmlFor="no_soreness" className="text-base font-medium leading-none text-gray-200">
+                      I have no muscle soreness today
+                    </label>
+                  </div>
+                  
+                  {/* Only show muscle groups if "No soreness" is not checked */}
+                  {!(field.value as Record<string, boolean>)?._no_soreness && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        {["shoulders", "chest", "back", "arms", "core", "hips", "legs", "calves"].map((muscle) => (
+                          <div 
+                            key={muscle}
+                            className={`flex items-center p-3 rounded-md cursor-pointer border-2 
+                              ${(field.value as Record<string, boolean>)?.[muscle] 
+                                ? "border-primary bg-primary/10" 
+                                : "border-gray-700 hover:border-gray-600"}`}
+                            onClick={() => {
+                              const current = { ...(field.value || {}) } as Record<string, boolean>;
+                              current[muscle] = !current[muscle];
+                              form.setValue("sorenessMap", current as any, { shouldValidate: true });
+                            }}
+                          >
+                            <div className="flex items-center">
+                              <Checkbox 
+                                className="mr-2"
+                                checked={(field.value as Record<string, boolean>)?.[muscle] || false}
+                                onCheckedChange={() => {}}
+                              />
+                              <span className="text-gray-200 capitalize">{muscle}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Notes about soreness */}
+                      <FormField
+                        control={form.control}
+                        name="sorenessNotes"
+                        render={({ field: notesField }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-200">Additional notes about soreness</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Describe your muscle soreness in more detail..."
+                                className="bg-[rgb(38,38,38)] text-white border-gray-700 resize-none min-h-[80px]"
+                                {...notesField}
+                              />
+                            </FormControl>
+                            <FormDescription className="text-xs text-gray-400">
+                              Optional: Add any specific details about your soreness
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+                  
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-            {/* "No Soreness" Checkbox */}
-            <div className="flex items-center space-x-2 p-4 bg-[rgb(30,30,30)] rounded-md">
-              <Checkbox 
-                id="no_soreness"
-                checked={!!(form.getValues("sorenessMap") as Record<string, boolean>)._no_soreness}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    // If "No soreness" is selected, clear all other selections
-                    form.setValue("sorenessMap", { _no_soreness: true } as any, { shouldValidate: true });
-                  } else {
-                    // If unchecked, simply remove the _no_soreness flag
-                    const current = { ...form.getValues("sorenessMap") } as Record<string, boolean>;
-                    delete current._no_soreness;
-                    form.setValue("sorenessMap", current, { shouldValidate: true });
-                  }
-                }}
-              />
-              <label htmlFor="no_soreness" className="text-base font-medium leading-none text-gray-200">
-                I have no muscle soreness today
-              </label>
-            </div>
             
             {/* Injury Toggle */}
             <FormField
