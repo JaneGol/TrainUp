@@ -50,7 +50,6 @@ const morningDiarySchema = z.object({
   // Step 2: Recovery & Health
   recoveryLevel: z.number().min(1).max(10),
   symptoms: z.array(z.string()),
-  symptomsComment: z.string().optional(),
   motivationLevel: z.number().min(1).max(10),
   
   // Step 3: Muscle Soreness & Injury
@@ -150,7 +149,6 @@ export default function MultiStepMorningDiaryForm() {
       // Step 2 defaults
       recoveryLevel: 5, // Middle of 1-10 scale
       symptoms: [],
-      symptomsComment: "",
       motivationLevel: 5, // Middle of 1-10 scale
       
       // Step 3 defaults
@@ -659,7 +657,7 @@ export default function MultiStepMorningDiaryForm() {
                   {/* Symptom comments */}
                   <FormField
                     control={form.control}
-                    name="symptomsComment"
+                    name="injuryNotes"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-gray-200">Additional details (optional)</FormLabel>
