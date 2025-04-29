@@ -2,11 +2,13 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
-  FileText,
+  ClipboardList,
   BarChart3,
   Activity,
   Heart,
-  Loader2
+  Loader2,
+  Trophy,
+  ArrowRight
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -28,38 +30,61 @@ export default function AthleteHomePage() {
   const today = new Date().toISOString().split('T')[0];
   const hasCompletedDiaryToday = latestDiary?.date?.split('T')[0] === today;
 
+  // Format date for display
+  const currentDate = new Date();
+  const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'short', day: 'numeric' };
+  const formattedDate = currentDate.toLocaleDateString('en-US', dateOptions);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
-      {/* Simple header */}
-      <header className="bg-white border-b p-4 text-center shadow-sm">
-        <h1 className="text-xl font-bold text-gray-800">
-          Hello, {user?.firstName || 'Athlete'}
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted flex flex-col">
+      {/* Header with gradient */}
+      <header className="gradient-bg text-white p-5 pb-8 rounded-b-3xl shadow-lg">
+        <div className="mb-1 text-sm font-medium opacity-90">{formattedDate}</div>
+        <h1 className="text-2xl font-bold">
+          Hey, {user?.firstName || 'Athlete'}!
         </h1>
+        <p className="mt-1 text-sm font-medium opacity-90">
+          {hasCompletedDiaryToday ? 'Ready for today\'s training!' : 'Complete your daily check-in'}
+        </p>
+        
+        {/* Today's readiness score if available */}
+        {hasCompletedDiaryToday && latestDiary?.readinessScore && (
+          <div className="mt-3 flex items-center">
+            <Trophy className="h-5 w-5 mr-2 text-accent" />
+            <span className="font-semibold">Today's Readiness: {latestDiary.readinessScore}%</span>
+          </div>
+        )}
       </header>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col p-4 gap-6">
-        <div className="grid grid-cols-1 gap-6 mt-2">
-          {/* Self-Control Diary Button */}
+      <main className="flex-1 flex flex-col p-5 gap-5 -mt-5">
+        <div className="grid grid-cols-1 gap-5">
+          {/* Self-Control Diary Button - Using gradient */}
           <Button
             onClick={() => navigate("/athlete/morning-diary")}
-            className={`h-24 text-lg font-medium flex flex-col justify-center items-center gap-2 rounded-xl shadow-md ${
+            className={`btn-athletic h-24 ${
               hasCompletedDiaryToday
-                ? "bg-green-600 hover:bg-green-700"
-                : "bg-blue-600 hover:bg-blue-700"
+                ? "bg-success text-white hover:bg-success/90"
+                : "gradient-btn"
             }`}
           >
             {diaryLoading ? (
               <Loader2 className="h-6 w-6 animate-spin text-white" />
             ) : (
               <>
-                <FileText className="h-7 w-7" />
-                <span>Self-Control Diary</span>
-                {hasCompletedDiaryToday && (
-                  <span className="text-xs bg-green-500 px-2 py-0.5 rounded-full">
-                    Completed Today
-                  </span>
-                )}
+                <ClipboardList className="h-6 w-6" />
+                <div className="flex flex-col items-center">
+                  <span>Self-Control Diary</span>
+                  {hasCompletedDiaryToday ? (
+                    <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full mt-1">
+                      Completed Today
+                    </span>
+                  ) : (
+                    <span className="text-xs flex items-center mt-1">
+                      Complete now <ArrowRight className="h-3 w-3 ml-1" />
+                    </span>
+                  )}
+                </div>
               </>
             )}
           </Button>
@@ -67,31 +92,36 @@ export default function AthleteHomePage() {
           {/* RPE Form Button */}
           <Button
             onClick={() => navigate("/athlete/training-entry")}
-            className="h-24 text-lg font-medium bg-indigo-600 hover:bg-indigo-700 flex flex-col justify-center items-center gap-2 rounded-xl shadow-md"
+            className="btn-athletic h-24 bg-primary text-white hover:bg-primary/90"
           >
-            <Activity className="h-7 w-7" />
+            <Activity className="h-6 w-6" />
             <span>RPE Form</span>
           </Button>
 
           {/* Fitness Progress Button */}
           <Button
             onClick={() => navigate("/athlete/fitness-progress")}
-            className="h-24 text-lg font-medium bg-amber-600 hover:bg-amber-700 flex flex-col justify-center items-center gap-2 rounded-xl shadow-md"
+            className="btn-athletic h-24 bg-info text-white hover:bg-info/90"
           >
-            <BarChart3 className="h-7 w-7" />
+            <BarChart3 className="h-6 w-6" />
             <span>Fitness Progress</span>
           </Button>
 
           {/* Smart Doctor Button */}
           <Button
             onClick={() => navigate("/athlete/smart-doctor")}
-            className="h-24 text-lg font-medium bg-rose-600 hover:bg-rose-700 flex flex-col justify-center items-center gap-2 rounded-xl shadow-md"
+            className="btn-athletic h-24 bg-accent text-white hover:bg-accent/90"
           >
-            <Heart className="h-7 w-7" />
+            <Heart className="h-6 w-6" />
             <span>Smart Doctor</span>
           </Button>
         </div>
       </main>
+      
+      {/* Footer with attribution */}
+      <footer className="py-3 px-5 text-center text-xs text-muted-foreground">
+        <p>Sport Team Performance Tracker</p>
+      </footer>
     </div>
   );
 }
