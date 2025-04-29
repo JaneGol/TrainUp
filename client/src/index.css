@@ -134,14 +134,14 @@
 .btn-athletic:hover, 
 .btn-dark:hover,
 button:not([disabled]):hover {
-  @apply bg-black text-primary;
+  @apply bg-gray-800 text-primary;
 }
 
 /* Active state for buttons */
 .btn-athletic:active,
 .btn-dark:active,
 button:not([disabled]):active {
-  @apply bg-black text-primary opacity-90;
+  @apply bg-gray-900 text-primary opacity-90;
 }
 
 /* Dark button style for contrast */
