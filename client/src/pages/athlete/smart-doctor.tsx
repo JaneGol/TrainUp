@@ -142,7 +142,7 @@ export default function SmartDoctorPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
       {/* Simple header with back button */}
-      <header className="bg-white border-b p-4 flex items-center shadow-sm">
+      <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
         <Button 
           variant="ghost" 
           size="icon" 
@@ -151,7 +151,7 @@ export default function SmartDoctorPage() {
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-bold text-gray-800 flex-1 text-center pr-8">
+        <h1 className="text-xl font-bold text-white flex-1 text-center pr-8">
           Smart Doctor
         </h1>
       </header>
