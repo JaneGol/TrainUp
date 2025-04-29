@@ -465,8 +465,26 @@ export default function MultiStepMorningDiaryForm() {
                       <span>Low</span>
                       <span className="ml-auto">High</span>
                     </div>
-                    <div className="text-center text-gray-200">
-                      Selected: <span className="font-semibold">{field.value}</span>
+                    
+                    <div className="text-sm text-gray-300 mt-2">
+                      {field.value === "low" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">0 – Extremely relaxed</p>
+                          <p className="font-medium">1 – Calm</p>
+                          <p className="font-medium">2 – Slightly stressed</p>
+                        </div>
+                      )}
+                      {field.value === "medium" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">3 – Moderate stress</p>
+                        </div>
+                      )}
+                      {field.value === "high" && (
+                        <div className="p-2 bg-gray-800 rounded-md">
+                          <p className="font-medium">4 – High stress</p>
+                          <p className="font-medium">5 – Overwhelmed / very high stress</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <FormDescription className="text-xs text-gray-400">
