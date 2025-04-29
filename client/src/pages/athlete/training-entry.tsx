@@ -53,6 +53,7 @@ export default function TrainingEntryForm() {
       trainingType: "",
       effortLevel: 5,
       duration: 60,
+      date: new Date(), // Add date with current date as default
       mood: "neutral",
       notes: "",
     },
@@ -62,7 +63,7 @@ export default function TrainingEntryForm() {
   const effortLevel = form.watch("effortLevel");
   
   // Update effort description when effortLevel changes
-  useState(() => {
+  useEffect(() => {
     if (effortLevel <= 2) {
       setEffortDescription("Very light effort");
     } else if (effortLevel <= 4) {
@@ -74,7 +75,7 @@ export default function TrainingEntryForm() {
     } else {
       setEffortDescription("Maximum effort");
     }
-  });
+  }, [effortLevel]);
   
   // Submit form mutation
   const submitTrainingEntry = useMutation({
