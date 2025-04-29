@@ -41,17 +41,25 @@ export const morningDiary = pgTable("morning_diary", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   date: timestamp("date").defaultNow().notNull(),
-  sleepQuality: text("sleep_quality", { enum: ["good", "okay", "poor"] }).notNull(),
-  restedness: text("restedness", { enum: ["very", "somewhat", "not at all"] }).notNull(),
-  mood: text("mood", { enum: ["happy", "neutral", "stressed", "sad"] }).notNull(),
-  motivation: text("motivation", { enum: ["yes", "somewhat", "no"] }).notNull(),
-  bodyFeeling: text("body_feeling", { enum: ["fresh", "a little sore", "very sore"] }).notNull(),
-  pain: text("pain", { enum: ["no", "slight", "yes"] }).notNull(),
+  // Step 1: Sleep & Emotional State
+  sleepQuality: text("sleep_quality", { enum: ["good", "average", "poor"] }).notNull(),
+  sleepHours: integer("sleep_hours").notNull(),
   stressLevel: text("stress_level", { enum: ["low", "medium", "high"] }).notNull(),
-  recovery: text("recovery", { enum: ["yes", "somewhat", "no"] }).notNull(),
-  focus: text("focus", { enum: ["yes", "not fully", "no"] }).notNull(),
-  readiness: text("readiness", { enum: ["yes", "almost", "no"] }).notNull(),
-  additionalNotes: text("additional_notes"),
+  mood: text("mood", { enum: ["positive", "neutral", "negative"] }).notNull(),
+  
+  // Step 2: Recovery & Health
+  recoveryLevel: text("recovery_level", { enum: ["good", "moderate", "poor"] }).notNull(),
+  symptoms: json("symptoms").notNull(), // Array of symptoms: ["runny_nose", "sore_throat", etc] or empty array
+  motivationLevel: text("motivation_level", { enum: ["high", "moderate", "low"] }).notNull(),
+  
+  // Step 3: Muscle Soreness & Injury
+  sorenessMap: json("soreness_map").notNull(), // Object with body parts and soreness levels
+  hasInjury: boolean("has_injury").notNull(),
+  painLevel: integer("pain_level"), // Scale 0-10, null if hasInjury is false
+  injuryImproving: text("injury_improving", { enum: ["yes", "no", "unchanged"] }),
+  injuryNotes: text("injury_notes"),
+  
+  // General
   readinessScore: integer("readiness_score").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -104,57 +104,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertMorningDiarySchema.parse(req.body);
       
-      // Calculate readiness score based on form values
-      // This function should match the logic in the frontend component
-      const calculateReadinessScore = (data: any) => {
-        let score = 0;
-        const maxScore = 10;
-        
-        // Sleep quality
-        if (data.sleepQuality === "good") score += 1;
-        else if (data.sleepQuality === "okay") score += 0.5;
-        
-        // Restedness
-        if (data.restedness === "very") score += 1;
-        else if (data.restedness === "somewhat") score += 0.5;
-        
-        // Mood
-        if (data.mood === "happy") score += 1;
-        else if (data.mood === "neutral") score += 0.75;
-        
-        // Motivation
-        if (data.motivation === "yes") score += 1;
-        else if (data.motivation === "somewhat") score += 0.5;
-        
-        // Body feeling
-        if (data.bodyFeeling === "fresh") score += 1;
-        else if (data.bodyFeeling === "a little sore") score += 0.5;
-        
-        // Pain/injury
-        if (data.pain === "no") score += 1;
-        else if (data.pain === "slight") score += 0.5;
-        
-        // Stress level
-        if (data.stressLevel === "low") score += 1;
-        else if (data.stressLevel === "medium") score += 0.5;
-        
-        // Recovery
-        if (data.recovery === "yes") score += 1;
-        else if (data.recovery === "somewhat") score += 0.5;
-        
-        // Focus
-        if (data.focus === "yes") score += 1;
-        else if (data.focus === "not fully") score += 0.5;
-        
-        // Readiness
-        if (data.readiness === "yes") score += 1;
-        else if (data.readiness === "almost") score += 0.5;
-        
-        // Convert to percentage
-        return Math.round((score / maxScore) * 100);
-      };
+      // Use the readiness score from the frontend if provided
+      let readinessScore = req.body.readinessScore;
       
-      const readinessScore = calculateReadinessScore(validatedData);
+      // If not provided, calculate readiness score based on the multi-step form values
+      if (!readinessScore) {
+        // Calculate readiness score based on new form values
+        const calculateReadinessScore = (data: any) => {
+          let score = 0;
+          const maxScore = 10;
+          
+          // Step 1: Sleep & Emotional State
+          // Sleep quality (max 1 point)
+          if (data.sleepQuality === "good") score += 1;
+          else if (data.sleepQuality === "average") score += 0.5;
+          
+          // Sleep hours (max 1 point)
+          if (data.sleepHours >= 8) score += 1;
+          else if (data.sleepHours >= 6) score += 0.5;
+          
+          // Stress level (max 1 point)
+          if (data.stressLevel === "low") score += 1;
+          else if (data.stressLevel === "medium") score += 0.5;
+          
+          // Mood (max 1 point)
+          if (data.mood === "positive") score += 1;
+          else if (data.mood === "neutral") score += 0.5;
+          
+          // Step 2: Recovery & Health
+          // Recovery level (max 1 point)
+          if (data.recoveryLevel === "good") score += 1;
+          else if (data.recoveryLevel === "moderate") score += 0.5;
+          
+          // Symptoms (max 1 point)
+          if (data.symptoms.includes("no_symptoms")) score += 1;
+          else if (data.symptoms.length <= 1) score += 0.5;
+          
+          // Motivation (max 1 point)
+          if (data.motivationLevel === "high") score += 1;
+          else if (data.motivationLevel === "moderate") score += 0.5;
+          
+          // Step 3: Muscle Soreness & Injury
+          // Soreness (max 1 point)
+          const sorenessCount = Object.keys(data.sorenessMap).length;
+          if (sorenessCount === 0) score += 1;
+          else if (sorenessCount <= 3) score += 0.5;
+          
+          // Injury (max 1 point)
+          if (!data.hasInjury) score += 1;
+          
+          // Injury improving (max 1 point, only if hasInjury)
+          if (data.hasInjury) {
+            if (data.injuryImproving === "yes") score += 0.5;
+          } else {
+            score += 1; // If no injury, full points
+          }
+          
+          // Convert to percentage
+          return Math.round((score / maxScore) * 100);
+        };
+        
+        readinessScore = calculateReadinessScore(validatedData);
+      }
       
       const diary = await storage.createMorningDiary(
         validatedData, 
@@ -164,6 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(diary);
     } catch (error) {
+      console.error("Morning diary validation error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
       }
