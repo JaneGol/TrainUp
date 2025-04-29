@@ -129,11 +129,11 @@ export default function AthleteHomePage() {
       </main>
       
       {/* Logout button */}
-      <div className="px-5 mt-4 mb-2">
+      <div className="bg-zinc-900 py-3 mt-4">
         <Button 
           onClick={handleLogout}
-          variant="destructive"
-          className="w-full flex items-center justify-center gap-2 py-5"
+          variant="ghost"
+          className="mx-auto flex items-center text-lime-300 hover:text-lime-400 font-semibold gap-2"
           disabled={logoutMutation.isPending}
         >
           {logoutMutation.isPending ? (
