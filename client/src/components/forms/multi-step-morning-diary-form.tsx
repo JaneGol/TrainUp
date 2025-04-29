@@ -28,7 +28,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Loader2, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 // Define Zod schema for the form based on slider inputs and validation
 const morningDiarySchema = z.object({
@@ -43,6 +50,7 @@ const morningDiarySchema = z.object({
   // Step 2: Recovery & Health
   recoveryLevel: z.number().min(1).max(10),
   symptoms: z.array(z.string()),
+  symptomsComment: z.string().optional(),
   motivationLevel: z.number().min(1).max(10),
   
   // Step 3: Muscle Soreness & Injury
@@ -142,6 +150,7 @@ export default function MultiStepMorningDiaryForm() {
       // Step 2 defaults
       recoveryLevel: 5, // Middle of 1-10 scale
       symptoms: [],
+      symptomsComment: "",
       motivationLevel: 5, // Middle of 1-10 scale
       
       // Step 3 defaults
@@ -554,60 +563,120 @@ export default function MultiStepMorningDiaryForm() {
             />
             
             {/* Symptoms */}
-            <div className="space-y-2">
+            <div className="space-y-4">
               <FormLabel className="text-gray-200 block">Do you have any symptoms today?</FormLabel>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="runny_nose"
-                    checked={form.getValues("symptoms")?.includes("runny_nose")}
-                    onCheckedChange={(checked) => handleSymptomChange("runny_nose", checked as boolean)}
-                  />
-                  <label htmlFor="runny_nose" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300">
-                    Runny nose
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="sore_throat"
-                    checked={form.getValues("symptoms")?.includes("sore_throat")}
-                    onCheckedChange={(checked) => handleSymptomChange("sore_throat", checked as boolean)}
-                  />
-                  <label htmlFor="sore_throat" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300">
-                    Sore throat
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="fever"
-                    checked={form.getValues("symptoms")?.includes("fever")}
-                    onCheckedChange={(checked) => handleSymptomChange("fever", checked as boolean)}
-                  />
-                  <label htmlFor="fever" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300">
-                    Fever
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="diarrhea"
-                    checked={form.getValues("symptoms")?.includes("diarrhea")}
-                    onCheckedChange={(checked) => handleSymptomChange("diarrhea", checked as boolean)}
-                  />
-                  <label htmlFor="diarrhea" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300">
-                    Diarrhea
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2 col-span-2">
-                  <Checkbox 
-                    id="no_symptoms"
-                    checked={form.getValues("symptoms")?.includes("no_symptoms")}
-                    onCheckedChange={(checked) => handleSymptomChange("no_symptoms", checked as boolean)}
-                  />
-                  <label htmlFor="no_symptoms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300">
-                    I feel well
-                  </label>
-                </div>
+              
+              <div className="flex items-center space-x-2 mb-3">
+                <Checkbox 
+                  id="feel_healthy"
+                  checked={form.getValues("symptoms")?.includes("no_symptoms")}
+                  onCheckedChange={(checked) => {
+                    // Clear all symptom selections when selecting "I feel healthy"
+                    if (checked) {
+                      form.setValue("symptoms", ["no_symptoms"]);
+                    } else {
+                      form.setValue("symptoms", []);
+                    }
+                  }}
+                />
+                <label htmlFor="feel_healthy" className="text-base font-medium leading-none text-gray-200">
+                  I feel healthy
+                </label>
               </div>
+              
+              {!form.getValues("symptoms")?.includes("no_symptoms") && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="symptoms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Select
+                          onValueChange={(value) => {
+                            const currentSymptoms = form.getValues("symptoms") || [];
+                            if (!currentSymptoms.includes(value)) {
+                              form.setValue("symptoms", [...currentSymptoms, value]);
+                            }
+                          }}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select symptoms" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="runny_nose">Runny nose</SelectItem>
+                            <SelectItem value="sore_throat">Sore throat</SelectItem>
+                            <SelectItem value="fever">Fever</SelectItem>
+                            <SelectItem value="diarrhea">Diarrhea</SelectItem>
+                            <SelectItem value="cough">Cough</SelectItem>
+                            <SelectItem value="headache">Headache</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  {/* Display selected symptoms as tags */}
+                  {form.getValues("symptoms")?.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {form.getValues("symptoms").map((symptom) => {
+                        if (symptom === "no_symptoms") return null;
+                        
+                        // Convert symptom value to display text
+                        const displayText = {
+                          "runny_nose": "Runny nose",
+                          "sore_throat": "Sore throat",
+                          "fever": "Fever",
+                          "diarrhea": "Diarrhea",
+                          "cough": "Cough",
+                          "headache": "Headache"
+                        }[symptom];
+                        
+                        return (
+                          <div 
+                            key={symptom} 
+                            className="bg-gray-800 text-gray-200 px-3 py-1 rounded-full text-sm flex items-center"
+                          >
+                            {displayText}
+                            <X 
+                              className="ml-1 h-3 w-3 cursor-pointer" 
+                              onClick={() => {
+                                const currentSymptoms = form.getValues("symptoms") || [];
+                                form.setValue(
+                                  "symptoms", 
+                                  currentSymptoms.filter(s => s !== symptom)
+                                );
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  
+                  {/* Symptom comments */}
+                  <FormField
+                    control={form.control}
+                    name="symptomsComment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-200">Additional details (optional)</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Describe your symptoms..."
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+              
               {form.formState.errors.symptoms && (
                 <p className="text-red-500 text-sm mt-1">
                   Please select at least one option
