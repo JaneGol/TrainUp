@@ -20,6 +20,7 @@ import CoachDashboard from "@/pages/coach/dashboard";
 import AthleteLogsPage from "@/pages/coach/athlete-logs";
 import TeamOverviewPage from "@/pages/coach/team-overview";
 import PerformanceAnalyticsPage from "@/pages/coach/performance-analytics";
+import EnhancedAnalyticsPage from "@/pages/coach/enhanced-analytics";
 
 function Router() {
   return (
@@ -40,6 +41,7 @@ function Router() {
       <ProtectedRoute path="/coach/athlete-logs" component={AthleteLogsPage} />
       <ProtectedRoute path="/coach/team-overview" component={TeamOverviewPage} />
       <ProtectedRoute path="/coach/performance-analytics" component={PerformanceAnalyticsPage} />
+      <ProtectedRoute path="/coach/enhanced-analytics" component={EnhancedAnalyticsPage} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

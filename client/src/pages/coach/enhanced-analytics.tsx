@@ -239,7 +239,7 @@ export default function EnhancedAnalyticsPage() {
                       <Bar 
                         dataKey="load" 
                         name="Training Load" 
-                        fill="#4a65bb" 
+                        fill="#CBFF00" 
                         radius={[4, 4, 0, 0]}
                       />
                     </BarChart>
@@ -278,7 +278,7 @@ export default function EnhancedAnalyticsPage() {
                           type="monotone" 
                           dataKey="load" 
                           name="Load" 
-                          stroke="#3498db" 
+                          stroke="#CBFF00" 
                           strokeWidth={2} 
                           dot={{ r: 4 }}
                         />
@@ -354,8 +354,8 @@ export default function EnhancedAnalyticsPage() {
                           type="monotone" 
                           dataKey="acute" 
                           name="Acute Load (7d)" 
-                          fill="#3498db" 
-                          stroke="#3498db"
+                          fill="#CBFF00" 
+                          stroke="#CBFF00"
                           fillOpacity={0.3}
                         />
                         <Area 
@@ -363,8 +363,8 @@ export default function EnhancedAnalyticsPage() {
                           type="monotone" 
                           dataKey="chronic" 
                           name="Chronic Load (28d)" 
-                          fill="#2ecc71" 
-                          stroke="#2ecc71"
+                          fill="#89B3FF" 
+                          stroke="#89B3FF"
                           fillOpacity={0.3}
                         />
                         <Line 
@@ -372,7 +372,7 @@ export default function EnhancedAnalyticsPage() {
                           type="monotone" 
                           dataKey="ratio" 
                           name="A:C Ratio" 
-                          stroke="#e74c3c" 
+                          stroke="#CBFF00" 
                           strokeWidth={2}
                           dot={{ r: 4 }}
                         />
@@ -465,7 +465,7 @@ export default function EnhancedAnalyticsPage() {
                         type="monotone" 
                         dataKey="ratio" 
                         name="A:C Ratio" 
-                        stroke="#8884d8" 
+                        stroke="#CBFF00" 
                         strokeWidth={2}
                         dot={{ r: 3 }}
                       />
