@@ -372,9 +372,7 @@ export default function MultiStepMorningDiaryForm() {
                       <SelectItem value="poor">Poor</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription className="text-xs text-gray-400">
-                    Your perception of sleep quality affects your readiness score
-                  </FormDescription>
+                  <FormDescription className="text-xs text-gray-400"></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -419,9 +417,7 @@ export default function MultiStepMorningDiaryForm() {
                       <span className="text-gray-200">hours</span>
                     </div>
                   </FormControl>
-                  <FormDescription className="text-xs text-gray-400">
-                    More sleep typically improves readiness score
-                  </FormDescription>
+                  <FormDescription className="text-xs text-gray-400"></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -466,9 +462,7 @@ export default function MultiStepMorningDiaryForm() {
                       <span className="ml-auto">High</span>
                     </div>
                   </div>
-                  <FormDescription className="text-xs text-gray-400">
-                    Lower stress levels indicate better recovery readiness
-                  </FormDescription>
+                  <FormDescription className="text-xs text-gray-400"></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -513,9 +507,7 @@ export default function MultiStepMorningDiaryForm() {
                       <span className="ml-auto">Positive</span>
                     </div>
                   </div>
-                  <FormDescription className="text-xs text-gray-400">
-                    Your mood can affect your performance and readiness
-                  </FormDescription>
+                  <FormDescription className="text-xs text-gray-400"></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -567,9 +559,7 @@ export default function MultiStepMorningDiaryForm() {
                       <span className="ml-auto">Fully Recovered</span>
                     </div>
                   </div>
-                  <FormDescription className="text-xs text-gray-400">
-                    Your recovery level is important for preventing injuries
-                  </FormDescription>
+                  <FormDescription className="text-xs text-gray-400"></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -648,9 +638,7 @@ export default function MultiStepMorningDiaryForm() {
                       <span className="ml-auto">High</span>
                     </div>
                   </div>
-                  <FormDescription className="text-xs text-gray-400">
-                    Your energy level affects your performance potential today
-                  </FormDescription>
+                  <FormDescription className="text-xs text-gray-400"></FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
