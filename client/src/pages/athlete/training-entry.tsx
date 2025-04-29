@@ -123,7 +123,12 @@ export default function TrainingEntryForm() {
   
   // Form submission handler
   function onSubmit(data: TrainingEntryFormValues) {
-    submitTrainingEntry.mutate(data);
+    // Convert the Date object to an ISO string that the server can handle
+    const formattedData = {
+      ...data,
+      date: data.date.toISOString()
+    };
+    submitTrainingEntry.mutate(formattedData as any);
   }
   
   // When submitting, show loading
