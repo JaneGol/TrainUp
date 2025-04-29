@@ -1424,7 +1424,6 @@ export default function MultiStepMorningDiaryForm() {
   
   return (
     <div className="bg-[#1a1d22] p-6 rounded-xl shadow-sm border border-gray-800">
-      <h2 className="text-3xl font-bold text-gray-100 mb-1">Daily Morning Self-Control Diary</h2>
       <p className="text-gray-400 mb-6">Track your sleep, recovery, health, and soreness levels</p>
       
       {/* Progress Steps */}
