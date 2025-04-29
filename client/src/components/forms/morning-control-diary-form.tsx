@@ -257,7 +257,7 @@ export default function MorningControlDiaryForm() {
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl>
-                        <RadioGroupItem value="not" />
+                        <RadioGroupItem value="not at all" />
                       </FormControl>
                       <FormLabel className="font-normal">Not rested</FormLabel>
                     </FormItem>
@@ -295,7 +295,7 @@ export default function MorningControlDiaryForm() {
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl>
-                        <RadioGroupItem value="low" />
+                        <RadioGroupItem value="sad" />
                       </FormControl>
                       <FormLabel className="font-normal">Low/Negative</FormLabel>
                     </FormItem>
@@ -409,7 +409,7 @@ export default function MorningControlDiaryForm() {
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl>
-                        <RadioGroupItem value="significant" />
+                        <RadioGroupItem value="yes" />
                       </FormControl>
                       <FormLabel className="font-normal">Significant pain/injury concern</FormLabel>
                     </FormItem>
@@ -523,7 +523,7 @@ export default function MorningControlDiaryForm() {
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl>
-                        <RadioGroupItem value="distracted" />
+                        <RadioGroupItem value="no" />
                       </FormControl>
                       <FormLabel className="font-normal">Distracted/unfocused</FormLabel>
                     </FormItem>
