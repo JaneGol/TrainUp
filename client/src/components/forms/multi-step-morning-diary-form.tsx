@@ -444,10 +444,10 @@ export default function MultiStepMorningDiaryForm() {
                   <FormLabel className="text-gray-200">How many hours did you sleep?</FormLabel>
                   <FormControl>
                     <div className="flex items-center space-x-3">
-                      <div className="flex bg-gray-800 border border-gray-700 rounded-md">
+                      <div className="flex bg-[rgb(30,30,30)] border border-gray-700 rounded-md">
                         <button 
                           type="button" 
-                          className="flex items-center justify-center w-10 h-10 text-white hover:bg-gray-700"
+                          className="flex items-center justify-center w-10 h-10 text-white hover:bg-[rgb(45,45,45)]"
                           onClick={() => {
                             const newValue = Math.max(0, (field.value || 7) - 0.5);
                             field.onChange(newValue);
@@ -460,7 +460,7 @@ export default function MultiStepMorningDiaryForm() {
                         </div>
                         <button 
                           type="button" 
-                          className="flex items-center justify-center w-10 h-10 text-white hover:bg-gray-700"
+                          className="flex items-center justify-center w-10 h-10 text-white hover:bg-[rgb(45,45,45)]"
                           onClick={() => {
                             const newValue = Math.min(24, (field.value || 7) + 0.5);
                             field.onChange(newValue);
@@ -1435,7 +1435,7 @@ export default function MultiStepMorningDiaryForm() {
   }
   
   return (
-    <div className="bg-[#1a1d22] p-6 rounded-lg shadow-sm">
+    <div className="bg-[rgb(38,38,38)] p-6 rounded-lg shadow-sm">
       <div className="flex items-center gap-2 mb-2">
         <Activity className="h-5 w-5 text-primary" />
         <h3 className="text-lg font-semibold text-white">Daily Self-Assessment</h3>
