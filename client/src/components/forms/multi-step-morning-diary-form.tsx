@@ -689,20 +689,12 @@ export default function MultiStepMorningDiaryForm() {
                       <div className="border border-gray-800 rounded-lg overflow-hidden">
                         {/* Two-column layout for muscle groups */}
                         <div className="grid grid-cols-2">
-                          {/* Upper Body Column */}
+                          {/* Column 1 */}
                           <div className="border-r border-gray-800">
-                            <div className="p-3 bg-gray-800/50 border-b border-gray-700 font-semibold text-center text-gray-200">
-                              Upper Body
-                            </div>
                             {["shoulders", "chest", "arms", "back", "neck", "core"].map((muscle) => (
                               <div 
                                 key={muscle}
                                 className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
-                                onClick={() => {
-                                  const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                  current[muscle] = !current[muscle];
-                                  form.setValue("sorenessMap", current as any, { shouldValidate: true });
-                                }}
                               >
                                 <Checkbox 
                                   id={`soreness-${muscle}`}
@@ -710,7 +702,11 @@ export default function MultiStepMorningDiaryForm() {
                                   checked={(field.value as Record<string, boolean>)?.[muscle] || false}
                                   onCheckedChange={(checked) => {
                                     const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                    current[muscle] = !!checked;
+                                    if (checked) {
+                                      current[muscle] = true;
+                                    } else {
+                                      current[muscle] = false;
+                                    }
                                     form.setValue("sorenessMap", current as any, { shouldValidate: true });
                                   }}
                                 />
@@ -724,20 +720,12 @@ export default function MultiStepMorningDiaryForm() {
                             ))}
                           </div>
                           
-                          {/* Lower Body Column */}
+                          {/* Column 2 */}
                           <div>
-                            <div className="p-3 bg-gray-800/50 border-b border-gray-700 font-semibold text-center text-gray-200">
-                              Lower Body
-                            </div>
-                            {["hips", "glutes", "thighs", "hamstrings", "knees", "calves", "feet"].map((muscle) => (
+                            {["hips", "glutes", "thighs", "hamstrings", "knees", "calves"].map((muscle) => (
                               <div 
                                 key={muscle}
                                 className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
-                                onClick={() => {
-                                  const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                  current[muscle] = !current[muscle];
-                                  form.setValue("sorenessMap", current as any, { shouldValidate: true });
-                                }}
                               >
                                 <Checkbox 
                                   id={`soreness-${muscle}`}
@@ -745,7 +733,11 @@ export default function MultiStepMorningDiaryForm() {
                                   checked={(field.value as Record<string, boolean>)?.[muscle] || false}
                                   onCheckedChange={(checked) => {
                                     const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                    current[muscle] = !!checked;
+                                    if (checked) {
+                                      current[muscle] = true;
+                                    } else {
+                                      current[muscle] = false;
+                                    }
                                     form.setValue("sorenessMap", current as any, { shouldValidate: true });
                                   }}
                                 />
@@ -775,9 +767,7 @@ export default function MultiStepMorningDiaryForm() {
                                 {...notesField}
                               />
                             </FormControl>
-                            <FormDescription className="text-xs text-gray-400">
-                              Optional: Add any specific details about your soreness
-                            </FormDescription>
+                            <FormDescription className="text-xs text-gray-400"></FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -798,9 +788,7 @@ export default function MultiStepMorningDiaryForm() {
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-700 p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base text-gray-200">Do you have an injury?</FormLabel>
-                    <FormDescription className="text-xs text-gray-400">
-                      Toggle this if you have an injury that needs attention
-                    </FormDescription>
+                    <FormDescription className="text-xs text-gray-400"></FormDescription>
                   </div>
                   <FormControl>
                     <Switch
