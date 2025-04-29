@@ -324,7 +324,7 @@ export default function PerformanceAnalyticsPage() {
                     <SelectValue placeholder="All Athletes" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>All Athletes</SelectItem>
+                    <SelectItem value="">All Athletes</SelectItem>
                     {athletes?.map((athlete: any) => (
                       <SelectItem key={athlete.id} value={athlete.id.toString()}>
                         {athlete.firstName} {athlete.lastName}
@@ -592,6 +592,30 @@ export default function PerformanceAnalyticsPage() {
                   )}
                 </CardContent>
               </Card>
+              
+              {/* Team wellness trends component - Only shown when no athlete is selected */}
+              {!selectedAthlete && (
+                <TeamWellnessTrends
+                  data={processedWellnessTrends}
+                  categories={wellnessCategories}
+                  isLoading={wellnessTrendsLoading}
+                  error={wellnessTrendsError}
+                />
+              )}
+              
+              {/* Recovery readiness dashboard component */}
+              <RecoveryReadinessDashboard
+                data={selectedAthlete ? filteredRecoveryReadiness : recoveryReadinessData}
+                isLoading={recoveryReadinessLoading}
+                error={recoveryReadinessError}
+              />
+              
+              {/* Injury risk analysis component */}
+              <InjuryRiskAnalysis
+                data={selectedAthlete ? filteredInjuryRisk : injuryRiskData}
+                isLoading={injuryRiskLoading}
+                error={injuryRiskError}
+              />
             </div>
           </TabsContent>
         </Tabs>
