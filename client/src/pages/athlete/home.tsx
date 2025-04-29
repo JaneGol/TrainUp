@@ -8,13 +8,23 @@ import {
   Heart,
   Loader2,
   Trophy,
-  ArrowRight
+  ArrowRight,
+  LogOut
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 export default function AthleteHomePage() {
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const [, navigate] = useLocation();
+  
+  // Handle logout click
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate("/auth");
+      }
+    });
+  };
 
   // Fetch latest morning diary to check if today's entry exists
   const { data: latestDiary, isLoading: diaryLoading } = useQuery({
@@ -118,6 +128,23 @@ export default function AthleteHomePage() {
         </div>
       </main>
       
+      {/* Logout button */}
+      <div className="px-5 mt-4 mb-2">
+        <Button 
+          onClick={handleLogout}
+          variant="destructive"
+          className="w-full flex items-center justify-center gap-2 py-5"
+          disabled={logoutMutation.isPending}
+        >
+          {logoutMutation.isPending ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <LogOut className="h-5 w-5" />
+          )}
+          <span>Log Out</span>
+        </Button>
+      </div>
+
       {/* Footer with attribution */}
       <footer className="py-3 px-5 text-center text-xs text-muted-foreground">
         <p>Sport Team Performance Tracker</p>
