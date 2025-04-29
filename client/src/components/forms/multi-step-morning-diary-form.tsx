@@ -452,30 +452,17 @@ export default function MultiStepMorningDiaryForm() {
                         />
                       </div>
                     </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
+                      <span>0</span>
+                      <span>1</span>
+                      <span>2</span>
+                      <span>3</span>
+                      <span>4</span>
+                      <span>5</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-0">
                       <span>Low</span>
                       <span className="ml-auto">High</span>
-                    </div>
-                    
-                    <div className="text-sm text-gray-300 mt-2">
-                      {field.value === "low" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">0 – Extremely relaxed</p>
-                          <p className="font-medium">1 – Calm</p>
-                          <p className="font-medium">2 – Slightly stressed</p>
-                        </div>
-                      )}
-                      {field.value === "medium" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">3 – Moderate stress</p>
-                        </div>
-                      )}
-                      {field.value === "high" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">4 – High stress</p>
-                          <p className="font-medium">5 – Overwhelmed / very high stress</p>
-                        </div>
-                      )}
                     </div>
                   </div>
                   <FormDescription className="text-xs text-gray-400">
@@ -511,30 +498,17 @@ export default function MultiStepMorningDiaryForm() {
                         />
                       </div>
                     </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
+                      <span>0</span>
+                      <span>1</span>
+                      <span>2</span>
+                      <span>3</span>
+                      <span>4</span>
+                      <span>5</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-0">
                       <span>Negative</span>
                       <span className="ml-auto">Positive</span>
-                    </div>
-                    
-                    <div className="text-sm text-gray-300 mt-2">
-                      {field.value === "negative" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">0 – Very negative</p>
-                          <p className="font-medium">1 – Low mood</p>
-                          <p className="font-medium">2 – Slightly down</p>
-                        </div>
-                      )}
-                      {field.value === "neutral" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">3 – Neutral</p>
-                        </div>
-                      )}
-                      {field.value === "positive" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">4 – Positive</p>
-                          <p className="font-medium">5 – Very positive / great mood</p>
-                        </div>
-                      )}
                     </div>
                   </div>
                   <FormDescription className="text-xs text-gray-400">
@@ -577,30 +551,17 @@ export default function MultiStepMorningDiaryForm() {
                         />
                       </div>
                     </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
+                      <span>0</span>
+                      <span>1</span>
+                      <span>2</span>
+                      <span>3</span>
+                      <span>4</span>
+                      <span>5</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-0">
                       <span>Not Recovered</span>
                       <span className="ml-auto">Fully Recovered</span>
-                    </div>
-                    
-                    <div className="text-sm text-gray-300 mt-2">
-                      {field.value === "poor" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">0 – Totally exhausted</p>
-                          <p className="font-medium">1 – Very tired</p>
-                          <p className="font-medium">2 – Slight fatigue</p>
-                        </div>
-                      )}
-                      {field.value === "moderate" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">3 – Neutral / average</p>
-                        </div>
-                      )}
-                      {field.value === "good" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">4 – Well recovered</p>
-                          <p className="font-medium">5 – Fully fresh and recovered</p>
-                        </div>
-                      )}
                     </div>
                   </div>
                   <FormDescription className="text-xs text-gray-400">
@@ -670,30 +631,17 @@ export default function MultiStepMorningDiaryForm() {
                         />
                       </div>
                     </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
+                      <span>0</span>
+                      <span>1</span>
+                      <span>2</span>
+                      <span>3</span>
+                      <span>4</span>
+                      <span>5</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-0">
                       <span>Low</span>
                       <span className="ml-auto">High</span>
-                    </div>
-                    
-                    <div className="text-sm text-gray-300 mt-2">
-                      {field.value === "low" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">0 – No motivation or energy</p>
-                          <p className="font-medium">1 – Very low</p>
-                          <p className="font-medium">2 – Low</p>
-                        </div>
-                      )}
-                      {field.value === "moderate" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">3 – Moderate</p>
-                        </div>
-                      )}
-                      {field.value === "high" && (
-                        <div className="p-2 bg-gray-800 rounded-md">
-                          <p className="font-medium">4 – High</p>
-                          <p className="font-medium">5 – Extremely motivated and energized</p>
-                        </div>
-                      )}
                     </div>
                   </div>
                   <FormDescription className="text-xs text-gray-400">
