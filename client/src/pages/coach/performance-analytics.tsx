@@ -5,8 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   BarChart,
   Bar,
@@ -20,7 +22,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ReferenceLine
+  ReferenceLine,
+  ComposedChart,
+  Scatter
 } from "recharts";
 
 interface TrainingLoad {
@@ -34,6 +38,27 @@ interface AcuteChronicWorkloadRatio {
   acute: number;
   chronic: number;
   ratio: number;
+}
+
+interface WellnessTrend {
+  date: string;
+  value: number;
+  category: string;
+}
+
+interface AthleteRecoveryReadiness {
+  athleteId: number;
+  name: string;
+  readinessScore: number;
+  trend: string;
+  issues: string[];
+}
+
+interface InjuryRiskFactor {
+  athleteId: number;
+  name: string;
+  riskScore: number;
+  factors: string[];
 }
 
 const TRAINING_TYPES_COLORS: Record<string, string> = {
@@ -85,6 +110,40 @@ export default function PerformanceAnalyticsPage() {
       return await res.json();
     }
   });
+  
+  // Fetch team wellness trends data
+  const { data: wellnessTrendsData, isLoading: wellnessTrendsLoading, error: wellnessTrendsError } = 
+    useQuery<WellnessTrend[]>({
+      queryKey: ["/api/analytics/team-wellness-trends"],
+      queryFn: async () => {
+        const res = await fetch("/api/analytics/team-wellness-trends");
+        if (!res.ok) throw new Error("Failed to fetch wellness trends data");
+        return await res.json();
+      },
+      enabled: !selectedAthlete // Only fetch team data when no athlete is selected
+    });
+  
+  // Fetch athlete recovery readiness data
+  const { data: recoveryReadinessData, isLoading: recoveryReadinessLoading, error: recoveryReadinessError } = 
+    useQuery<AthleteRecoveryReadiness[]>({
+      queryKey: ["/api/analytics/athlete-recovery-readiness"],
+      queryFn: async () => {
+        const res = await fetch("/api/analytics/athlete-recovery-readiness");
+        if (!res.ok) throw new Error("Failed to fetch recovery readiness data");
+        return await res.json();
+      }
+    });
+    
+  // Fetch injury risk factors data
+  const { data: injuryRiskData, isLoading: injuryRiskLoading, error: injuryRiskError } = 
+    useQuery<InjuryRiskFactor[]>({
+      queryKey: ["/api/analytics/injury-risk-factors"],
+      queryFn: async () => {
+        const res = await fetch("/api/analytics/injury-risk-factors");
+        if (!res.ok) throw new Error("Failed to fetch injury risk data");
+        return await res.json();
+      }
+    });
   
   // Filter data based on timeframe
   const filterDataByTimeFrame = (data: any[]) => {
@@ -155,9 +214,63 @@ export default function PerformanceAnalyticsPage() {
     }));
   };
   
+  // Process wellness trends data
+  const processWellnessTrendsData = () => {
+    if (!wellnessTrendsData) return [];
+    
+    const filteredData = filterDataByTimeFrame(wellnessTrendsData);
+    
+    // Sort by date
+    return filteredData.sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  };
+  
+  // Get unique categories for wellness trends
+  const getWellnessCategories = () => {
+    if (!wellnessTrendsData) return [];
+    return Array.from(new Set(wellnessTrendsData.map(item => item.category)));
+  };
+  
+  // Group wellness data by category for multiline chart
+  const mapWellnessTrendsByCategory = () => {
+    const data = processWellnessTrendsData();
+    if (!data.length) return [];
+    
+    // Group by date first
+    const groupedByDate: Record<string, Record<string, number>> = {};
+    
+    data.forEach(item => {
+      if (!groupedByDate[item.date]) {
+        groupedByDate[item.date] = {};
+      }
+      
+      groupedByDate[item.date][item.category] = item.value;
+    });
+    
+    // Convert to array format for chart
+    return Object.entries(groupedByDate).map(([date, categories]) => ({
+      date,
+      ...categories
+    }));
+  };
+  
   const processedTrainingLoad = processTrainingLoadData();
   const processedAcwr = processAcwrData();
   const trainingLoadByType = mapTrainingLoadByType();
+  const processedWellnessTrends = processWellnessTrendsData();
+  const wellnessTrendsByCategory = mapWellnessTrendsByCategory();
+  const wellnessCategories = getWellnessCategories();
+  
+  // Filter recovery readiness data for selected athlete
+  const filteredRecoveryReadiness = recoveryReadinessData && selectedAthlete 
+    ? recoveryReadinessData.filter(item => item.athleteId.toString() === selectedAthlete)
+    : recoveryReadinessData;
+    
+  // Filter injury risk data for selected athlete
+  const filteredInjuryRisk = injuryRiskData && selectedAthlete
+    ? injuryRiskData.filter(item => item.athleteId.toString() === selectedAthlete)
+    : injuryRiskData;
   
   // Get all unique training types for the legend
   const uniqueTrainingTypes = processedTrainingLoad.length > 0
