@@ -64,17 +64,17 @@ export default function AthleteHomePage() {
             onClick={() => navigate("/athlete/morning-diary")}
             className={`btn-athletic h-24 ${
               hasCompletedDiaryToday
-                ? "bg-success text-white hover:bg-success/90"
-                : "gradient-btn"
+                ? "bg-success text-white hover:bg-gray-400"
+                : "bg-primary text-black hover:bg-gray-400"
             }`}
           >
             {diaryLoading ? (
               <Loader2 className="h-6 w-6 animate-spin text-white" />
             ) : (
               <>
-                <ClipboardList className="h-6 w-6" />
+                <ClipboardList className="h-7 w-7" />
                 <div className="flex flex-col items-center">
-                  <span>Self-Control Diary</span>
+                  <span className="text-xl font-bold">Self-Control Diary</span>
                   {hasCompletedDiaryToday ? (
                     <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full mt-1">
                       Completed Today
@@ -92,28 +92,28 @@ export default function AthleteHomePage() {
           {/* RPE Form Button */}
           <Button
             onClick={() => navigate("/athlete/training-entry")}
-            className="btn-athletic h-24 bg-primary text-white hover:bg-primary/90"
+            className="btn-athletic h-24 bg-primary text-black hover:bg-gray-400"
           >
-            <Activity className="h-6 w-6" />
-            <span>RPE Form</span>
+            <Activity className="h-7 w-7" />
+            <span className="text-xl font-bold">RPE Form</span>
           </Button>
 
           {/* Fitness Progress Button */}
           <Button
             onClick={() => navigate("/athlete/fitness-progress")}
-            className="btn-athletic h-24 bg-info text-white hover:bg-info/90"
+            className="btn-athletic h-24 bg-primary text-black hover:bg-gray-400"
           >
-            <BarChart3 className="h-6 w-6" />
-            <span>Fitness Progress</span>
+            <BarChart3 className="h-7 w-7" />
+            <span className="text-xl font-bold">Fitness Progress</span>
           </Button>
 
           {/* Smart Doctor Button */}
           <Button
             onClick={() => navigate("/athlete/smart-doctor")}
-            className="btn-athletic h-24 bg-accent text-white hover:bg-accent/90"
+            className="btn-athletic h-24 bg-primary text-black hover:bg-gray-400"
           >
-            <Heart className="h-6 w-6" />
-            <span>Smart Doctor</span>
+            <Heart className="h-7 w-7" />
+            <span className="text-xl font-bold">Smart Doctor</span>
           </Button>
         </div>
       </main>

@@ -126,14 +126,14 @@
 /* Custom button styles matching the screenshot */
 .btn-athletic {
   @apply rounded-2xl font-semibold transition-all duration-200
-         flex items-center justify-center gap-2 text-black
-         bg-primary hover:brightness-110 active:brightness-90;
+         flex items-center justify-center gap-2 text-black text-lg
+         bg-primary hover:bg-gray-300 active:bg-gray-400;
 }
 
 /* Dark button style for contrast */
 .btn-dark {
   @apply rounded-2xl font-semibold transition-all duration-200
-         flex items-center justify-center gap-2 text-white
+         flex items-center justify-center gap-2 text-white text-lg
          bg-background border border-gray-700 hover:border-primary;
 }
 
