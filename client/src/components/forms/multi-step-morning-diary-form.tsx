@@ -667,13 +667,12 @@ export default function MultiStepMorningDiaryForm() {
                       id="no_soreness"
                       checked={!!(field.value as Record<string, boolean>)?._no_soreness}
                       onCheckedChange={(checked) => {
-                        if (checked) {
+                        if (checked === true) {
                           // If "No soreness" is selected, clear all other selections
                           form.setValue("sorenessMap", { _no_soreness: true } as any, { shouldValidate: true });
                         } else {
                           // If unchecked, simply remove the _no_soreness flag
-                          const current = { ...field.value } as Record<string, boolean>;
-                          delete current._no_soreness;
+                          const current = {} as Record<string, boolean>;
                           form.setValue("sorenessMap", current as any, { shouldValidate: true });
                         }
                       }}
@@ -691,64 +690,72 @@ export default function MultiStepMorningDiaryForm() {
                         <div className="grid grid-cols-2">
                           {/* Column 1 */}
                           <div className="border-r border-gray-800">
-                            {["shoulders", "chest", "arms", "back", "neck", "core"].map((muscle) => (
-                              <div 
-                                key={muscle}
-                                className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
-                              >
-                                <Checkbox 
-                                  id={`soreness-${muscle}`}
-                                  className="mr-3"
-                                  checked={(field.value as Record<string, boolean>)?.[muscle] || false}
-                                  onCheckedChange={(checked) => {
+                            {["shoulders", "chest", "arms", "back", "neck", "core"].map((muscle) => {
+                              const isChecked = (field.value as Record<string, boolean>)?.[muscle] || false;
+                              return (
+                                <div 
+                                  key={muscle}
+                                  className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
+                                  onClick={() => {
                                     const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                    if (checked) {
-                                      current[muscle] = true;
-                                    } else {
-                                      current[muscle] = false;
-                                    }
+                                    current[muscle] = !isChecked;
                                     form.setValue("sorenessMap", current as any, { shouldValidate: true });
                                   }}
-                                />
-                                <label 
-                                  htmlFor={`soreness-${muscle}`}
-                                  className="flex-1 text-gray-200 capitalize cursor-pointer"
                                 >
-                                  {muscle}
-                                </label>
-                              </div>
-                            ))}
+                                  <Checkbox 
+                                    id={`soreness-${muscle}`}
+                                    className="mr-3"
+                                    checked={isChecked}
+                                    onCheckedChange={(checked) => {
+                                      const current = { ...(field.value || {}) } as Record<string, boolean>;
+                                      current[muscle] = !!checked;
+                                      form.setValue("sorenessMap", current as any, { shouldValidate: true });
+                                    }}
+                                  />
+                                  <label 
+                                    htmlFor={`soreness-${muscle}`}
+                                    className="flex-1 text-gray-200 capitalize cursor-pointer"
+                                  >
+                                    {muscle}
+                                  </label>
+                                </div>
+                              );
+                            })}
                           </div>
                           
                           {/* Column 2 */}
                           <div>
-                            {["hips", "glutes", "thighs", "hamstrings", "knees", "calves"].map((muscle) => (
-                              <div 
-                                key={muscle}
-                                className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
-                              >
-                                <Checkbox 
-                                  id={`soreness-${muscle}`}
-                                  className="mr-3"
-                                  checked={(field.value as Record<string, boolean>)?.[muscle] || false}
-                                  onCheckedChange={(checked) => {
+                            {["hips", "glutes", "thighs", "hamstrings", "knees", "calves"].map((muscle) => {
+                              const isChecked = (field.value as Record<string, boolean>)?.[muscle] || false;
+                              return (
+                                <div 
+                                  key={muscle}
+                                  className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
+                                  onClick={() => {
                                     const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                    if (checked) {
-                                      current[muscle] = true;
-                                    } else {
-                                      current[muscle] = false;
-                                    }
+                                    current[muscle] = !isChecked;
                                     form.setValue("sorenessMap", current as any, { shouldValidate: true });
                                   }}
-                                />
-                                <label 
-                                  htmlFor={`soreness-${muscle}`}
-                                  className="flex-1 text-gray-200 capitalize cursor-pointer"
                                 >
-                                  {muscle}
-                                </label>
-                              </div>
-                            ))}
+                                  <Checkbox 
+                                    id={`soreness-${muscle}`}
+                                    className="mr-3"
+                                    checked={isChecked}
+                                    onCheckedChange={(checked) => {
+                                      const current = { ...(field.value || {}) } as Record<string, boolean>;
+                                      current[muscle] = !!checked;
+                                      form.setValue("sorenessMap", current as any, { shouldValidate: true });
+                                    }}
+                                  />
+                                  <label 
+                                    htmlFor={`soreness-${muscle}`}
+                                    className="flex-1 text-gray-200 capitalize cursor-pointer"
+                                  >
+                                    {muscle}
+                                  </label>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       </div>
