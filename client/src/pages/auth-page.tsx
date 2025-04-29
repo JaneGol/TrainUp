@@ -92,13 +92,23 @@ export default function AuthPage() {
   });
 
   const onLoginSubmit = (data: LoginFormValues) => {
-    loginMutation.mutate(data);
+    console.log("Submitting login data:", data);
+    loginMutation.mutate(data, {
+      onError: (error) => {
+        console.error("Login error:", error);
+      }
+    });
   };
 
   const onRegisterSubmit = (data: RegisterFormValues) => {
     // Remove confirmPassword as it's not in the schema
     const { confirmPassword, ...registrationData } = data;
-    registerMutation.mutate(registrationData);
+    console.log("Submitting registration data:", registrationData);
+    registerMutation.mutate(registrationData, {
+      onError: (error) => {
+        console.error("Registration error:", error);
+      }
+    });
   };
 
   return (
