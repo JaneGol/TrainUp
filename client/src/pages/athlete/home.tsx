@@ -84,7 +84,7 @@ export default function AthleteHomePage() {
             ) : (
               <>
                 <div className="flex items-center">
-                  <ClipboardList className="sport-icon" />
+                  <ClipboardCheck className="sport-icon" />
                   <div className="flex flex-col items-start">
                     <span className="text-xl font-bold">Self-Control Diary</span>
                     {hasCompletedDiaryToday ? (
@@ -109,7 +109,7 @@ export default function AthleteHomePage() {
             className="btn-athletic h-24 bg-gray-600 text-primary hover:text-primary"
           >
             <div className="flex items-center">
-              <Activity className="sport-icon" />
+              <Dumbbell className="sport-icon" />
               <span className="text-xl font-bold">RPE Form</span>
             </div>
             <ArrowRight className="h-5 w-5 opacity-70" />
@@ -121,7 +121,7 @@ export default function AthleteHomePage() {
             className="btn-athletic h-24 bg-primary text-black"
           >
             <div className="flex items-center">
-              <BarChart3 className="sport-icon" />
+              <LineChart className="sport-icon" />
               <span className="text-xl font-bold">Fitness Progress</span>
             </div>
             <ArrowRight className="h-5 w-5 opacity-70" />
