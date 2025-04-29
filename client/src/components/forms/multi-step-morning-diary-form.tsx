@@ -33,20 +33,20 @@ import {
 } from "@/components/ui/select";
 import { Loader2, ChevronLeft, ChevronRight, Activity } from "lucide-react";
 
-// Define Zod schema for the form based on slider inputs and validation
+// Define Zod schema for the form based on the database schema requirements
 const morningDiarySchema = z.object({
   userId: z.number(),
   
   // Step 1: Sleep & Emotional State
-  sleepQuality: z.number().min(1).max(10),
-  sleepHours: z.number().min(0).max(24),
-  stressLevel: z.number().min(1).max(10),
-  mood: z.number().min(1).max(10),
+  sleepQuality: z.enum(["good", "average", "poor"]),
+  sleepHours: z.string(),
+  stressLevel: z.enum(["low", "medium", "high"]),
+  mood: z.enum(["positive", "neutral", "negative"]),
   
   // Step 2: Recovery & Health
-  recoveryLevel: z.number().min(1).max(10),
+  recoveryLevel: z.enum(["good", "moderate", "poor"]),
   symptoms: z.array(z.string()),
-  motivationLevel: z.number().min(1).max(10),
+  motivationLevel: z.enum(["high", "moderate", "low"]),
   
   // Step 3: Muscle Soreness & Injury
   sorenessMap: z.record(z.string(), z.boolean()).refine(
@@ -86,15 +86,15 @@ export default function MultiStepMorningDiaryForm() {
       userId: user?.id ?? 0,
       
       // Step 1 defaults
-      sleepQuality: 5, // Middle of 1-10 scale
-      sleepHours: 7,
-      stressLevel: 5, // Middle of 1-10 scale
-      mood: 5, // Middle of 1-10 scale
+      sleepQuality: "average",
+      sleepHours: "7",
+      stressLevel: "medium",
+      mood: "neutral",
       
       // Step 2 defaults
-      recoveryLevel: 5, // Middle of 1-10 scale
+      recoveryLevel: "moderate",
       symptoms: [],
-      motivationLevel: 5, // Middle of 1-10 scale
+      motivationLevel: "moderate",
       
       // Step 3 defaults
       sorenessMap: {},
@@ -182,34 +182,39 @@ export default function MultiStepMorningDiaryForm() {
     }
   }, [form.watch("hasInjury"), form]);
   
-  // Calculate readiness score based on slider values
+  // Calculate readiness score based on form values
   function calculateReadinessScore(data: MorningDiaryFormValues): number {
     let score = 0;
     const maxScore = 10;
     
-    // Sleep quality (max 1 point) - Convert 1-10 scale to 0-1 point
-    score += Math.min(1, data.sleepQuality / 10);
+    // Sleep quality (max 1 point)
+    if (data.sleepQuality === "good") score += 1;
+    else if (data.sleepQuality === "average") score += 0.5;
     
     // Sleep hours (max 1 point)
-    if (data.sleepHours >= 8) score += 1;
-    else if (data.sleepHours >= 6) score += 0.5;
+    const sleepHours = parseFloat(data.sleepHours);
+    if (sleepHours >= 8) score += 1;
+    else if (sleepHours >= 6) score += 0.5;
     
-    // Stress level (max 1 point) - Higher stress means lower score
-    // Invert the scale: 10 = low stress, 1 = high stress
-    score += Math.min(1, (11 - data.stressLevel) / 10);
+    // Stress level (max 1 point)
+    if (data.stressLevel === "low") score += 1;
+    else if (data.stressLevel === "medium") score += 0.5;
     
-    // Mood (max 1 point) - Convert 1-10 scale to 0-1 point
-    score += Math.min(1, data.mood / 10);
+    // Mood (max 1 point)
+    if (data.mood === "positive") score += 1;
+    else if (data.mood === "neutral") score += 0.5;
     
-    // Recovery level (max 1 point) - Convert 1-10 scale to 0-1 point
-    score += Math.min(1, data.recoveryLevel / 10);
+    // Recovery level (max 1 point)
+    if (data.recoveryLevel === "good") score += 1;
+    else if (data.recoveryLevel === "moderate") score += 0.5;
     
     // Symptoms (max 1 point)
     if (data.symptoms.includes("no_symptoms")) score += 1;
     else if (data.symptoms.length <= 1) score += 0.5;
     
-    // Motivation (max 1 point) - Convert 1-10 scale to 0-1 point
-    score += Math.min(1, data.motivationLevel / 10);
+    // Motivation (max 1 point)
+    if (data.motivationLevel === "high") score += 1;
+    else if (data.motivationLevel === "moderate") score += 0.5;
     
     // Soreness (max 1 point)
     const sorenessMap = data.sorenessMap as Record<string, boolean>;
@@ -343,32 +348,31 @@ export default function MultiStepMorningDiaryForm() {
           <div className="space-y-6">
             <h3 className="text-2xl font-semibold text-gray-100 mb-4">Sleep & Emotional State</h3>
             
-            {/* Sleep Quality Slider */}
+            {/* Sleep Quality Select */}
             <FormField
               control={form.control}
               name="sleepQuality"
-              render={({ field: { value, onChange, ...fieldProps } }) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">Rate your sleep quality</FormLabel>
-                  <div className="space-y-2">
+                  <FormLabel className="text-gray-200">How was your sleep quality?</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
                     <FormControl>
-                      <Slider
-                        min={1}
-                        max={10}
-                        step={1}
-                        value={[value || 1]}
-                        onValueChange={(vals) => onChange(vals[0])}
-                        className="py-3"
-                      />
+                      <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                        <SelectValue placeholder="Select sleep quality" />
+                      </SelectTrigger>
                     </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>Poor (1)</span>
-                      <span>Good (10)</span>
-                    </div>
-                    <div className="text-center text-gray-200">
-                      Selected: <span className="font-semibold">{value || 1}</span>
-                    </div>
-                  </div>
+                    <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                      <SelectItem value="good">Good</SelectItem>
+                      <SelectItem value="average">Average</SelectItem>
+                      <SelectItem value="poor">Poor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription className="text-xs text-gray-400">
+                    Your perception of sleep quality affects your readiness score
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -388,21 +392,23 @@ export default function MultiStepMorningDiaryForm() {
                           type="button" 
                           className="flex items-center justify-center w-10 h-10 text-white hover:bg-[rgb(45,45,45)]"
                           onClick={() => {
-                            const newValue = Math.max(0, (field.value || 7) - 0.5);
-                            field.onChange(newValue);
+                            const currentValue = parseFloat(field.value || "7");
+                            const newValue = Math.max(0, currentValue - 0.5);
+                            field.onChange(newValue.toString());
                           }}
                         >
                           <span className="text-xl font-bold">−</span>
                         </button>
                         <div className="flex items-center justify-center min-w-16 px-3 text-white font-medium">
-                          {field.value?.toFixed(1).replace(/\.0$/, '') || '7'}
+                          {parseFloat(field.value || "7").toFixed(1).replace(/\.0$/, '')}
                         </div>
                         <button 
                           type="button" 
                           className="flex items-center justify-center w-10 h-10 text-white hover:bg-[rgb(45,45,45)]"
                           onClick={() => {
-                            const newValue = Math.min(24, (field.value || 7) + 0.5);
-                            field.onChange(newValue);
+                            const currentValue = parseFloat(field.value || "7");
+                            const newValue = Math.min(24, currentValue + 0.5);
+                            field.onChange(newValue.toString());
                           }}
                         >
                           <span className="text-xl font-bold">+</span>
@@ -411,68 +417,69 @@ export default function MultiStepMorningDiaryForm() {
                       <span className="text-gray-200">hours</span>
                     </div>
                   </FormControl>
+                  <FormDescription className="text-xs text-gray-400">
+                    More sleep typically improves readiness score
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            {/* Stress Level Slider */}
+            {/* Stress Level Select */}
             <FormField
               control={form.control}
               name="stressLevel"
-              render={({ field: { value, onChange, ...fieldProps } }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-200">What is your current stress level?</FormLabel>
-                  <div className="space-y-2">
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
                     <FormControl>
-                      <Slider
-                        min={1}
-                        max={10}
-                        step={1}
-                        value={[value || 1]}
-                        onValueChange={(vals) => onChange(vals[0])}
-                        className="py-3"
-                      />
+                      <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                        <SelectValue placeholder="Select stress level" />
+                      </SelectTrigger>
                     </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>Low (1)</span>
-                      <span>High (10)</span>
-                    </div>
-                    <div className="text-center text-gray-200">
-                      Selected: <span className="font-semibold">{value || 1}</span>
-                    </div>
-                  </div>
+                    <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription className="text-xs text-gray-400">
+                    Lower stress levels indicate better recovery readiness
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            {/* Mood Slider */}
+            {/* Mood Select */}
             <FormField
               control={form.control}
               name="mood"
-              render={({ field: { value, onChange, ...fieldProps } }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-200">What is your mood this morning?</FormLabel>
-                  <div className="space-y-2">
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
                     <FormControl>
-                      <Slider
-                        min={1}
-                        max={10}
-                        step={1}
-                        value={[value || 1]}
-                        onValueChange={(vals) => onChange(vals[0])}
-                        className="py-3"
-                      />
+                      <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                        <SelectValue placeholder="Select your mood" />
+                      </SelectTrigger>
                     </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>Bad (1)</span>
-                      <span>Good (10)</span>
-                    </div>
-                    <div className="text-center text-gray-200">
-                      Selected: <span className="font-semibold">{value || 1}</span>
-                    </div>
-                  </div>
+                    <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                      <SelectItem value="positive">Positive</SelectItem>
+                      <SelectItem value="neutral">Neutral</SelectItem>
+                      <SelectItem value="negative">Negative</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription className="text-xs text-gray-400">
+                    Your mood can affect your performance and readiness
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -485,32 +492,31 @@ export default function MultiStepMorningDiaryForm() {
           <div className="space-y-6">
             <h3 className="text-2xl font-semibold text-gray-100 mb-4">Recovery & Health</h3>
             
-            {/* Recovery Level Slider */}
+            {/* Recovery Level Select */}
             <FormField
               control={form.control}
               name="recoveryLevel"
-              render={({ field: { value, onChange, ...fieldProps } }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-200">How recovered do you feel?</FormLabel>
-                  <div className="space-y-2">
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
                     <FormControl>
-                      <Slider
-                        min={1}
-                        max={10}
-                        step={1}
-                        value={[value || 1]}
-                        onValueChange={(vals) => onChange(vals[0])}
-                        className="py-3"
-                      />
+                      <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                        <SelectValue placeholder="Select recovery level" />
+                      </SelectTrigger>
                     </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>Not at all (1)</span>
-                      <span>Fully (10)</span>
-                    </div>
-                    <div className="text-center text-gray-200">
-                      Selected: <span className="font-semibold">{value || 1}</span>
-                    </div>
-                  </div>
+                    <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                      <SelectItem value="good">Good</SelectItem>
+                      <SelectItem value="moderate">Moderate</SelectItem>
+                      <SelectItem value="poor">Poor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription className="text-xs text-gray-400">
+                    Your recovery level is important for preventing injuries
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -550,32 +556,31 @@ export default function MultiStepMorningDiaryForm() {
               )}
             </div>
             
-            {/* Motivation Level Slider */}
+            {/* Motivation Level Select */}
             <FormField
               control={form.control}
               name="motivationLevel"
-              render={({ field: { value, onChange, ...fieldProps } }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-200">What is your motivation level today?</FormLabel>
-                  <div className="space-y-2">
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
                     <FormControl>
-                      <Slider
-                        min={1}
-                        max={10}
-                        step={1}
-                        value={[value || 1]}
-                        onValueChange={(vals) => onChange(vals[0])}
-                        className="py-3"
-                      />
+                      <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                        <SelectValue placeholder="Select motivation level" />
+                      </SelectTrigger>
                     </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>Low (1)</span>
-                      <span>High (10)</span>
-                    </div>
-                    <div className="text-center text-gray-200">
-                      Selected: <span className="font-semibold">{value || 1}</span>
-                    </div>
-                  </div>
+                    <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="moderate">Moderate</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription className="text-xs text-gray-400">
+                    How motivated you feel to train or compete today
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
