@@ -9,6 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import InteractiveMuscleMap, { MuscleGroup } from "@/components/muscle-map/interactive-muscle-map";
+import { SorenessSelector } from "@/components/forms/soreness-selector";
 
 import {
   Form,
@@ -651,141 +652,41 @@ export default function MultiStepMorningDiaryForm() {
           <div className="space-y-6">
             <h3 className="text-2xl font-semibold text-gray-100 mb-4">Muscle Soreness & Injury Check</h3>
             
-            {/* Simple Muscle Group Selection */}
+            {/* Muscle Soreness Selection using SorenessSelector component */}
             <FormField
               control={form.control}
               name="sorenessMap"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200 block mb-2">
-                    Select muscle groups where you feel soreness:
-                  </FormLabel>
-                  
-                  {/* No Soreness Option */}
-                  <div className="flex items-center space-x-2 p-4 mb-4 bg-[rgb(30,30,30)] rounded-md border border-gray-700">
-                    <Checkbox 
-                      id="no_soreness"
-                      checked={!!(field.value as Record<string, boolean>)?._no_soreness}
-                      onCheckedChange={(checked) => {
-                        if (checked === true) {
-                          // If "No soreness" is selected, clear all other selections
-                          form.setValue("sorenessMap", { _no_soreness: true } as any, { shouldValidate: true });
-                        } else {
-                          // If unchecked, simply remove the _no_soreness flag
-                          const current = {} as Record<string, boolean>;
-                          form.setValue("sorenessMap", current as any, { shouldValidate: true });
-                        }
-                      }}
-                    />
-                    <label htmlFor="no_soreness" className="text-base font-medium leading-none text-gray-200">
-                      I have no muscle soreness today
-                    </label>
-                  </div>
-                  
-                  {/* Only show muscle groups if "No soreness" is not checked */}
-                  {!(field.value as Record<string, boolean>)?._no_soreness && (
-                    <div className="space-y-4">
-                      <div className="border border-gray-800 rounded-lg overflow-hidden">
-                        {/* Two-column layout for muscle groups */}
-                        <div className="grid grid-cols-2">
-                          {/* Column 1 */}
-                          <div className="border-r border-gray-800">
-                            {["shoulders", "chest", "arms", "back", "neck", "core"].map((muscle) => {
-                              const isChecked = (field.value as Record<string, boolean>)?.[muscle] || false;
-                              return (
-                                <div 
-                                  key={muscle}
-                                  className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
-                                  onClick={() => {
-                                    const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                    current[muscle] = !isChecked;
-                                    form.setValue("sorenessMap", current as any, { shouldValidate: true });
-                                  }}
-                                >
-                                  <Checkbox 
-                                    id={`soreness-${muscle}`}
-                                    className="mr-3"
-                                    checked={isChecked}
-                                    onCheckedChange={(checked) => {
-                                      const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                      current[muscle] = !!checked;
-                                      form.setValue("sorenessMap", current as any, { shouldValidate: true });
-                                    }}
-                                  />
-                                  <label 
-                                    htmlFor={`soreness-${muscle}`}
-                                    className="flex-1 text-gray-200 capitalize cursor-pointer"
-                                  >
-                                    {muscle}
-                                  </label>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          
-                          {/* Column 2 */}
-                          <div>
-                            {["hips", "glutes", "thighs", "hamstrings", "knees", "calves"].map((muscle) => {
-                              const isChecked = (field.value as Record<string, boolean>)?.[muscle] || false;
-                              return (
-                                <div 
-                                  key={muscle}
-                                  className="flex items-center p-3 cursor-pointer hover:bg-gray-800/30 border-b border-gray-800"
-                                  onClick={() => {
-                                    const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                    current[muscle] = !isChecked;
-                                    form.setValue("sorenessMap", current as any, { shouldValidate: true });
-                                  }}
-                                >
-                                  <Checkbox 
-                                    id={`soreness-${muscle}`}
-                                    className="mr-3"
-                                    checked={isChecked}
-                                    onCheckedChange={(checked) => {
-                                      const current = { ...(field.value || {}) } as Record<string, boolean>;
-                                      current[muscle] = !!checked;
-                                      form.setValue("sorenessMap", current as any, { shouldValidate: true });
-                                    }}
-                                  />
-                                  <label 
-                                    htmlFor={`soreness-${muscle}`}
-                                    className="flex-1 text-gray-200 capitalize cursor-pointer"
-                                  >
-                                    {muscle}
-                                  </label>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Notes about soreness */}
-                      <FormField
-                        control={form.control}
-                        name="sorenessNotes"
-                        render={({ field: notesField }) => (
-                          <FormItem>
-                            <FormLabel className="text-gray-200">Additional notes about soreness</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Describe your muscle soreness in more detail..."
-                                className="bg-[rgb(38,38,38)] text-white border-gray-700 resize-none min-h-[80px]"
-                                {...notesField}
-                              />
-                            </FormControl>
-                            <FormDescription className="text-xs text-gray-400"></FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  )}
-                  
+                  <SorenessSelector 
+                    value={field.value as Record<string, boolean>} 
+                    onChange={(value) => form.setValue("sorenessMap", value, { shouldValidate: true })} 
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
+            {/* Notes about soreness (only show if not "No soreness") */}
+            {!form.watch("sorenessMap")?._no_soreness && (
+              <FormField
+                control={form.control}
+                name="sorenessNotes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-200">Additional notes about soreness</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe your muscle soreness in more detail..."
+                        className="bg-[rgb(38,38,38)] text-white border-gray-700 resize-none min-h-[80px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             
             {/* Injury Toggle */}
             <FormField
