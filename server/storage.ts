@@ -51,6 +51,9 @@ export interface IStorage {
   // Enhanced Analytics methods
   getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string }[]>;
   getAcuteChronicLoadRatio(athleteId?: number): Promise<{ date: string; acute: number; chronic: number; ratio: number }[]>;
+  getTeamWellnessTrends(): Promise<{ date: string; value: number; category: string }[]>;
+  getAthleteRecoveryReadiness(): Promise<{ athleteId: number; name: string; readinessScore: number; trend: string; issues: string[] }[]>;
+  getInjuryRiskFactors(): Promise<{ athleteId: number; name: string; riskScore: number; factors: string[] }[]>;
   
   // Session store
   sessionStore: SessionStoreType;
@@ -619,7 +622,8 @@ export class MemStorage implements IStorage {
 import { 
   DatabaseStorage, 
   generateDefaultTrainingLoad, 
-  generateDefaultACWR 
+  generateDefaultACWR,
+  generateDefaultWellnessTrends
 } from './database-storage';
 
 // Switch to the database storage implementation

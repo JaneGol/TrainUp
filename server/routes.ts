@@ -325,6 +325,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const acwrData = await storage.getAcuteChronicLoadRatio(athleteId);
     res.json(acwrData);
   });
+  
+  // Get team wellness trends
+  app.get("/api/analytics/team-wellness-trends", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "coach") {
+      return res.sendStatus(401);
+    }
+    
+    const wellnessTrends = await storage.getTeamWellnessTrends();
+    res.json(wellnessTrends);
+  });
+  
+  // Get athlete recovery readiness dashboard
+  app.get("/api/analytics/athlete-recovery-readiness", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "coach") {
+      return res.sendStatus(401);
+    }
+    
+    const recoveryReadiness = await storage.getAthleteRecoveryReadiness();
+    res.json(recoveryReadiness);
+  });
+  
+  // Get injury risk factors
+  app.get("/api/analytics/injury-risk-factors", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "coach") {
+      return res.sendStatus(401);
+    }
+    
+    const riskFactors = await storage.getInjuryRiskFactors();
+    res.json(riskFactors);
+  });
 
   const httpServer = createServer(app);
   return httpServer;
