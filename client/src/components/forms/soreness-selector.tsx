@@ -50,87 +50,100 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
     <div className="space-y-6">
       <h4 className="text-lg font-medium text-gray-200">Select muscle groups where you feel soreness:</h4>
       
-      {/* No Soreness Option */}
-      <div 
-        className={`flex items-center space-x-2 p-4 mb-4 rounded-md border cursor-pointer transition-colors
-          ${hasNoSoreness 
-            ? "bg-primary/10 border-primary" 
-            : "bg-[rgb(30,30,30)] border-gray-700 hover:bg-gray-800/30"}`}
-        onClick={toggleNoSoreness}
-      >
-        <Checkbox 
-          id="no_soreness"
-          checked={hasNoSoreness}
-          className="text-primary"
-          onCheckedChange={() => toggleNoSoreness()}
-        />
-        <label 
-          htmlFor="no_soreness" 
-          className="text-base font-medium leading-none text-gray-200 flex-1 cursor-pointer"
+      {/* No Soreness Option with select-like styling */}
+      <div className="mb-4">
+        <div 
+          className={`bg-[rgb(38,38,38)] border border-gray-700 rounded-md p-3 cursor-pointer ${
+            hasNoSoreness ? "ring-2 ring-primary" : ""
+          }`}
+          onClick={toggleNoSoreness}
         >
-          I have no muscle soreness today
-        </label>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="no_soreness"
+                checked={hasNoSoreness}
+                onCheckedChange={() => toggleNoSoreness()}
+              />
+              <label 
+                htmlFor="no_soreness" 
+                className="text-sm font-medium leading-none text-white cursor-pointer"
+              >
+                I have no muscle soreness today
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
       
       {/* Only show muscle groups if "No soreness" is not checked */}
       {!hasNoSoreness && (
         <div className="space-y-4">
-          <div className="border border-gray-800 rounded-lg overflow-hidden">
-            {/* Two-column layout for muscle groups */}
-            <div className="grid grid-cols-2">
-              {/* Column 1 */}
-              <div className="border-r border-gray-800">
-                {upperBodyMuscles.map((muscle) => {
-                  const isSelected = !!value[muscle];
-                  return (
-                    <div 
-                      key={muscle}
-                      className={`flex items-center p-3 cursor-pointer border-b border-gray-800 transition-colors
-                        ${isSelected 
-                          ? "bg-primary/10" 
-                          : "hover:bg-gray-800/30"}`}
-                      onClick={() => toggleMuscle(muscle)}
-                    >
-                      <Checkbox 
-                        id={`soreness-${muscle}`}
-                        className="mr-3 text-primary"
-                        checked={isSelected}
-                        onCheckedChange={() => toggleMuscle(muscle)}
-                      />
-                      <span className="flex-1 text-gray-200 capitalize cursor-pointer">
-                        {muscle}
-                      </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {/* Upper Body Muscles */}
+            <div className="space-y-2">
+              <h5 className="text-sm text-gray-400 ml-1 mb-2">Upper Body</h5>
+              {upperBodyMuscles.map((muscle) => {
+                const isSelected = !!value[muscle];
+                return (
+                  <div 
+                    key={muscle}
+                    className={`bg-[rgb(38,38,38)] border border-gray-700 rounded-md p-3 cursor-pointer ${
+                      isSelected ? "ring-2 ring-primary" : ""
+                    }`}
+                    onClick={() => toggleMuscle(muscle)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`soreness-${muscle}`}
+                          checked={isSelected}
+                          onCheckedChange={() => toggleMuscle(muscle)}
+                        />
+                        <label
+                          htmlFor={`soreness-${muscle}`}
+                          className="text-sm font-medium leading-none text-white cursor-pointer capitalize"
+                        >
+                          {muscle}
+                        </label>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-              
-              {/* Column 2 */}
-              <div>
-                {lowerBodyMuscles.map((muscle) => {
-                  const isSelected = !!value[muscle];
-                  return (
-                    <div 
-                      key={muscle}
-                      className={`flex items-center p-3 cursor-pointer border-b border-gray-800 transition-colors
-                        ${isSelected 
-                          ? "bg-primary/10" 
-                          : "hover:bg-gray-800/30"}`}
-                      onClick={() => toggleMuscle(muscle)}
-                    >
-                      <Checkbox 
-                        id={`soreness-${muscle}`}
-                        className="mr-3 text-primary"
-                        checked={isSelected}
-                        onCheckedChange={() => toggleMuscle(muscle)}
-                      />
-                      <span className="flex-1 text-gray-200 capitalize cursor-pointer">
-                        {muscle}
-                      </span>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Lower Body Muscles */}
+            <div className="space-y-2">
+              <h5 className="text-sm text-gray-400 ml-1 mb-2">Lower Body</h5>
+              {lowerBodyMuscles.map((muscle) => {
+                const isSelected = !!value[muscle];
+                return (
+                  <div 
+                    key={muscle}
+                    className={`bg-[rgb(38,38,38)] border border-gray-700 rounded-md p-3 cursor-pointer ${
+                      isSelected ? "ring-2 ring-primary" : ""
+                    }`}
+                    onClick={() => toggleMuscle(muscle)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`soreness-${muscle}`}
+                          checked={isSelected}
+                          onCheckedChange={() => toggleMuscle(muscle)}
+                        />
+                        <label
+                          htmlFor={`soreness-${muscle}`}
+                          className="text-sm font-medium leading-none text-white cursor-pointer capitalize"
+                        >
+                          {muscle}
+                        </label>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
