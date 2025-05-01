@@ -54,7 +54,7 @@ export default function TrainingEntryForm() {
       trainingType: "",
       effortLevel: 5,
       duration: 60,
-      date: new Date(), // Add date with current date as default
+      date: new Date(),
       mood: "neutral",
       notes: "",
     },
@@ -136,24 +136,16 @@ export default function TrainingEntryForm() {
   if (submitting) {
     return (
       <PageLayout showBackButton={false} fallbackPath="/athlete">
-        <div className="min-h-screen bg-black flex flex-col">
-          <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
-            <h1 className="text-xl font-bold text-white flex-1 text-center">
-              Submitting Entry
-            </h1>
-          </header>
-          
-          <main className="flex-1 p-4 flex flex-col items-center justify-center">
-            <Card className="w-full max-w-md text-center p-6 bg-black border border-gray-800">
-              <div className="flex flex-col items-center gap-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <h3 className="text-lg font-semibold text-white">Recording your training...</h3>
-                <p className="text-gray-400">
-                  Please wait while we save your training entry.
-                </p>
-              </div>
-            </Card>
-          </main>
+        <div className="flex-1 p-4 flex flex-col items-center justify-center bg-black">
+          <Card className="w-full max-w-md text-center p-6 bg-[rgb(38,38,38)] border-gray-700">
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <h3 className="text-lg font-semibold text-white">Recording your training...</h3>
+              <p className="text-gray-400">
+                Please wait while we save your training entry.
+              </p>
+            </div>
+          </Card>
         </div>
       </PageLayout>
     );
@@ -161,29 +153,14 @@ export default function TrainingEntryForm() {
   
   return (
     <PageLayout fallbackPath="/athlete">
-      <div className="min-h-screen bg-black flex flex-col">
-        <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate("/athlete")}
-            className="mr-2"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-bold text-white flex-1 text-center pr-8">
-            Training Entry
-          </h1>
-        </header>
-        
-        <main className="flex-1 p-4">
-          <Card className="w-full bg-[rgb(38,38,38)] border-gray-700 text-white">
+      <div className="flex-1 p-4 bg-black">
+        <Card className="w-full bg-[rgb(38,38,38)] border-gray-700 text-white">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-white">
               <Activity className="h-5 w-5 text-primary" />
               Rate Your Training Session
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-400">
               Rate of Perceived Exertion (RPE) and session details
             </CardDescription>
           </CardHeader>
@@ -215,7 +192,7 @@ export default function TrainingEntryForm() {
                           <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
+                      <FormMessage className="text-red-400" />
                     </FormItem>
                   )}
                 />
@@ -225,7 +202,7 @@ export default function TrainingEntryForm() {
                   name="duration"
                   render={({ field: { value, onChange, ...field } }) => (
                     <FormItem>
-                      <FormLabel>Duration (minutes)</FormLabel>
+                      <FormLabel className="text-gray-200">Duration (minutes)</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
                           <Slider
@@ -237,13 +214,13 @@ export default function TrainingEntryForm() {
                             {...field}
                           />
                           <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">5 min</span>
-                            <span className="text-sm font-medium">{value} min</span>
-                            <span className="text-sm text-muted-foreground">240 min</span>
+                            <span className="text-sm text-gray-400">5 min</span>
+                            <span className="text-sm font-medium text-white">{value} min</span>
+                            <span className="text-sm text-gray-400">240 min</span>
                           </div>
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-red-400" />
                     </FormItem>
                   )}
                 />
@@ -253,7 +230,7 @@ export default function TrainingEntryForm() {
                   name="effortLevel"
                   render={({ field: { value, onChange, ...field } }) => (
                     <FormItem>
-                      <FormLabel>Rate of Perceived Exertion (RPE)</FormLabel>
+                      <FormLabel className="text-gray-200">Rate of Perceived Exertion (RPE)</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
                           <Slider
@@ -265,16 +242,16 @@ export default function TrainingEntryForm() {
                             {...field}
                           />
                           <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Easy (1)</span>
-                            <span className="text-sm font-medium">{value} - {effortDescription}</span>
-                            <span className="text-sm text-muted-foreground">Max (10)</span>
+                            <span className="text-sm text-gray-400">Easy (1)</span>
+                            <span className="text-sm font-medium text-white">{value} - {effortDescription}</span>
+                            <span className="text-sm text-gray-400">Max (10)</span>
                           </div>
                         </div>
                       </FormControl>
-                      <FormDescription>
+                      <FormDescription className="text-gray-400">
                         How hard was your training session?
                       </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-400" />
                     </FormItem>
                   )}
                 />
@@ -284,24 +261,24 @@ export default function TrainingEntryForm() {
                   name="mood"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mood After Training</FormLabel>
+                      <FormLabel className="text-gray-200">Mood After Training</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
                             <SelectValue placeholder="Select mood" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
                           <SelectItem value="happy">Happy/Energized</SelectItem>
                           <SelectItem value="neutral">Neutral</SelectItem>
                           <SelectItem value="tired">Tired</SelectItem>
                           <SelectItem value="exhausted">Exhausted</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
+                      <FormMessage className="text-red-400" />
                     </FormItem>
                   )}
                 />
@@ -311,18 +288,18 @@ export default function TrainingEntryForm() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes (Optional)</FormLabel>
+                      <FormLabel className="text-gray-200">Notes (Optional)</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Any additional notes about your training session..."
-                          className="resize-none"
+                          className="resize-none bg-[rgb(38,38,38)] text-white border-gray-700"
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription>
+                      <FormDescription className="text-gray-400">
                         Include any specific exercises, achievements, or issues.
                       </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-400" />
                     </FormItem>
                   )}
                 />
@@ -332,10 +309,11 @@ export default function TrainingEntryForm() {
                     type="button" 
                     variant="outline"
                     onClick={() => navigate("/athlete")}
+                    className="border-gray-700 text-white hover:bg-gray-800"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit">
+                  <Button type="submit" className="bg-primary text-black hover:bg-primary/90">
                     Submit Entry
                   </Button>
                 </div>
@@ -343,8 +321,7 @@ export default function TrainingEntryForm() {
             </Form>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
     </PageLayout>
   );
 }
