@@ -569,8 +569,29 @@ export default function MultiStepMorningDiaryForm() {
             {/* Symptoms */}
             <div className="space-y-4">
               <FormLabel className="text-gray-200 block">Do you have any symptoms?</FormLabel>
+              
+              {/* No Symptoms option - separate and distinct */}
+              <div className="mb-4 p-3 border border-gray-700 rounded-md bg-gray-800">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="no_symptoms"
+                    checked={form.getValues("symptoms")?.includes("no_symptoms")}
+                    onCheckedChange={(checked) => 
+                      handleSymptomChange("no_symptoms", !!checked)
+                    }
+                  />
+                  <label
+                    htmlFor="no_symptoms"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white"
+                  >
+                    No Symptoms - I Feel Healthy
+                  </label>
+                </div>
+              </div>
+              
+              {/* Other symptoms */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {SYMPTOMS.map((symptom) => (
+                {SYMPTOMS.filter(symptom => symptom !== "no_symptoms").map((symptom) => (
                   <div key={symptom} className="flex items-center space-x-2">
                     <Checkbox 
                       id={symptom}
