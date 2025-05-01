@@ -570,65 +570,46 @@ export default function MultiStepMorningDiaryForm() {
             <div className="space-y-4">
               <FormLabel className="text-gray-200 block">Do you have any symptoms?</FormLabel>
               
-              {/* No Symptoms option with select-like styling */}
-              <div className="mb-4">
-                <div 
-                  className={`bg-[rgb(38,38,38)] border border-gray-700 rounded-md p-3 cursor-pointer ${
-                    form.getValues("symptoms")?.includes("no_symptoms") ? "ring-2 ring-primary" : ""
-                  }`}
-                  onClick={() => handleSymptomChange("no_symptoms", !form.getValues("symptoms")?.includes("no_symptoms"))}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="no_symptoms"
-                        checked={form.getValues("symptoms")?.includes("no_symptoms")}
-                        onCheckedChange={(checked) => 
-                          handleSymptomChange("no_symptoms", !!checked)
-                        }
-                      />
-                      <label
-                        htmlFor="no_symptoms"
-                        className="text-sm font-medium leading-none text-white cursor-pointer"
-                      >
-                        No Symptoms - I Feel Healthy
-                      </label>
-                    </div>
-                  </div>
+              {/* No Symptoms option - separate and distinct */}
+              <div className="mb-4 p-3 border-l-2 border-primary bg-secondary/30 rounded-lg shadow-sm">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="no_symptoms"
+                    checked={form.getValues("symptoms")?.includes("no_symptoms")}
+                    onCheckedChange={(checked) => 
+                      handleSymptomChange("no_symptoms", !!checked)
+                    }
+                  />
+                  <label
+                    htmlFor="no_symptoms"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white"
+                  >
+                    No Symptoms - I Feel Healthy
+                  </label>
                 </div>
               </div>
               
-              {/* Other symptoms with select-like styling */}
-              <div className="grid grid-cols-1 gap-2">
+              {/* Other symptoms */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {SYMPTOMS.filter(symptom => symptom !== "no_symptoms").map((symptom) => (
-                  <div 
-                    key={symptom} 
-                    className={`bg-[rgb(38,38,38)] border border-gray-700 rounded-md p-3 cursor-pointer ${
-                      form.getValues("symptoms")?.includes(symptom) ? "ring-2 ring-primary" : ""
-                    }`}
-                    onClick={() => handleSymptomChange(symptom, !form.getValues("symptoms")?.includes(symptom))}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={symptom}
-                          checked={form.getValues("symptoms")?.includes(symptom)}
-                          onCheckedChange={(checked) => 
-                            handleSymptomChange(symptom, !!checked)
-                          }
-                        />
-                        <label
-                          htmlFor={symptom}
-                          className="text-sm font-medium leading-none text-white cursor-pointer"
-                        >
-                          {symptom
-                            .replace('_', ' ')
-                            .split(' ')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(' ')}
-                        </label>
-                      </div>
-                    </div>
+                  <div key={symptom} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={symptom}
+                      checked={form.getValues("symptoms")?.includes(symptom)}
+                      onCheckedChange={(checked) => 
+                        handleSymptomChange(symptom, !!checked)
+                      }
+                    />
+                    <label
+                      htmlFor={symptom}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-200"
+                    >
+                      {symptom
+                        .replace('_', ' ')
+                        .split(' ')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ')}
+                    </label>
                   </div>
                 ))}
               </div>
@@ -728,40 +709,29 @@ export default function MultiStepMorningDiaryForm() {
               />
             )}
             
-            {/* Injury Toggle with select-style */}
+            {/* Injury Toggle */}
             <FormField
               control={form.control}
               name="hasInjury"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-200">Do you have an injury?</FormLabel>
-                  <div 
-                    className={`bg-[rgb(38,38,38)] border border-gray-700 rounded-md p-3 cursor-pointer ${
-                      field.value ? "ring-2 ring-primary" : ""
-                    }`}
-                    onClick={() => field.onChange(!field.value)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-white">
-                        {field.value ? "Yes, I have an injury" : "No, I don't have any injuries"}
-                      </span>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </div>
+                <FormItem className="flex flex-row items-center justify-between rounded-lg bg-secondary/10 border-l-2 border-secondary p-4 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base text-gray-200">Do you have an injury?</FormLabel>
+                    <FormDescription className="text-xs text-gray-400"></FormDescription>
                   </div>
-                  <FormDescription className="text-xs text-gray-400"></FormDescription>
-                  <FormMessage />
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />
             
             {/* Conditional Injury Fields */}
             {form.watch("hasInjury") && (
-              <div className="space-y-6 bg-[rgb(38,38,38)] p-4 rounded-md border border-gray-700">
+              <div className="space-y-6 bg-secondary/5 p-4 rounded-lg border-l-2 border-secondary shadow-sm">
                 {/* Pain Level Slider */}
                 <FormField
                   control={form.control}
