@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Loader2, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import PageLayout from "@/components/layout/page-layout";
 import {
   Form,
   FormControl,
@@ -134,46 +135,49 @@ export default function TrainingEntryForm() {
   // When submitting, show loading
   if (submitting) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
-        <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
-          <h1 className="text-xl font-bold text-white flex-1 text-center">
-            Submitting Entry
-          </h1>
-        </header>
-        
-        <main className="flex-1 p-4 flex flex-col items-center justify-center">
-          <Card className="w-full max-w-md text-center p-6">
-            <div className="flex flex-col items-center gap-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <h3 className="text-lg font-semibold">Recording your training...</h3>
-              <p className="text-muted-foreground">
-                Please wait while we save your training entry.
-              </p>
-            </div>
-          </Card>
-        </main>
-      </div>
+      <PageLayout showBackButton={false} fallbackPath="/athlete">
+        <div className="min-h-screen bg-black flex flex-col">
+          <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
+            <h1 className="text-xl font-bold text-white flex-1 text-center">
+              Submitting Entry
+            </h1>
+          </header>
+          
+          <main className="flex-1 p-4 flex flex-col items-center justify-center">
+            <Card className="w-full max-w-md text-center p-6 bg-black border border-gray-800">
+              <div className="flex flex-col items-center gap-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <h3 className="text-lg font-semibold text-white">Recording your training...</h3>
+                <p className="text-gray-400">
+                  Please wait while we save your training entry.
+                </p>
+              </div>
+            </Card>
+          </main>
+        </div>
+      </PageLayout>
     );
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
-      <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => navigate("/athlete")}
-          className="mr-2"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-xl font-bold text-white flex-1 text-center pr-8">
-          Training Entry
-        </h1>
-      </header>
-      
-      <main className="flex-1 p-4">
-        <Card className="w-full">
+    <PageLayout fallbackPath="/athlete">
+      <div className="min-h-screen bg-black flex flex-col">
+        <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate("/athlete")}
+            className="mr-2"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-bold text-white flex-1 text-center pr-8">
+            Training Entry
+          </h1>
+        </header>
+        
+        <main className="flex-1 p-4">
+          <Card className="w-full bg-[rgb(38,38,38)] border-gray-700 text-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
@@ -191,17 +195,17 @@ export default function TrainingEntryForm() {
                   name="trainingType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Training Type</FormLabel>
+                      <FormLabel className="text-gray-200">Training Type</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-[rgb(38,38,38)] text-white border-gray-700">
                             <SelectValue placeholder="Select training type" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="bg-[rgb(38,38,38)] text-white border-gray-700">
                           <SelectItem value="Strength">Strength</SelectItem>
                           <SelectItem value="Endurance">Endurance</SelectItem>
                           <SelectItem value="Speed">Speed</SelectItem>
@@ -341,5 +345,6 @@ export default function TrainingEntryForm() {
         </Card>
       </main>
     </div>
+    </PageLayout>
   );
 }
