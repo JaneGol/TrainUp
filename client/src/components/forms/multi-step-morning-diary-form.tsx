@@ -571,7 +571,7 @@ export default function MultiStepMorningDiaryForm() {
               <FormLabel className="text-gray-200 block">Do you have any symptoms?</FormLabel>
               
               {/* No Symptoms option - separate and distinct */}
-              <div className="mb-4 p-3 border border-gray-700 rounded-md bg-gray-800">
+              <div className="mb-4 p-3 border-l-2 border-primary bg-secondary/30 rounded-lg shadow-sm">
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id="no_symptoms"
@@ -714,7 +714,7 @@ export default function MultiStepMorningDiaryForm() {
               control={form.control}
               name="hasInjury"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-700 p-4">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg bg-secondary/10 border-l-2 border-secondary p-4 shadow-sm">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base text-gray-200">Do you have an injury?</FormLabel>
                     <FormDescription className="text-xs text-gray-400"></FormDescription>
@@ -731,7 +731,7 @@ export default function MultiStepMorningDiaryForm() {
             
             {/* Conditional Injury Fields */}
             {form.watch("hasInjury") && (
-              <div className="space-y-6 bg-[rgb(28,28,28)] p-4 rounded-lg border border-gray-700">
+              <div className="space-y-6 bg-secondary/5 p-4 rounded-lg border-l-2 border-secondary shadow-sm">
                 {/* Pain Level Slider */}
                 <FormField
                   control={form.control}
