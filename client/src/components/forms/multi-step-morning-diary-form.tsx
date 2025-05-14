@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { useLocation } from "wouter";
+import { useLocation, useNavigate } from "wouter";
 import { insertMorningDiarySchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -848,35 +848,55 @@ export default function MultiStepMorningDiaryForm() {
           
           {/* Navigation Buttons */}
           <div className="flex justify-between pt-4 mt-8 border-t border-gray-700">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={prevStep}
-              disabled={currentStep === 1}
-              className={`flex items-center ${currentStep === 1 ? "invisible" : ""}`}
-            >
-              <ArrowLeft className="mr-3 h-5 w-5" /> Previous
-            </Button>
+            {currentStep === 1 ? (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => navigate('/athlete')}
+                className="text-gray-400 hover:text-white"
+              >
+                Cancel
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={prevStep}
+                className="flex items-center"
+              >
+                <ArrowLeft className="mr-3 h-5 w-5" /> Previous
+              </Button>
+            )}
             
             {currentStep < 3 ? (
               <Button type="button" onClick={nextStep} className="flex items-center">
                 Next <Activity className="ml-3 h-5 w-5" />
               </Button>
             ) : (
-              <Button 
-                type="submit" 
-                disabled={submitMutation.isPending}
-                className="bg-primary hover:bg-primary/90"
-              >
-                {submitMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  <>Submit</>
-                )}
-              </Button>
+              <div className="flex space-x-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate('/athlete')}
+                  className="flex items-center"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={submitMutation.isPending}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  {submitMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>Submit</>
+                  )}
+                </Button>
+              </div>
             )}
           </div>
         </form>
