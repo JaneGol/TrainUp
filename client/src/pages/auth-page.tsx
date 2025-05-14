@@ -104,9 +104,23 @@ export default function AuthPage() {
     // Remove confirmPassword as it's not in the schema
     const { confirmPassword, ...registrationData } = data;
     console.log("Submitting registration data:", registrationData);
+    
     registerMutation.mutate(registrationData, {
-      onError: (error) => {
+      onError: (error: any) => {
         console.error("Registration error:", error);
+        
+        // Show error in the form
+        if (error.response && error.response.data && error.response.data.error) {
+          registerForm.setError("root", { 
+            type: "manual", 
+            message: error.response.data.error 
+          });
+        } else {
+          registerForm.setError("root", { 
+            type: "manual", 
+            message: "Registration failed. Please try again." 
+          });
+        }
       }
     });
   };

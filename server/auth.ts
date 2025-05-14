@@ -63,20 +63,45 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/register", async (req, res, next) => {
-    const existingUser = await storage.getUserByUsername(req.body.username);
-    if (existingUser) {
-      return res.status(400).send("Username already exists");
+    try {
+      // Check if the required fields are present
+      if (!req.body.username || !req.body.password || !req.body.email || 
+          !req.body.firstName || !req.body.lastName || !req.body.role) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Validate role is either "athlete" or "coach"
+      if (req.body.role !== "athlete" && req.body.role !== "coach") {
+        return res.status(400).json({ error: "Invalid role. Must be either 'athlete' or 'coach'" });
+      }
+
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(req.body.username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+
+      console.log("Creating user with role:", req.body.role);
+      
+      // Create the user
+      const user = await storage.createUser({
+        ...req.body,
+        password: await hashPassword(req.body.password),
+      });
+
+      // Log the user in
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Login error after registration:", err);
+          return next(err);
+        }
+        console.log("User registered and logged in successfully:", user.id);
+        res.status(201).json(user);
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ error: "Failed to register user" });
     }
-
-    const user = await storage.createUser({
-      ...req.body,
-      password: await hashPassword(req.body.password),
-    });
-
-    req.login(user, (err) => {
-      if (err) return next(err);
-      res.status(201).json(user);
-    });
   });
 
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
