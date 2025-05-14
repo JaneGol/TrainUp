@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReadinessChart from "@/components/charts/readiness-chart";
 import AthleteTable from "@/components/coach/athlete-table";
 import HealthAlerts from "@/components/coach/health-alerts";
-import { Users, File, HeartPulse, CalendarCheck } from "lucide-react";
+import { Users, File, HeartPulse, CalendarCheck, Clock, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function CoachDashboard() {
   const { user } = useAuth();
