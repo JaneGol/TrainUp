@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { useLocation, useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { insertMorningDiarySchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -852,7 +852,7 @@ export default function MultiStepMorningDiaryForm() {
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => navigate('/athlete')}
+                onClick={() => setLocation('/athlete')}
                 className="text-gray-400 hover:text-white"
               >
                 Cancel
@@ -877,7 +877,7 @@ export default function MultiStepMorningDiaryForm() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate('/athlete')}
+                  onClick={() => setLocation('/athlete')}
                   className="flex items-center"
                 >
                   Cancel
