@@ -175,6 +175,34 @@ export default function MultiStepMorningDiaryForm() {
     setCurrentStep(prev => Math.max(1, prev - 1));
   };
   
+  // Reset form to default values
+  const resetForm = () => {
+    form.reset({
+      userId: user?.id ?? 0,
+      
+      // Step 1 defaults
+      sleepQuality: "average",
+      sleepHours: "7",
+      stressLevel: "medium",
+      mood: "neutral",
+      
+      // Step 2 defaults
+      recoveryLevel: "moderate",
+      symptoms: [],
+      motivationLevel: "moderate",
+      
+      // Step 3 defaults
+      sorenessMap: {},
+      sorenessNotes: "",
+      hasInjury: false,
+    });
+    setCurrentStep(1);
+    toast({
+      title: "Form cleared",
+      description: "All diary responses have been reset.",
+    });
+  };
+  
   // Conditionally render injury-related fields
   useEffect(() => {
     // If hasInjury is false, reset related fields
@@ -849,14 +877,24 @@ export default function MultiStepMorningDiaryForm() {
           {/* Navigation Buttons */}
           <div className="flex justify-between pt-4 mt-8 border-t border-gray-700">
             {currentStep === 1 ? (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setLocation('/athlete')}
-                className="text-gray-400 hover:text-white"
-              >
-                Cancel
-              </Button>
+              <div className="flex space-x-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setLocation('/athlete')}
+                  className="text-gray-400 hover:text-white"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resetForm}
+                  className="text-gray-200"
+                >
+                  Clear Responses
+                </Button>
+              </div>
             ) : (
               <Button
                 type="button"
@@ -876,11 +914,19 @@ export default function MultiStepMorningDiaryForm() {
               <div className="flex space-x-3">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => setLocation('/athlete')}
-                  className="flex items-center"
+                  className="flex items-center text-gray-400 hover:text-white"
                 >
                   Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resetForm}
+                  className="flex items-center text-gray-200"
+                >
+                  Clear All
                 </Button>
                 <Button 
                   type="submit" 
