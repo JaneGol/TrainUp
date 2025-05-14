@@ -138,7 +138,7 @@ export default function MultiStepMorningDiaryForm() {
   };
   
   // Handler for muscle map changes
-  const handleMuscleMapChange = (muscles: Partial<Record<MuscleGroup, boolean>>) => {
+  const handleMuscleMapChange = (muscles: Record<string, boolean>) => {
     // Get the current value of sorenessMap which might include _no_soreness
     const currentMap = form.getValues("sorenessMap") as Record<string, boolean>;
     
