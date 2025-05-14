@@ -17,6 +17,11 @@ import TrainingEntryForm from "@/pages/athlete/training-entry";
 
 // Coach pages
 import CoachDashboard from "@/pages/coach/dashboard";
+import NewCoachDashboard from "@/pages/coach/new-dashboard";
+import AthleteStatus from "@/pages/coach/athlete-status";
+import LoadInsights from "@/pages/coach/load-insights";
+import AddTraining from "@/pages/coach/add-training";
+import CoachSmartDoctor from "@/pages/coach/smart-doctor";
 import AthleteLogsPage from "@/pages/coach/athlete-logs";
 import TeamOverviewPage from "@/pages/coach/team-overview";
 import PerformanceAnalyticsPage from "@/pages/coach/performance-analytics";
@@ -37,7 +42,12 @@ function Router() {
       <ProtectedRoute path="/athlete/smart-doctor" component={SmartDoctorPage} />
       
       {/* Coach routes */}
-      <ProtectedRoute path="/coach" component={CoachDashboard} />
+      <ProtectedRoute path="/coach" component={NewCoachDashboard} />
+      <ProtectedRoute path="/coach/old-dashboard" component={CoachDashboard} />
+      <ProtectedRoute path="/coach/athlete-status" component={AthleteStatus} />
+      <ProtectedRoute path="/coach/load-insights" component={LoadInsights} />
+      <ProtectedRoute path="/coach/add-training" component={AddTraining} />
+      <ProtectedRoute path="/coach/smart-doctor" component={CoachSmartDoctor} />
       <ProtectedRoute path="/coach/athlete-logs" component={AthleteLogsPage} />
       <ProtectedRoute path="/coach/team-overview" component={TeamOverviewPage} />
       <ProtectedRoute path="/coach/performance-analytics" component={PerformanceAnalyticsPage} />
