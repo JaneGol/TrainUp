@@ -5,6 +5,9 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
+import { db } from "./db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { User as SelectUser } from "@shared/schema";
 
 declare global {
@@ -81,6 +84,17 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ error: "Username already exists" });
       }
 
+      // Check for existing email - use Drizzle ORM style
+      try {
+        const emailExists = await db.select().from(users).where(eq(users.email, req.body.email));
+        
+        if (emailExists.length > 0) {
+          return res.status(400).json({ error: "Email address already in use" });
+        }
+      } catch (e) {
+        console.error("Error checking email uniqueness:", e);
+      }
+
       console.log("Creating user with role:", req.body.role);
       
       // Create the user
@@ -98,8 +112,19 @@ export function setupAuth(app: Express) {
         console.log("User registered and logged in successfully:", user.id);
         res.status(201).json(user);
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
+      
+      // Check for specific database errors
+      if (error.code === '23505') {
+        // Unique constraint violation
+        if (error.constraint === 'users_email_unique') {
+          return res.status(400).json({ error: "Email address already in use" });
+        } else if (error.constraint === 'users_username_unique') {
+          return res.status(400).json({ error: "Username already exists" });
+        }
+      }
+      
       res.status(500).json({ error: "Failed to register user" });
     }
   });
