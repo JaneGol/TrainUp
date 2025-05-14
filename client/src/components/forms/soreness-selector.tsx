@@ -1,18 +1,26 @@
 import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Check } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { FormLabel } from "@/components/ui/form";
 
 interface SorenessSelectorProps {
   value: Record<string, boolean>;
   onChange: (value: Record<string, boolean>) => void;
+  painIntensity?: number;
+  onPainIntensityChange?: (value: number) => void;
 }
 
-export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps) {
-  // Use prop values directly to avoid state synchronization issues
+export function SorenessSelector({ 
+  value = {}, 
+  onChange, 
+  painIntensity = 0, 
+  onPainIntensityChange 
+}: SorenessSelectorProps) {
   const upperBodyMuscles = ["shoulders", "chest", "arms", "back", "neck", "core"];
   const lowerBodyMuscles = ["hips", "glutes", "thighs", "hamstrings", "knees", "calves"];
   
   const hasNoSoreness = !!value._no_soreness;
+  const hasSoreness = Object.keys(value).some(key => key !== '_no_soreness' && value[key]);
   
   // Toggle "No soreness" option
   const toggleNoSoreness = () => {
@@ -21,7 +29,6 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
       ? { _no_soreness: true } 
       : {};
     
-    // Propagate change to parent component only
     onChange(newSelections);
   };
   
@@ -42,8 +49,14 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
       newSelections[muscle] = true;
     }
     
-    // Propagate change to parent component only
     onChange(newSelections);
+  };
+  
+  // Handle pain intensity slider change
+  const handlePainIntensityChange = (values: number[]) => {
+    if (onPainIntensityChange) {
+      onPainIntensityChange(values[0]);
+    }
   };
   
   return (
@@ -74,13 +87,12 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
         </div>
       </div>
       
-      {/* Only show muscle groups if "No soreness" is not checked */}
+      {/* Muscle groups grid - only show if "No soreness" is not checked */}
       {!hasNoSoreness && (
         <div className="space-y-4">
           <div className="bg-[rgb(22,22,22)] border border-gray-800 rounded-lg overflow-hidden">
-            {/* Two-column layout for muscle groups without grid styling */}
             <div className="flex flex-wrap">
-              {/* Column 1 */}
+              {/* Column 1 - Upper body muscles */}
               <div className="w-1/2">
                 {upperBodyMuscles.map((muscle) => {
                   const isSelected = !!value[muscle];
@@ -112,7 +124,7 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
                 })}
               </div>
               
-              {/* Column 2 */}
+              {/* Column 2 - Lower body muscles */}
               <div className="w-1/2 border-l border-gray-800">
                 {lowerBodyMuscles.map((muscle) => {
                   const isSelected = !!value[muscle];
@@ -145,6 +157,35 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
               </div>
             </div>
           </div>
+          
+          {/* Pain intensity slider - show only if any muscle is selected */}
+          {hasSoreness && onPainIntensityChange && (
+            <div className="mt-4 space-y-2">
+              <FormLabel className="text-gray-200">Pain intensity:</FormLabel>
+              <div className="py-3">
+                <Slider
+                  min={0}
+                  max={5}
+                  step={1}
+                  value={[painIntensity]}
+                  onValueChange={handlePainIntensityChange}
+                  className="py-3"
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
+                <span>0</span>
+                <span>1</span>
+                <span>2</span>
+                <span>3</span>
+                <span>4</span>
+                <span>5</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mt-0">
+                <span>No Pain</span>
+                <span className="ml-auto">Severe Pain</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
