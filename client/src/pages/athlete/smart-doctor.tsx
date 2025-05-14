@@ -73,28 +73,28 @@ export default function SmartDoctorPage() {
     const readinessScore = latestDiary.readinessScore;
     let status = "Normal";
     let recommendation = "";
-    let color = "bg-green-100 text-green-800";
+    let color = "text-green-500";
     let statusIcon = <CheckCircle2 className="h-5 w-5 text-green-500" />;
 
     if (readinessScore < 40) {
       status = "Recovery needed";
       recommendation = "Today should be a rest day or very light activity only.";
-      color = "bg-red-100 text-red-800";
+      color = "text-red-500";
       statusIcon = <AlertCircle className="h-5 w-5 text-red-500" />;
     } else if (readinessScore < 60) {
       status = "Low readiness";
       recommendation = "Light to moderate training only, focus on technique.";
-      color = "bg-amber-100 text-amber-800";
+      color = "text-amber-500";
       statusIcon = <Info className="h-5 w-5 text-amber-500" />;
     } else if (readinessScore < 80) {
       status = "Moderate readiness";
       recommendation = "Moderate training load is appropriate.";
-      color = "bg-blue-100 text-blue-800";
+      color = "text-blue-500";
       statusIcon = <Info className="h-5 w-5 text-blue-500" />;
     } else {
       status = "High readiness";
       recommendation = "You're ready for high-intensity training.";
-      color = "bg-green-100 text-green-800";
+      color = "text-green-500";
       statusIcon = <CheckCircle2 className="h-5 w-5 text-green-500" />;
     }
 
@@ -141,9 +141,9 @@ export default function SmartDoctorPage() {
   const assessment = generateHealthAssessment();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Simple header with back button */}
-      <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
+      <header className="border-b border-border p-4 flex items-center shadow-sm">
         <Button 
           variant="ghost" 
           size="icon" 
@@ -152,7 +152,7 @@ export default function SmartDoctorPage() {
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-bold text-white flex-1 text-center pr-8">
+        <h1 className="text-xl font-bold flex-1 text-center pr-8">
           Smart Doctor
         </h1>
       </header>
@@ -191,21 +191,28 @@ export default function SmartDoctorPage() {
         {latestDiary && assessment && (
           <div className="space-y-6">
             <Card>
-              <CardHeader className="pb-2">
+              <CardHeader className="pb-2 relative">
                 <div className="flex items-center gap-2 mb-1">
                   <Activity className="h-5 w-5 text-primary" />
                   <CardTitle>Current Health Status</CardTitle>
                 </div>
-                <div className="flex justify-between items-center">
-                  <CardDescription>
-                    Based on your latest morning self-assessment
-                  </CardDescription>
-                  <Badge className={assessment.color} variant="outline">
-                    <span className="flex items-center gap-1">
-                      {assessment.statusIcon}
+                <CardDescription>
+                  Based on your latest morning self-assessment
+                </CardDescription>
+                <div className="absolute top-4 right-4">
+                  <div 
+                    className={`px-3 py-2 flex items-center gap-1 border rounded-md shadow-sm ${
+                      assessment.status === "High readiness" ? "border-green-600 bg-green-950/30" : 
+                      assessment.status === "Moderate readiness" ? "border-blue-600 bg-blue-950/30" :
+                      assessment.status === "Low readiness" ? "border-amber-600 bg-amber-950/30" :
+                      "border-red-600 bg-red-950/30"
+                    }`}
+                  >
+                    {assessment.statusIcon}
+                    <span className="font-medium text-sm">
                       {assessment.status}
                     </span>
-                  </Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pb-2">
@@ -293,7 +300,7 @@ export default function SmartDoctorPage() {
                 <CardContent>
                   <ul className="space-y-2">
                     {healthReports.map((report: any) => (
-                      <li key={report.id} className="bg-gray-50 p-3 rounded-md">
+                      <li key={report.id} className="bg-muted/30 p-3 rounded-md border border-border">
                         <div className="flex justify-between">
                           <span className="font-medium">{report.symptom}</span>
                           <Badge variant={report.severity > 7 ? "destructive" : "outline"}>
