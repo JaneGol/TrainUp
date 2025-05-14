@@ -164,49 +164,57 @@ export default function NewCoachDashboard() {
   return (
     <DashboardLayout>
       <div className="p-6 bg-zinc-950 min-h-screen text-white">
-        <h2 className="text-2xl font-bold mb-6">Coach Dashboard</h2>
-        
-        {/* Top-level summary cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <MetricCard
-            title="Average Recovery"
-            value={`${averageReadiness}%`}
-            icon={<Activity className="h-5 w-5" />}
-            color="primary"
-            isLoading={readinessLoading}
-          />
+        {/* Top-level summary cards - compact with icons */}
+        <div className="flex flex-wrap justify-center gap-2 lg:gap-4 mb-8 mt-2">
+          <div className="bg-zinc-900 rounded-full p-3 flex items-center text-primary">
+            <div className="bg-primary bg-opacity-20 p-2 rounded-full mr-3">
+              <Activity className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-400 leading-none">Recovery</p>
+              <p className="text-xl font-bold">{readinessLoading ? "..." : `${averageReadiness}%`}</p>
+            </div>
+          </div>
           
-          <MetricCard
-            title="Average Readiness"
-            value={`${averageReadiness}%`}
-            icon={<Gauge className="h-5 w-5" />}
-            color="secondary"
-            isLoading={readinessLoading}
-          />
+          <div className="bg-zinc-900 rounded-full p-3 flex items-center text-secondary">
+            <div className="bg-secondary bg-opacity-20 p-2 rounded-full mr-3">
+              <Gauge className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-400 leading-none">Readiness</p>
+              <p className="text-xl font-bold">{readinessLoading ? "..." : `${averageReadiness}%`}</p>
+            </div>
+          </div>
           
-          <MetricCard
-            title="Athletes at Risk"
-            value={athletesAtRisk}
-            icon={<AlertTriangle className="h-5 w-5" />}
-            color="warning"
-            isLoading={athletesLoading}
-          />
+          <div className="bg-zinc-900 rounded-full p-3 flex items-center text-yellow-500">
+            <div className="bg-yellow-500 bg-opacity-20 p-2 rounded-full mr-3">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-400 leading-none">High Risk</p>
+              <p className="text-xl font-bold">{athletesLoading ? "..." : athletesAtRisk}</p>
+            </div>
+          </div>
           
-          <MetricCard
-            title="Sick/Injured Athletes"
-            value={sickOrInjuredAthletes}
-            icon={<HeartPulse className="h-5 w-5" />}
-            color="danger"
-            isLoading={athletesLoading}
-          />
+          <div className="bg-zinc-900 rounded-full p-3 flex items-center text-red-500">
+            <div className="bg-red-500 bg-opacity-20 p-2 rounded-full mr-3">
+              <HeartPulse className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-400 leading-none">Sick/Injured</p>
+              <p className="text-xl font-bold">{athletesLoading ? "..." : sickOrInjuredAthletes}</p>
+            </div>
+          </div>
           
-          <MetricCard
-            title="Weekly Training Load"
-            value={`${weeklyTrainingLoad} AU`}
-            icon={<Dumbbell className="h-5 w-5" />}
-            color="success"
-            isLoading={!trainingLoad}
-          />
+          <div className="bg-zinc-900 rounded-full p-3 flex items-center text-green-500">
+            <div className="bg-green-500 bg-opacity-20 p-2 rounded-full mr-3">
+              <Dumbbell className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-400 leading-none">Weekly Load</p>
+              <p className="text-xl font-bold">{!trainingLoad ? "..." : `${weeklyTrainingLoad}`}</p>
+            </div>
+          </div>
         </div>
         
         {/* Action buttons */}
