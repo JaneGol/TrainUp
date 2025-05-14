@@ -27,10 +27,8 @@ const CoachDashboardLayout = ({ children }: CoachDashboardLayoutProps) => {
     <div className="flex flex-col min-h-screen bg-zinc-950 text-white">
       {/* Top nav bar - similar to athlete interface */}
       <header className="bg-zinc-900 py-4 px-6 flex justify-between items-center border-b border-zinc-800">
-        <div>
-          <h1 className="text-xl font-bold text-white">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-          </h1>
+        <div className="w-20">
+          {/* Empty space for balance */}
         </div>
         <div className="text-center">
           <h2 className="text-lg font-medium">Sport Team Performance Tracker</h2>
