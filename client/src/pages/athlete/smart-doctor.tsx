@@ -192,15 +192,15 @@ export default function SmartDoctorPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Activity className="h-5 w-5 text-primary" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-primary" />
+                    <div>
                       <CardTitle>Current Health Status</CardTitle>
+                      <CardDescription className="text-xs mt-0">
+                        Based on latest assessment
+                      </CardDescription>
                     </div>
-                    <CardDescription>
-                      Based on your latest morning self-assessment
-                    </CardDescription>
                   </div>
                   <div>
                     <div 
@@ -212,9 +212,6 @@ export default function SmartDoctorPage() {
                       }`}
                     >
                       {assessment.statusIcon}
-                      <span className="font-medium text-sm whitespace-nowrap">
-                        {assessment.status}
-                      </span>
                     </div>
                   </div>
                 </div>
