@@ -570,8 +570,8 @@ export default function MultiStepMorningDiaryForm() {
             <div className="space-y-4">
               <FormLabel className="text-gray-200 block">Do you have any symptoms?</FormLabel>
               
-              {/* No Symptoms option - separate and distinct */}
-              <div className="mb-4 p-3 border-l-2 border-primary bg-secondary/30 rounded-lg shadow-sm">
+              {/* No Symptoms option - block style without left border */}
+              <div className="mb-4 p-3 bg-secondary/30 rounded-lg shadow-sm">
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id="no_symptoms"
