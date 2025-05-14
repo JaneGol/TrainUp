@@ -1,5 +1,6 @@
 import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Check } from "lucide-react";
 
 interface SorenessSelectorProps {
   value: Record<string, boolean>;
@@ -14,8 +15,7 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
   const hasNoSoreness = !!value._no_soreness;
   
   // Toggle "No soreness" option
-  const toggleNoSoreness = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const toggleNoSoreness = () => {
     const newState = !hasNoSoreness;
     const newSelections: Record<string, boolean> = newState 
       ? { _no_soreness: true } 
@@ -26,8 +26,7 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
   };
   
   // Toggle individual muscle selection
-  const toggleMuscle = (e: React.MouseEvent, muscle: string) => {
-    e.stopPropagation();
+  const toggleMuscle = (muscle: string) => {
     // Create a new object to avoid mutating current state
     const newSelections: Record<string, boolean> = { ...value };
     
@@ -53,30 +52,26 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
       
       {/* No Soreness Option */}
       <div 
-        className={`flex items-center space-x-2 p-4 mb-4 rounded-md border cursor-pointer transition-colors
+        className={`p-3 rounded-lg cursor-pointer transition-colors mb-4
           ${hasNoSoreness 
-            ? "bg-primary/10 border-primary" 
-            : "bg-[rgb(30,30,30)] border-gray-700 hover:bg-gray-800/30"}`}
+            ? "bg-primary/20" 
+            : "bg-secondary/30 hover:bg-gray-800/50"}`}
         onClick={toggleNoSoreness}
       >
-        <Checkbox 
-          id="no_soreness"
-          checked={hasNoSoreness}
-          className="border-primary/70 h-5 w-5"
-          onClick={(e) => e.stopPropagation()}
-          onCheckedChange={(checked) => {
-            const newSelections: Record<string, boolean> = checked 
-              ? { _no_soreness: true } 
-              : {};
-            onChange(newSelections);
-          }}
-        />
-        <label 
-          htmlFor="no_soreness" 
-          className="text-base font-medium leading-none text-gray-200 flex-1 cursor-pointer"
-        >
-          I have no muscle soreness today
-        </label>
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="no_soreness"
+            checked={hasNoSoreness}
+            className="h-5 w-5 border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+            onCheckedChange={toggleNoSoreness}
+          />
+          <label 
+            htmlFor="no_soreness" 
+            className="text-sm font-medium leading-none text-gray-200 flex-1 cursor-pointer"
+          >
+            I have no muscle soreness today
+          </label>
+        </div>
       </div>
       
       {/* Only show muscle groups if "No soreness" is not checked */}
@@ -92,33 +87,26 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
                   return (
                     <div 
                       key={muscle}
-                      className={`flex items-center p-3 cursor-pointer border-b border-gray-800 transition-colors
+                      className={`p-3 cursor-pointer border-b border-gray-800 transition-colors
                         ${isSelected 
-                          ? "bg-primary/10" 
+                          ? "bg-primary/20" 
                           : "hover:bg-gray-800/30"}`}
-                      onClick={(e) => toggleMuscle(e, muscle)}
+                      onClick={() => toggleMuscle(muscle)}
                     >
-                      <Checkbox 
-                        id={`soreness-${muscle}`}
-                        className="mr-3 border-primary/70 h-5 w-5"
-                        checked={isSelected}
-                        onClick={(e) => e.stopPropagation()}
-                        onCheckedChange={(checked) => {
-                          const newSelections = { ...value };
-                          if (newSelections._no_soreness) delete newSelections._no_soreness;
-                          
-                          if (checked) {
-                            newSelections[muscle] = true;
-                          } else {
-                            delete newSelections[muscle];
-                          }
-                          
-                          onChange(newSelections);
-                        }}
-                      />
-                      <span className="flex-1 text-gray-200 capitalize cursor-pointer">
-                        {muscle}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`soreness-${muscle}`}
+                          className="h-5 w-5 border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                          checked={isSelected}
+                          onCheckedChange={() => toggleMuscle(muscle)}
+                        />
+                        <label 
+                          htmlFor={`soreness-${muscle}`}
+                          className="text-sm font-medium leading-none text-gray-200 flex-1 cursor-pointer capitalize"
+                        >
+                          {muscle}
+                        </label>
+                      </div>
                     </div>
                   );
                 })}
@@ -131,33 +119,26 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
                   return (
                     <div 
                       key={muscle}
-                      className={`flex items-center p-3 cursor-pointer border-b border-gray-800 transition-colors
+                      className={`p-3 cursor-pointer border-b border-gray-800 transition-colors
                         ${isSelected 
-                          ? "bg-primary/10" 
+                          ? "bg-primary/20" 
                           : "hover:bg-gray-800/30"}`}
-                      onClick={(e) => toggleMuscle(e, muscle)}
+                      onClick={() => toggleMuscle(muscle)}
                     >
-                      <Checkbox 
-                        id={`soreness-${muscle}`}
-                        className="mr-3 border-primary/70 h-5 w-5"
-                        checked={isSelected}
-                        onClick={(e) => e.stopPropagation()}
-                        onCheckedChange={(checked) => {
-                          const newSelections = { ...value };
-                          if (newSelections._no_soreness) delete newSelections._no_soreness;
-                          
-                          if (checked) {
-                            newSelections[muscle] = true;
-                          } else {
-                            delete newSelections[muscle];
-                          }
-                          
-                          onChange(newSelections);
-                        }}
-                      />
-                      <span className="flex-1 text-gray-200 capitalize cursor-pointer">
-                        {muscle}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`soreness-${muscle}`}
+                          className="h-5 w-5 border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                          checked={isSelected}
+                          onCheckedChange={() => toggleMuscle(muscle)}
+                        />
+                        <label 
+                          htmlFor={`soreness-${muscle}`}
+                          className="text-sm font-medium leading-none text-gray-200 flex-1 cursor-pointer capitalize"
+                        >
+                          {muscle}
+                        </label>
+                      </div>
                     </div>
                   );
                 })}
