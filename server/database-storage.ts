@@ -663,13 +663,12 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Calculate load for each training session (RPE * duration)
-    // For simplicity, we'll assume each session is 1 hour
-    // In a real app, you would store and use actual duration
+    // As per request, we use 70 minutes as default duration for all entries
     const result = entries.map(entry => {
       const dateString = entry.date.toISOString().split('T')[0];
       // Training load = RPE (1-10) * Duration (in minutes)
-      // For our example, we'll use 60 minutes as standard duration
-      const trainingLoad = entry.effortLevel * 60;
+      // Using 70 minutes as standard duration as specified
+      const trainingLoad = entry.effortLevel * 70;
       
       return {
         date: dateString,
