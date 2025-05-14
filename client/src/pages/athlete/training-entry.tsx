@@ -29,11 +29,17 @@ import { useToast } from "@/hooks/use-toast";
 
 // Form schema
 const trainingEntryFormSchema = z.object({
-  trainingType: z.string().min(1, "Training type is required"),
-  effortLevel: z.number().min(1).max(10),
-  emotionalLoad: z.number().min(1).max(10),
+  trainingType: z.enum(["Field Training", "Gym Training", "Match/Game"], {
+    required_error: "Training type is required",
+    invalid_type_error: "Training type must be one of the specified options"
+  }),
+  effortLevel: z.number().min(1, "RPE must be at least 1").max(10, "RPE cannot exceed 10"),
+  emotionalLoad: z.number().min(1, "Emotional load must be at least 1").max(10, "Emotional load cannot exceed 10"),
   date: z.date().default(() => new Date()),
-  mood: z.enum(["happy", "neutral", "tired", "exhausted"]),
+  mood: z.enum(["happy", "neutral", "tired", "exhausted"], {
+    required_error: "Mood is required", 
+    invalid_type_error: "Mood must be one of the specified options"
+  }),
   notes: z.string().optional(),
 });
 
@@ -51,7 +57,7 @@ export default function TrainingEntryForm() {
   const form = useForm<TrainingEntryFormValues>({
     resolver: zodResolver(trainingEntryFormSchema),
     defaultValues: {
-      trainingType: "",
+      trainingType: "Field Training",
       effortLevel: 5,
       emotionalLoad: 5,
       date: new Date(), // Add date with current date as default
@@ -112,18 +118,23 @@ export default function TrainingEntryForm() {
       
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/training-entries"] });
+      
+      // Calculate the average if not provided in the response
+      const averageLoad = data.averageLoad || 
+        ((data.effortLevel + data.emotionalLoad) / 2);
+      
       toast({
         title: "Training entry submitted",
-        description: "Your training session has been recorded",
+        description: `Your training session has been recorded with an average load of ${averageLoad.toFixed(1)}/10`,
         variant: "default",
       });
       
       // Show success state for a moment before navigating back
       setTimeout(() => {
         navigate("/athlete");
-      }, 1500);
+      }, 2000);
     },
     onError: (error: Error) => {
       setSubmitting(false);
@@ -140,11 +151,54 @@ export default function TrainingEntryForm() {
   
   // Form submission handler
   function onSubmit(data: TrainingEntryFormValues) {
+    // Perform additional validation before submitting
+    if (!data.trainingType) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a training type",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!data.effortLevel || data.effortLevel < 1 || data.effortLevel > 10) {
+      toast({
+        title: "Validation Error",
+        description: "RPE must be between 1 and 10",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!data.emotionalLoad || data.emotionalLoad < 1 || data.emotionalLoad > 10) {
+      toast({
+        title: "Validation Error",
+        description: "Emotional load must be between 1 and 10",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!data.mood) {
+      toast({
+        title: "Validation Error",
+        description: "Please select your mood after training",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Calculate and show the average load
+    const averageLoad = (data.effortLevel + data.emotionalLoad) / 2;
+    console.log(`Submitting: RPE: ${data.effortLevel}, Emotional Load: ${data.emotionalLoad}, Average: ${averageLoad.toFixed(1)}`);
+    
     // Convert the Date object to an ISO string that the server can handle
     const formattedData = {
       ...data,
       date: data.date.toISOString()
     };
+    
+    // Submit the data
     submitTrainingEntry.mutate(formattedData as any);
   }
   
@@ -219,13 +273,9 @@ export default function TrainingEntryForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Strength">Strength</SelectItem>
-                          <SelectItem value="Endurance">Endurance</SelectItem>
-                          <SelectItem value="Speed">Speed</SelectItem>
-                          <SelectItem value="Technical">Technical</SelectItem>
-                          <SelectItem value="Recovery">Recovery</SelectItem>
-                          <SelectItem value="Match">Match/Competition</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
+                          <SelectItem value="Field Training">Field Training</SelectItem>
+                          <SelectItem value="Gym Training">Gym Training</SelectItem>
+                          <SelectItem value="Match/Game">Match/Game</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -344,6 +394,24 @@ export default function TrainingEntryForm() {
                     </FormItem>
                   )}
                 />
+                
+                <div className="border rounded-md p-4 mb-6 bg-muted/20">
+                  <h4 className="font-medium mb-2">Training Load Summary</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="border rounded p-2 text-center">
+                      <div className="text-sm text-muted-foreground">Physical RPE</div>
+                      <div className="text-xl font-semibold">{effortLevel}/10</div>
+                    </div>
+                    <div className="border rounded p-2 text-center">
+                      <div className="text-sm text-muted-foreground">Emotional Load</div>
+                      <div className="text-xl font-semibold">{emotionalLoad}/10</div>
+                    </div>
+                    <div className="border rounded p-2 text-center bg-primary/10">
+                      <div className="text-sm text-muted-foreground">Average Load</div>
+                      <div className="text-xl font-semibold">{((effortLevel + emotionalLoad) / 2).toFixed(1)}/10</div>
+                    </div>
+                  </div>
+                </div>
                 
                 <div className="flex justify-between pt-4">
                   <Button 

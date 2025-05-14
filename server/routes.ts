@@ -21,13 +21,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       console.log("Received training entry data:", req.body);
+      
+      // Validate the incoming data
       const validatedData = insertTrainingEntrySchema.parse({
         ...req.body,
         userId: req.user!.id
       });
       
-      const entry = await storage.createTrainingEntry(validatedData);
-      res.status(201).json(entry);
+      // Calculate the average of RPE and Emotional Load
+      const rpe = validatedData.effortLevel || 0;
+      const emotionalLoad = validatedData.emotionalLoad || 0;
+      
+      // Create a new entry with the calculated data
+      const entry = await storage.createTrainingEntry({
+        ...validatedData,
+        // Store the individual values but also calculate and log the average
+        // The average is logged but not stored separately as it can always be derived
+        effortLevel: rpe
+      });
+      
+      // Calculate average for response
+      const averageLoad = (rpe + emotionalLoad) / 2;
+      
+      // Return the entry with the calculated average
+      res.status(201).json({
+        ...entry,
+        averageLoad
+      });
+      
+      console.log(`Entry created with RPE: ${rpe}, Emotional Load: ${emotionalLoad}, Average: ${averageLoad}`);
     } catch (error) {
       if (error instanceof z.ZodError) {
         console.error("Validation error:", error.errors);
