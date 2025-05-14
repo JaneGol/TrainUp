@@ -20,6 +20,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
+      console.log("Received training entry data:", req.body);
       const validatedData = insertTrainingEntrySchema.parse({
         ...req.body,
         userId: req.user!.id
@@ -29,8 +30,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(entry);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Validation error:", error.errors);
         return res.status(400).json({ error: error.errors });
       }
+      console.error("Server error:", error);
       res.status(500).json({ error: "Failed to create training entry" });
     }
   });
