@@ -193,14 +193,11 @@ export default function SmartDoctorPage() {
             <Card>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-primary" />
-                    <div>
-                      <CardTitle>Current Health Status</CardTitle>
-                      <CardDescription className="text-xs mt-0">
-                        Based on latest assessment
-                      </CardDescription>
-                    </div>
+                  <div>
+                    <CardTitle>Current Health Status</CardTitle>
+                    <CardDescription className="text-xs mt-0">
+                      Based on latest assessment
+                    </CardDescription>
                   </div>
                   <div>
                     <div 
