@@ -192,25 +192,11 @@ export default function SmartDoctorPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Current Health Status</CardTitle>
-                    <CardDescription className="text-xs mt-0">
-                      Based on latest assessment
-                    </CardDescription>
-                  </div>
-                  <div>
-                    <div 
-                      className={`px-3 py-2 flex items-center gap-1 border rounded-md shadow-sm ${
-                        assessment.status === "High readiness" ? "border-green-600 bg-green-950/30" : 
-                        assessment.status === "Moderate readiness" ? "border-blue-600 bg-blue-950/30" :
-                        assessment.status === "Low readiness" ? "border-amber-600 bg-amber-950/30" :
-                        "border-red-600 bg-red-950/30"
-                      }`}
-                    >
-                      {assessment.statusIcon}
-                    </div>
-                  </div>
+                <div>
+                  <CardTitle>Current Health Status</CardTitle>
+                  <CardDescription className="text-xs mt-0">
+                    Based on latest assessment
+                  </CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="pb-2">
