@@ -25,27 +25,7 @@ const CoachDashboardLayout = ({ children }: CoachDashboardLayoutProps) => {
   
   return (
     <div className="flex flex-col min-h-screen bg-zinc-950 text-white">
-      {/* Top nav bar - similar to athlete interface */}
-      <header className="bg-zinc-900 py-4 px-6 flex justify-between items-center border-b border-zinc-800">
-        <div className="w-20">
-          {/* Empty space for balance */}
-        </div>
-        <div className="text-center">
-          <h2 className="text-lg font-medium">Sport Team Performance Tracker</h2>
-        </div>
-        <div>
-          <Button 
-            variant="ghost" 
-            className="text-white hover:bg-zinc-800 flex items-center gap-2"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4" />
-            Log Out
-          </Button>
-        </div>
-      </header>
-      
-      {/* Main content */}
+      {/* Main content - no header */}
       <main className="flex-1 overflow-auto">
         {children}
       </main>

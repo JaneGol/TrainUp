@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Users, Activity, AlertTriangle, HeartPulse, 
   Dumbbell, Gauge, UserCheck, ClipboardList, 
-  ChevronRight
+  ChevronRight, LogOut
 } from "lucide-react";
 
 // Define card component for metrics
@@ -85,7 +85,7 @@ const ActionButton = ({
 };
 
 export default function NewCoachDashboard() {
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const [, navigate] = useLocation();
   
   useEffect(() => {
@@ -168,14 +168,30 @@ export default function NewCoachDashboard() {
   return (
     <CoachDashboardLayout>
       <div className="p-6 bg-zinc-950 min-h-screen text-white">
-        {/* Welcome text similar to athlete interface */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold">
-            Hey, {user?.firstName || 'Coach'}!
-          </h2>
-          <p className="text-zinc-400 mt-1">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-          </p>
+        {/* Welcome text with logout button */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-3xl font-bold">
+              Hey, {user?.firstName || 'Coach'}!
+            </h2>
+            <p className="text-zinc-400 mt-1">
+              Today - {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
+          <Button 
+            variant="ghost" 
+            className="text-white hover:bg-zinc-800 flex items-center gap-2"
+            onClick={() => {
+              logoutMutation.mutate(undefined, {
+                onSuccess: () => {
+                  navigate("/auth");
+                }
+              });
+            }}
+          >
+            <LogOut className="h-5 w-5" />
+            Log Out
+          </Button>
         </div>
         
         {/* Action buttons styled like athlete interface */}
