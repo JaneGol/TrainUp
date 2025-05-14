@@ -1,108 +1,167 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import DashboardLayout from "@/components/layout/dashboard-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
+import CoachDashboardLayout from "@/components/layout/coach-dashboard-layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search, ChevronLeft, Activity, User2, Gauge, Heart } from "lucide-react";
 
-export default function AthleteStatus() {
+export default function AthleteStatusPage() {
+  const { user } = useAuth();
   const [, navigate] = useLocation();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTab, setSelectedTab] = useState("all");
   
-  // Get athletes with recovery readiness
-  const { data: athleteReadiness, isLoading } = useQuery({
+  // Go back to dashboard
+  const handleBackClick = () => {
+    navigate("/coach/dashboard");
+  };
+  
+  // Get all athletes
+  const { data: athletes, isLoading: athletesLoading } = useQuery({
+    queryKey: ["/api/athletes"],
+  });
+  
+  // Get athlete readiness data
+  const { data: athleteReadiness, isLoading: readinessLoading } = useQuery({
     queryKey: ["/api/analytics/athlete-recovery-readiness"],
   });
   
-  const statusColor = (score: number) => {
-    if (score > 75) return 'bg-green-500';
-    if (score > 50) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
+  // Filter athletes based on search term and selected tab
+  const filteredAthletes = athleteReadiness
+    ? athleteReadiness
+        .filter((athlete: any) => {
+          const matchesSearch = athlete.name.toLowerCase().includes(searchTerm.toLowerCase());
+          if (selectedTab === "all") return matchesSearch;
+          if (selectedTab === "high-risk") return matchesSearch && athlete.riskScore > 7;
+          if (selectedTab === "moderate-risk") return matchesSearch && athlete.riskScore > 4 && athlete.riskScore <= 7;
+          if (selectedTab === "low-risk") return matchesSearch && athlete.riskScore <= 4;
+          return matchesSearch;
+        })
+    : [];
   
-  const statusLabel = (score: number) => {
-    if (score > 75) return 'Ready';
-    if (score > 50) return 'Elevated Risk';
-    return 'High Risk';
-  };
-  
-  const trendIcon = (trend: string) => {
-    if (trend === 'up') return '↑';
-    if (trend === 'down') return '↓';
-    return '–';
-  };
-  
-  const trendColor = (trend: string) => {
-    if (trend === 'up') return 'text-green-400';
-    if (trend === 'down') return 'text-red-400';
-    return 'text-gray-400';
-  };
-
   return (
-    <DashboardLayout>
+    <CoachDashboardLayout>
       <div className="p-6 bg-zinc-950 min-h-screen text-white">
+        {/* Header with back button */}
         <div className="flex items-center mb-6">
           <Button 
             variant="ghost" 
-            className="mr-4 p-2 text-white hover:bg-zinc-800" 
-            onClick={() => navigate("/coach")}
+            className="mr-2 p-2 hover:bg-zinc-800 text-white" 
+            onClick={handleBackClick}
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft className="h-5 w-5" />
           </Button>
-          <h2 className="text-2xl font-bold">Athlete Status Dashboard</h2>
+          <h1 className="text-2xl font-bold">Athlete Status</h1>
         </div>
         
-        <Card className="bg-zinc-900 border-zinc-800 text-white">
-          <CardHeader>
-            <CardTitle>Athlete Readiness Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <p>Loading athlete data...</p>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-5 gap-4 pb-2 border-b border-zinc-700 text-sm font-medium text-zinc-400">
-                  <div>Athlete</div>
-                  <div>Recovery Score</div>
-                  <div>Trend</div>
-                  <div>Status</div>
-                  <div>Issues</div>
-                </div>
-                
-                {(athleteReadiness || []).map((athlete: any, index: number) => (
-                  <div key={index} className="grid grid-cols-5 gap-4 py-3 border-b border-zinc-800 items-center">
-                    <div className="font-medium">{athlete.name}</div>
-                    <div>{athlete.readinessScore}%</div>
-                    <div className={`${trendColor(athlete.trend)}`}>
-                      {trendIcon(athlete.trend)}
-                    </div>
-                    <div className="flex items-center">
-                      <div className={`w-3 h-3 rounded-full mr-2 ${statusColor(athlete.readinessScore)}`} />
-                      <span>{statusLabel(athlete.readinessScore)}</span>
-                    </div>
-                    <div>
-                      {athlete.issues.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {athlete.issues.map((issue: string, i: number) => (
-                            <span key={i} className="inline-block px-2 py-1 bg-zinc-800 rounded-md text-xs">
-                              {issue}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-zinc-500">No issues</span>
-                      )}
+        {/* Search and filter */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400" />
+            <Input
+              className="pl-10 bg-zinc-900 border-zinc-700 text-white"
+              placeholder="Search athletes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <Tabs defaultValue="all" className="w-full md:w-auto" onValueChange={setSelectedTab}>
+            <TabsList className="grid grid-cols-4 bg-zinc-900">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="high-risk" className="text-red-500">High Risk</TabsTrigger>
+              <TabsTrigger value="moderate-risk" className="text-yellow-500">Moderate</TabsTrigger>
+              <TabsTrigger value="low-risk" className="text-green-500">Low Risk</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        
+        {/* Athlete list */}
+        {readinessLoading ? (
+          <p className="text-center py-8">Loading athlete data...</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(filteredAthletes || []).map((athlete: any, index: number) => (
+              <Card key={index} className="bg-zinc-900 border-zinc-700 overflow-hidden">
+                <div 
+                  className={`h-2 w-full ${
+                    athlete.readinessScore > 75 ? 'bg-green-500' : 
+                    athlete.readinessScore > 50 ? 'bg-yellow-500' : 
+                    'bg-red-500'
+                  }`} 
+                />
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg">{athlete.name}</CardTitle>
+                    <div className={`px-2 py-1 rounded text-xs font-medium ${
+                      athlete.readinessScore > 75 ? 'bg-green-500/20 text-green-300' : 
+                      athlete.readinessScore > 50 ? 'bg-yellow-500/20 text-yellow-300' : 
+                      'bg-red-500/20 text-red-300'
+                    }`}>
+                      {athlete.readinessScore > 75 ? 'Low Risk' : 
+                       athlete.readinessScore > 50 ? 'Moderate Risk' : 
+                       'High Risk'}
                     </div>
                   </div>
-                ))}
-                
-                {(!athleteReadiness || athleteReadiness.length === 0) && (
-                  <p className="text-center py-6 text-zinc-400">No athlete data available.</p>
-                )}
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center">
+                      <div className="p-2 rounded-full bg-primary/20 mr-2">
+                        <Gauge className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-zinc-400">Readiness</p>
+                        <p className="font-bold">{athlete.readinessScore}%</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <div className="p-2 rounded-full bg-red-500/20 mr-2">
+                        <Heart className="h-4 w-4 text-red-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-zinc-400">Risk Score</p>
+                        <p className="font-bold">{athlete.riskScore}/10</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {athlete.issues.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs font-medium text-zinc-400 mb-1">Concerns:</p>
+                      <ul className="text-sm space-y-1">
+                        {athlete.issues.map((issue: string, i: number) => (
+                          <li key={i} className="text-red-300 text-xs">• {issue}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4 border-zinc-700 hover:bg-zinc-800 text-white"
+                    onClick={() => navigate(`/coach/athlete/${athlete.athleteId}`)}
+                  >
+                    View Details
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+            
+            {filteredAthletes.length === 0 && (
+              <div className="col-span-full text-center py-8 text-zinc-400">
+                <User2 className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                <p>No athletes match your search criteria</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        )}
       </div>
-    </DashboardLayout>
+    </CoachDashboardLayout>
   );
 }

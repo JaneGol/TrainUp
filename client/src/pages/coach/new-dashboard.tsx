@@ -2,12 +2,13 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import DashboardLayout from "@/components/layout/dashboard-layout";
+import CoachDashboardLayout from "@/components/layout/coach-dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Users, Activity, AlertTriangle, HeartPulse, 
-  Dumbbell, Gauge, UserCheck, ClipboardList 
+  Dumbbell, Gauge, UserCheck, ClipboardList, 
+  ChevronRight
 } from "lucide-react";
 
 // Define card component for metrics
@@ -56,7 +57,7 @@ const MetricCard = ({
   );
 };
 
-// Define the action button component
+// Define the action button component styled like athlete interface buttons
 const ActionButton = ({ 
   icon, 
   label, 
@@ -69,13 +70,16 @@ const ActionButton = ({
   return (
     <Button 
       onClick={onClick}
-      className="h-24 flex flex-col items-center justify-center gap-2 w-full bg-zinc-800 hover:bg-zinc-700 text-white border-none"
-      variant="outline"
+      className="h-20 flex items-center justify-between w-full bg-[#c5f42c] hover:bg-[#d8ff43] text-black border-none rounded-lg text-xl font-bold py-8 px-6"
+      variant="default"
     >
-      <div className="bg-primary/20 p-2 rounded-full">
-        {icon}
+      <div className="flex items-center">
+        <div className="mr-4">
+          {icon}
+        </div>
+        <span>{label}</span>
       </div>
-      <span>{label}</span>
+      <ChevronRight className="h-6 w-6" />
     </Button>
   );
 };
@@ -162,8 +166,16 @@ export default function NewCoachDashboard() {
   };
 
   return (
-    <DashboardLayout>
+    <CoachDashboardLayout>
       <div className="p-6 bg-zinc-950 min-h-screen text-white">
+        {/* Welcome text similar to athlete interface */}
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold">
+            Hey, {user?.firstName || 'Coach'}!
+          </h2>
+          <p className="text-zinc-400 mt-1">Coach dashboard with team metrics</p>
+        </div>
+        
         {/* Top-level summary cards - ultra compact with icons */}
         <div className="flex items-center justify-center gap-3 mb-8 mt-2 bg-zinc-900 rounded-full py-2 px-4 mx-auto w-fit">
           <div className="flex items-center text-primary">
@@ -213,8 +225,8 @@ export default function NewCoachDashboard() {
           </div>
         </div>
         
-        {/* Action buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Action buttons styled like athlete interface */}
+        <div className="space-y-4 max-w-2xl mx-auto mb-8">
           <ActionButton
             icon={<UserCheck className="h-6 w-6" />}
             label="Athlete Status"
@@ -325,6 +337,6 @@ export default function NewCoachDashboard() {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </CoachDashboardLayout>
   );
 }
