@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface SorenessSelectorProps {
@@ -7,12 +7,18 @@ interface SorenessSelectorProps {
 }
 
 export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps) {
-  // We'll directly use the props value for rendering
-  // This avoids state synchronization issues
+  // Use local state to ensure immediate visual feedback
+  const [localSelections, setLocalSelections] = useState<Record<string, boolean>>(value);
+  
+  // Update local state when prop value changes
+  useEffect(() => {
+    setLocalSelections(value || {});
+  }, [value]);
+  
   const upperBodyMuscles = ["shoulders", "chest", "arms", "back", "neck", "core"];
   const lowerBodyMuscles = ["hips", "glutes", "thighs", "hamstrings", "knees", "calves"];
   
-  const hasNoSoreness = !!value._no_soreness;
+  const hasNoSoreness = !!localSelections._no_soreness;
   
   // Toggle "No soreness" option
   const toggleNoSoreness = () => {
@@ -21,6 +27,9 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
       ? { _no_soreness: true } 
       : {};
     
+    // Update local state for immediate feedback
+    setLocalSelections(newSelections);
+    
     // Propagate change to parent component
     onChange(newSelections);
   };
@@ -28,7 +37,7 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
   // Toggle individual muscle selection
   const toggleMuscle = (muscle: string) => {
     // Create a new object to avoid mutating current state
-    const newSelections: Record<string, boolean> = { ...value };
+    const newSelections: Record<string, boolean> = { ...localSelections };
     
     // If "No soreness" is selected, clear it first
     if (newSelections._no_soreness) {
@@ -41,6 +50,9 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
     } else {
       newSelections[muscle] = true;
     }
+    
+    // Update local state for immediate feedback
+    setLocalSelections(newSelections);
     
     // Propagate change to parent component
     onChange(newSelections);
@@ -75,13 +87,13 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
       {/* Only show muscle groups if "No soreness" is not checked */}
       {!hasNoSoreness && (
         <div className="space-y-4">
-          <div className="border border-gray-800 rounded-lg overflow-hidden">
-            {/* Two-column layout for muscle groups */}
-            <div className="grid grid-cols-2">
+          <div className="bg-[rgb(22,22,22)] border border-gray-800 rounded-lg overflow-hidden">
+            {/* Two-column layout for muscle groups without grid styling */}
+            <div className="flex flex-wrap">
               {/* Column 1 */}
-              <div className="border-r border-gray-800">
+              <div className="w-1/2">
                 {upperBodyMuscles.map((muscle) => {
-                  const isSelected = !!value[muscle];
+                  const isSelected = !!localSelections[muscle];
                   return (
                     <div 
                       key={muscle}
@@ -106,9 +118,9 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
               </div>
               
               {/* Column 2 */}
-              <div>
+              <div className="w-1/2 border-l border-gray-800">
                 {lowerBodyMuscles.map((muscle) => {
-                  const isSelected = !!value[muscle];
+                  const isSelected = !!localSelections[muscle];
                   return (
                     <div 
                       key={muscle}

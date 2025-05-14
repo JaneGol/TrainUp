@@ -351,7 +351,11 @@ export default function AuthPage() {
                                 <Input 
                                   placeholder="e.g. Forward, Coach" 
                                   className="bg-[rgb(38,38,38)] border-gray-700 text-white" 
-                                  {...field} 
+                                  value={field.value || ""}
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  ref={field.ref}
+                                  name={field.name}
                                 />
                               </FormControl>
                               <FormMessage />
