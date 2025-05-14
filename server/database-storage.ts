@@ -251,6 +251,25 @@ export class DatabaseStorage implements IStorage {
     return diary;
   }
   
+  async deleteLatestMorningDiary(userId: number): Promise<boolean> {
+    try {
+      const latestDiary = await this.getLatestMorningDiary(userId);
+      
+      if (!latestDiary) {
+        return false;
+      }
+      
+      await db
+        .delete(morningDiary)
+        .where(eq(morningDiary.id, latestDiary.id));
+        
+      return true;
+    } catch (error) {
+      console.error("Error deleting latest morning diary:", error);
+      return false;
+    }
+  }
+  
   // Fitness metrics methods
   async createFitnessMetrics(metrics: InsertFitnessMetrics): Promise<FitnessMetrics> {
     const [newMetrics] = await db

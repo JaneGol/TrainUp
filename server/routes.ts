@@ -204,6 +204,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(diary);
   });
   
+  app.delete("/api/morning-diary/latest", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = req.user!.id;
+    
+    try {
+      const success = await storage.deleteLatestMorningDiary(userId);
+      
+      if (success) {
+        return res.status(200).json({ message: "Latest diary entry deleted successfully" });
+      } else {
+        return res.status(404).json({ error: "No diary entry found to delete" });
+      }
+    } catch (error) {
+      console.error("Error deleting diary entry:", error);
+      res.status(500).json({ error: "Failed to delete diary entry" });
+    }
+  });
+  
   // Coach Routes - Morning Diary
   app.get("/api/athletes/:id/morning-diary", async (req, res) => {
     if (!req.isAuthenticated() || req.user!.role !== "coach") {

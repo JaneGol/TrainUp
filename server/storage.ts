@@ -31,6 +31,7 @@ export interface IStorage {
   createMorningDiary(diary: InsertMorningDiary, userId: number, readinessScore: number): Promise<MorningDiary>;
   getMorningDiariesByUserId(userId: number): Promise<MorningDiary[]>;
   getLatestMorningDiary(userId: number): Promise<MorningDiary | undefined>;
+  deleteLatestMorningDiary(userId: number): Promise<boolean>;
   
   // Fitness metrics methods
   createFitnessMetrics(metrics: InsertFitnessMetrics): Promise<FitnessMetrics>;
