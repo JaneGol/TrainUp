@@ -191,27 +191,31 @@ export default function SmartDoctorPage() {
         {latestDiary && assessment && (
           <div className="space-y-6">
             <Card>
-              <CardHeader className="pb-2 relative">
-                <div className="flex items-center gap-2 mb-1">
-                  <Activity className="h-5 w-5 text-primary" />
-                  <CardTitle>Current Health Status</CardTitle>
-                </div>
-                <CardDescription>
-                  Based on your latest morning self-assessment
-                </CardDescription>
-                <div className="absolute top-4 right-4">
-                  <div 
-                    className={`px-3 py-2 flex items-center gap-1 border rounded-md shadow-sm ${
-                      assessment.status === "High readiness" ? "border-green-600 bg-green-950/30" : 
-                      assessment.status === "Moderate readiness" ? "border-blue-600 bg-blue-950/30" :
-                      assessment.status === "Low readiness" ? "border-amber-600 bg-amber-950/30" :
-                      "border-red-600 bg-red-950/30"
-                    }`}
-                  >
-                    {assessment.statusIcon}
-                    <span className="font-medium text-sm">
-                      {assessment.status}
-                    </span>
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Activity className="h-5 w-5 text-primary" />
+                      <CardTitle>Current Health Status</CardTitle>
+                    </div>
+                    <CardDescription>
+                      Based on your latest morning self-assessment
+                    </CardDescription>
+                  </div>
+                  <div>
+                    <div 
+                      className={`px-3 py-2 flex items-center gap-1 border rounded-md shadow-sm ${
+                        assessment.status === "High readiness" ? "border-green-600 bg-green-950/30" : 
+                        assessment.status === "Moderate readiness" ? "border-blue-600 bg-blue-950/30" :
+                        assessment.status === "Low readiness" ? "border-amber-600 bg-amber-950/30" :
+                        "border-red-600 bg-red-950/30"
+                      }`}
+                    >
+                      {assessment.statusIcon}
+                      <span className="font-medium text-sm whitespace-nowrap">
+                        {assessment.status}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
