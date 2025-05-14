@@ -399,6 +399,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const riskFactors = await storage.getInjuryRiskFactors();
     res.json(riskFactors);
   });
+  
+  // Get athlete fitness progress metrics
+  app.get("/api/athlete/fitness-progress", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const userId = req.user!.id;
+      const entries = await storage.getTrainingEntriesByUserId(userId);
+      
+      // Calculate current date and dates for lookback periods
+      const now = new Date();
+      const oneWeekAgo = new Date(now);
+      oneWeekAgo.setDate(now.getDate() - 7);
+      
+      const fourWeeksAgo = new Date(now);
+      fourWeeksAgo.setDate(now.getDate() - 28);
+      
+      // Filter entries for different time periods
+      const acuteEntries = entries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        return entryDate >= oneWeekAgo;
+      });
+      
+      const chronicEntries = entries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        return entryDate >= fourWeeksAgo;
+      });
+      
+      // Calculate daily loads (RPE * session duration, estimated at 70 min default)
+      const defaultDuration = 70; // minutes
+      
+      // Calculate acute load (7-day sum)
+      const acuteLoad = acuteEntries.reduce((sum, entry) => {
+        // Use average of physical and emotional load
+        const avgLoad = (entry.effortLevel + entry.emotionalLoad) / 2;
+        return sum + (avgLoad * defaultDuration / 60); // Convert to hours
+      }, 0);
+      
+      // Calculate chronic load (28-day average)
+      const chronicLoad = chronicEntries.length > 0 ? 
+        chronicEntries.reduce((sum, entry) => {
+          const avgLoad = (entry.effortLevel + entry.emotionalLoad) / 2;
+          return sum + (avgLoad * defaultDuration / 60);
+        }, 0) / 4 : 0; // Divide by 4 weeks
+      
+      // Calculate ACWR (Acute:Chronic Workload Ratio)
+      const acwr = chronicLoad > 0 ? acuteLoad / chronicLoad : 0;
+      
+      // Calculate average weekly physical and emotional RPE
+      const avgPhysicalRPE = acuteEntries.length > 0 ? 
+        acuteEntries.reduce((sum, entry) => sum + entry.effortLevel, 0) / acuteEntries.length : 
+        0;
+        
+      const avgEmotionalRPE = acuteEntries.length > 0 ? 
+        acuteEntries.reduce((sum, entry) => sum + entry.emotionalLoad, 0) / acuteEntries.length : 
+        0;
+      
+      // Format all chronic/acute entries for the chart
+      const loadTrendData = chronicEntries.map(entry => {
+        const entryDate = new Date(entry.date);
+        const dateStr = entryDate.toISOString().split('T')[0];
+        
+        // Calculate the load for this entry
+        const avgLoad = (entry.effortLevel + entry.emotionalLoad) / 2;
+        const load = avgLoad * defaultDuration / 60;
+        
+        return {
+          date: dateStr,
+          physicalRPE: entry.effortLevel,
+          emotionalRPE: entry.emotionalLoad,
+          load,
+          trainingType: entry.trainingType,
+          notes: entry.notes || '',
+        };
+      });
+      
+      // Determine risk level based on ACWR
+      let riskLevel = "medium";
+      let riskMessage = "You are in a moderate load range.";
+      
+      if (acwr < 0.8) {
+        riskLevel = "low";
+        riskMessage = "Your training load is lower than optimal. Consider gradually increasing intensity.";
+      } else if (acwr >= 0.8 && acwr <= 1.3) {
+        riskLevel = "optimal";
+        riskMessage = "You are in the optimal training load range. Keep up the good work!";
+      } else if (acwr > 1.3) {
+        riskLevel = "high";
+        riskMessage = "Your acute load is significantly higher than your chronic load. This increases injury risk. Consider reducing intensity temporarily.";
+      }
+      
+      // Response object with all metrics
+      res.json({
+        summary: {
+          acuteLoad: parseFloat(acuteLoad.toFixed(1)),
+          chronicLoad: parseFloat(chronicLoad.toFixed(1)),
+          acwr: parseFloat(acwr.toFixed(2)),
+          avgPhysicalRPE: parseFloat(avgPhysicalRPE.toFixed(1)),
+          avgEmotionalRPE: parseFloat(avgEmotionalRPE.toFixed(1)),
+          riskLevel,
+          riskMessage
+        },
+        trendData: loadTrendData,
+        recentEntries: acuteEntries.sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        ).slice(0, 5)
+      });
+      
+    } catch (error) {
+      console.error("Error retrieving fitness metrics:", error);
+      res.status(500).json({ error: "Failed to calculate fitness metrics" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
