@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface SorenessSelectorProps {
@@ -7,18 +7,11 @@ interface SorenessSelectorProps {
 }
 
 export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps) {
-  // Use local state to ensure immediate visual feedback
-  const [localSelections, setLocalSelections] = useState<Record<string, boolean>>(value);
-  
-  // Update local state when prop value changes
-  useEffect(() => {
-    setLocalSelections(value || {});
-  }, [value]);
-  
+  // Use prop values directly to avoid state synchronization issues
   const upperBodyMuscles = ["shoulders", "chest", "arms", "back", "neck", "core"];
   const lowerBodyMuscles = ["hips", "glutes", "thighs", "hamstrings", "knees", "calves"];
   
-  const hasNoSoreness = !!localSelections._no_soreness;
+  const hasNoSoreness = !!value._no_soreness;
   
   // Toggle "No soreness" option
   const toggleNoSoreness = () => {
@@ -27,17 +20,14 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
       ? { _no_soreness: true } 
       : {};
     
-    // Update local state for immediate feedback
-    setLocalSelections(newSelections);
-    
-    // Propagate change to parent component
+    // Propagate change to parent component only
     onChange(newSelections);
   };
   
   // Toggle individual muscle selection
   const toggleMuscle = (muscle: string) => {
     // Create a new object to avoid mutating current state
-    const newSelections: Record<string, boolean> = { ...localSelections };
+    const newSelections: Record<string, boolean> = { ...value };
     
     // If "No soreness" is selected, clear it first
     if (newSelections._no_soreness) {
@@ -51,10 +41,7 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
       newSelections[muscle] = true;
     }
     
-    // Update local state for immediate feedback
-    setLocalSelections(newSelections);
-    
-    // Propagate change to parent component
+    // Propagate change to parent component only
     onChange(newSelections);
   };
   
@@ -74,7 +61,7 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
           id="no_soreness"
           checked={hasNoSoreness}
           className="text-primary"
-          onCheckedChange={() => toggleNoSoreness()}
+          onCheckedChange={toggleNoSoreness}
         />
         <label 
           htmlFor="no_soreness" 
@@ -93,7 +80,7 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
               {/* Column 1 */}
               <div className="w-1/2">
                 {upperBodyMuscles.map((muscle) => {
-                  const isSelected = !!localSelections[muscle];
+                  const isSelected = !!value[muscle];
                   return (
                     <div 
                       key={muscle}
@@ -120,7 +107,7 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
               {/* Column 2 */}
               <div className="w-1/2 border-l border-gray-800">
                 {lowerBodyMuscles.map((muscle) => {
-                  const isSelected = !!localSelections[muscle];
+                  const isSelected = !!value[muscle];
                   return (
                     <div 
                       key={muscle}
