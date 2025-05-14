@@ -224,10 +224,22 @@ export class DatabaseStorage implements IStorage {
     const [newDiary] = await db
       .insert(morningDiary)
       .values({
-        ...diary,
         userId,
         readinessScore,
-        additionalNotes: diary.additionalNotes || null,
+        mood: diary.mood,
+        sleepQuality: diary.sleepQuality,
+        sleepHours: diary.sleepHours,
+        stressLevel: diary.stressLevel,
+        recoveryLevel: diary.recoveryLevel,
+        motivationLevel: diary.motivationLevel,
+        musclesSore: diary.musclesSore,
+        hasSymptoms: diary.hasSymptoms,
+        symptoms: diary.symptoms,
+        hasInjury: diary.hasInjury,
+        injuryLocation: diary.injuryLocation,
+        injuryPain: diary.injuryPain,
+        injuryProgress: diary.injuryProgress,
+        injuryNotes: diary.injuryNotes
       })
       .returning();
     return newDiary;

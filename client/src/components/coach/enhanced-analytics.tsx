@@ -171,8 +171,192 @@ export function TrainingLoadChart({
 }
 
 /**
- * Acute:Chronic Workload Ratio Chart Component
+ * Emotional Load Analysis Component
+ * This component visualizes the relationship between physical effort and emotional load
  */
+export function EmotionalLoadAnalysisChart({ 
+  data, 
+  loading, 
+  error 
+}: { 
+  data?: TrainingLoad[],
+  loading?: boolean,
+  error?: Error | null
+}) {
+  if (loading) {
+    return (
+      <div className="w-full h-80 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="w-full h-80 flex flex-col items-center justify-center gap-2 text-gray-400">
+        <AlertTriangle className="w-8 h-8" />
+        <p>Failed to load emotional load data</p>
+      </div>
+    );
+  }
+
+  // Filter to only include entries that have both effort level and emotional load
+  const filteredData = data.filter(entry => 
+    entry.effortLevel !== undefined && 
+    entry.emotionalLoad !== undefined
+  );
+
+  if (filteredData.length === 0) {
+    return (
+      <div className="w-full h-80 flex flex-col items-center justify-center gap-2 text-gray-400">
+        <AlertTriangle className="w-8 h-8" />
+        <p>No emotional load data available yet</p>
+      </div>
+    );
+  }
+
+  // Prepare scatter plot data
+  const scatterData = filteredData.map(entry => ({
+    effortLevel: entry.effortLevel,
+    emotionalLoad: entry.emotionalLoad,
+    trainingType: entry.trainingType,
+    date: new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+  }));
+
+  // Calculate correlation for the visualization
+  const correlationData = [
+    { name: 'High Physical/Low Emotional', value: 0 },
+    { name: 'High Physical/High Emotional', value: 0 },
+    { name: 'Low Physical/Low Emotional', value: 0 },
+    { name: 'Low Physical/High Emotional', value: 0 },
+  ];
+
+  filteredData.forEach(entry => {
+    const physicalHigh = (entry.effortLevel || 0) > 5;
+    const emotionalHigh = (entry.emotionalLoad || 0) > 5;
+
+    if (physicalHigh && !emotionalHigh) {
+      correlationData[0].value++;
+    } else if (physicalHigh && emotionalHigh) {
+      correlationData[1].value++;
+    } else if (!physicalHigh && !emotionalHigh) {
+      correlationData[2].value++;
+    } else if (!physicalHigh && emotionalHigh) {
+      correlationData[3].value++;
+    }
+  });
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Emotional Load Analysis</CardTitle>
+        <CardDescription>
+          Relationship between physical effort and emotional impact of training
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="scatter">
+          <TabsList className="mb-4 w-[250px]">
+            <TabsTrigger value="scatter">Correlation</TabsTrigger>
+            <TabsTrigger value="distribution">Distribution</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="scatter">
+            <ResponsiveContainer width="100%" height={350}>
+              <div className="lg:grid lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart
+                      data={filteredData.slice(-14)} // Show last 14 days
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="date" 
+                        tickFormatter={(date) => {
+                          const d = new Date(date);
+                          return `${d.getDate()}/${d.getMonth() + 1}`;
+                        }} 
+                      />
+                      <YAxis yAxisId="left" orientation="left" name="Effort Level" stroke="#8884d8" />
+                      <YAxis yAxisId="right" orientation="right" name="Emotional Load" stroke="#82ca9d" />
+                      <Tooltip 
+                        formatter={(value, name) => [value, name === "effortLevel" ? "Physical Effort" : "Emotional Load"]}
+                        labelFormatter={(label) => `Date: ${new Date(label).toLocaleDateString()}`}
+                      />
+                      <Legend />
+                      <Line
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="effortLevel"
+                        name="Physical Effort"
+                        stroke="#8884d8"
+                        activeDot={{ r: 8 }}
+                      />
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="emotionalLoad"
+                        name="Emotional Load"
+                        stroke="#82ca9d"
+                        activeDot={{ r: 8 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={correlationData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        dataKey="value"
+                        nameKey="name"
+                        label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {correlationData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value} sessions`, 'Count']} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </ResponsiveContainer>
+          </TabsContent>
+          
+          <TabsContent value="distribution">
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart
+                data={filteredData.slice(-10)} // Show last 10 sessions
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tickFormatter={(date) => new Date(date).getDate().toString()} />
+                <YAxis domain={[0, 10]} />
+                <Tooltip 
+                  formatter={(value, name) => [value, name === "effortLevel" ? "Physical Effort" : "Emotional Load"]}
+                  labelFormatter={(label) => `Date: ${new Date(label).toLocaleDateString()}`}
+                />
+                <Legend />
+                <Bar dataKey="effortLevel" name="Physical Effort" fill="#8884d8" />
+                <Bar dataKey="emotionalLoad" name="Emotional Load" fill="#82ca9d" />
+              </BarChart>
+            </ResponsiveContainer>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ACWRChart({ 
   data, 
   loading, 

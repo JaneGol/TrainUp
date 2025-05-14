@@ -12,7 +12,8 @@ import {
   ACWRChart,
   WellnessTrendsChart, 
   RecoveryReadinessDashboard, 
-  InjuryRiskFactorAnalysis
+  InjuryRiskFactorAnalysis,
+  EmotionalLoadAnalysisChart
 } from "@/components/coach/enhanced-analytics";
 import {
   BarChart,
@@ -356,6 +357,12 @@ export default function PerformanceAnalyticsPage() {
             
             <div className="grid grid-cols-1 gap-6">
               <TrainingLoadChart 
+                data={processedTrainingLoad}
+                loading={trainingLoadLoading}
+                error={trainingLoadError}
+              />
+              
+              <EmotionalLoadAnalysisChart 
                 data={processedTrainingLoad}
                 loading={trainingLoadLoading}
                 error={trainingLoadError}
