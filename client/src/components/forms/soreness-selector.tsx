@@ -60,7 +60,7 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
         <Checkbox 
           id="no_soreness"
           checked={hasNoSoreness}
-          className="text-primary"
+          className="border-primary/70 h-5 w-5"
           onCheckedChange={toggleNoSoreness}
         />
         <label 
@@ -92,7 +92,7 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
                     >
                       <Checkbox 
                         id={`soreness-${muscle}`}
-                        className="mr-3 text-primary"
+                        className="mr-3 border-primary/70 h-5 w-5"
                         checked={isSelected}
                         onCheckedChange={() => toggleMuscle(muscle)}
                       />
@@ -119,7 +119,7 @@ export function SorenessSelector({ value = {}, onChange }: SorenessSelectorProps
                     >
                       <Checkbox 
                         id={`soreness-${muscle}`}
-                        className="mr-3 text-primary"
+                        className="mr-3 border-primary/70 h-5 w-5"
                         checked={isSelected}
                         onCheckedChange={() => toggleMuscle(muscle)}
                       />
