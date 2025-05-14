@@ -232,13 +232,11 @@ export class DatabaseStorage implements IStorage {
         stressLevel: diary.stressLevel,
         recoveryLevel: diary.recoveryLevel,
         motivationLevel: diary.motivationLevel,
-        musclesSore: diary.musclesSore,
-        hasSymptoms: diary.hasSymptoms,
+        sorenessMap: diary.sorenessMap,
         symptoms: diary.symptoms,
         hasInjury: diary.hasInjury,
-        injuryLocation: diary.injuryLocation,
-        injuryPain: diary.injuryPain,
-        injuryProgress: diary.injuryProgress,
+        painLevel: diary.hasInjury ? diary.painLevel : null,
+        injuryImproving: diary.injuryImproving,
         injuryNotes: diary.injuryNotes
       })
       .returning();

@@ -32,10 +32,21 @@ export const trainingEntries = pgTable("training_entries", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertTrainingEntrySchema = createInsertSchema(trainingEntries).omit({
+// Create the base schema from Drizzle
+const baseTrainingEntrySchema = createInsertSchema(trainingEntries).omit({
   id: true,
   coachReviewed: true,
   createdAt: true,
+});
+
+// Create a custom schema that extends the base schema to handle date as string
+export const insertTrainingEntrySchema = baseTrainingEntrySchema.extend({
+  date: z.string().or(z.date()).transform((val) => {
+    // If it's already a Date object, return it
+    if (val instanceof Date) return val;
+    // Otherwise try to parse the string to a Date
+    return new Date(val);
+  }),
 });
 
 export const morningDiary = pgTable("morning_diary", {
