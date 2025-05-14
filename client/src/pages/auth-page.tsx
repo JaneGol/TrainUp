@@ -94,8 +94,21 @@ export default function AuthPage() {
   const onLoginSubmit = (data: LoginFormValues) => {
     console.log("Submitting login data:", data);
     loginMutation.mutate(data, {
-      onError: (error) => {
+      onError: (error: any) => {
         console.error("Login error:", error);
+        
+        // Show error in the form
+        if (error.response && error.response.data && error.response.data.error) {
+          loginForm.setError("root", { 
+            type: "manual", 
+            message: error.response.data.error 
+          });
+        } else {
+          loginForm.setError("root", { 
+            type: "manual", 
+            message: "Invalid username or password" 
+          });
+        }
       }
     });
   };
@@ -186,6 +199,13 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
+                      {/* Show any form errors */}
+                      {loginForm.formState.errors.root && (
+                        <div className="text-sm text-red-500 bg-red-100/10 rounded-md p-2 mb-3">
+                          {loginForm.formState.errors.root.message}
+                        </div>
+                      )}
+
                       <Button 
                         type="submit" 
                         className="w-full bg-primary hover:bg-primary/90 text-black" 
@@ -377,6 +397,13 @@ export default function AuthPage() {
                           )}
                         />
                       </div>
+                      
+                      {/* Show any form errors */}
+                      {registerForm.formState.errors.root && (
+                        <div className="text-sm text-red-500 bg-red-100/10 rounded-md p-2 mb-3">
+                          {registerForm.formState.errors.root.message}
+                        </div>
+                      )}
                       
                       <Button 
                         type="submit" 
