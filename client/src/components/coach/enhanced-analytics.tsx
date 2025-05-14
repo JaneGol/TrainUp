@@ -41,6 +41,8 @@ export interface TrainingLoad {
   date: string;
   load: number;
   trainingType: string;
+  effortLevel?: number;
+  emotionalLoad?: number;
 }
 
 export interface AcuteChronicWorkloadRatio {

@@ -635,7 +635,7 @@ export class DatabaseStorage implements IStorage {
     return result.sort((a, b) => b.riskScore - a.riskScore);
   }
   
-  async getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string }[]> {
+  async getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string; effortLevel?: number; emotionalLoad?: number }[]> {
     // Get training entries, optionally filtered by athlete
     let entries;
     
@@ -645,6 +645,7 @@ export class DatabaseStorage implements IStorage {
           trainingType: trainingEntries.trainingType,
           date: trainingEntries.date,
           effortLevel: trainingEntries.effortLevel,
+          emotionalLoad: trainingEntries.emotionalLoad,
           userId: trainingEntries.userId
         })
         .from(trainingEntries)
@@ -656,6 +657,7 @@ export class DatabaseStorage implements IStorage {
           trainingType: trainingEntries.trainingType,
           date: trainingEntries.date,
           effortLevel: trainingEntries.effortLevel,
+          emotionalLoad: trainingEntries.emotionalLoad,
           userId: trainingEntries.userId
         })
         .from(trainingEntries)
@@ -673,7 +675,9 @@ export class DatabaseStorage implements IStorage {
       return {
         date: dateString,
         load: trainingLoad,
-        trainingType: entry.trainingType
+        trainingType: entry.trainingType,
+        effortLevel: entry.effortLevel,
+        emotionalLoad: entry.emotionalLoad
       };
     });
     
