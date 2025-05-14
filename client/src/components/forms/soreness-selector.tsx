@@ -2,6 +2,7 @@ import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { FormLabel } from "@/components/ui/form";
+import { Check } from "lucide-react";
 
 interface SorenessSelectorProps {
   value: Record<string, boolean>;
@@ -67,17 +68,22 @@ export function SorenessSelector({
       <div 
         className={`p-3 rounded-lg cursor-pointer transition-colors mb-4
           ${hasNoSoreness 
-            ? "bg-primary/20" 
+            ? "bg-primary/20 border-l-2 border-primary" 
             : "bg-secondary/30 hover:bg-gray-800/50"}`}
         onClick={toggleNoSoreness}
       >
         <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="no_soreness"
-            checked={hasNoSoreness}
-            className="h-5 w-5 border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-            onCheckedChange={toggleNoSoreness}
-          />
+          <div className="relative flex items-center justify-center">
+            <Checkbox 
+              id="no_soreness"
+              checked={hasNoSoreness}
+              className="h-5 w-5 border-2 border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+              onCheckedChange={toggleNoSoreness}
+            />
+            {hasNoSoreness && (
+              <Check className="h-3 w-3 text-primary-foreground absolute" />
+            )}
+          </div>
           <label 
             htmlFor="no_soreness" 
             className="text-sm font-medium leading-none text-gray-200 flex-1 cursor-pointer"
@@ -101,17 +107,22 @@ export function SorenessSelector({
                       key={muscle}
                       className={`p-3 cursor-pointer border-b border-gray-800 transition-colors
                         ${isSelected 
-                          ? "bg-primary/20" 
+                          ? "bg-primary/20 border-l-2 border-primary" 
                           : "hover:bg-gray-800/30"}`}
                       onClick={() => toggleMuscle(muscle)}
                     >
                       <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`soreness-${muscle}`}
-                          className="h-5 w-5 border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                          checked={isSelected}
-                          onCheckedChange={() => toggleMuscle(muscle)}
-                        />
+                        <div className="relative flex items-center justify-center">
+                          <Checkbox 
+                            id={`soreness-${muscle}`}
+                            className="h-5 w-5 border-2 border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                            checked={isSelected}
+                            onCheckedChange={() => toggleMuscle(muscle)}
+                          />
+                          {isSelected && (
+                            <Check className="h-3 w-3 text-primary-foreground absolute" />
+                          )}
+                        </div>
                         <label 
                           htmlFor={`soreness-${muscle}`}
                           className="text-sm font-medium leading-none text-gray-200 flex-1 cursor-pointer capitalize"
@@ -133,17 +144,22 @@ export function SorenessSelector({
                       key={muscle}
                       className={`p-3 cursor-pointer border-b border-gray-800 transition-colors
                         ${isSelected 
-                          ? "bg-primary/20" 
+                          ? "bg-primary/20 border-l-2 border-primary" 
                           : "hover:bg-gray-800/30"}`}
                       onClick={() => toggleMuscle(muscle)}
                     >
                       <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`soreness-${muscle}`}
-                          className="h-5 w-5 border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                          checked={isSelected}
-                          onCheckedChange={() => toggleMuscle(muscle)}
-                        />
+                        <div className="relative flex items-center justify-center">
+                          <Checkbox 
+                            id={`soreness-${muscle}`}
+                            className="h-5 w-5 border-2 border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                            checked={isSelected}
+                            onCheckedChange={() => toggleMuscle(muscle)}
+                          />
+                          {isSelected && (
+                            <Check className="h-3 w-3 text-primary-foreground absolute" />
+                          )}
+                        </div>
                         <label 
                           htmlFor={`soreness-${muscle}`}
                           className="text-sm font-medium leading-none text-gray-200 flex-1 cursor-pointer capitalize"
