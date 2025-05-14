@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Loader2, CheckCircle } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeft, Loader2, CheckCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
 import MultiStepMorningDiaryForm from "@/components/forms/multi-step-morning-diary-form"; 
 
 export default function MorningDiaryPage() {
   const [, navigate] = useLocation();
   const [submitting, setSubmitting] = useState(false);
+  const queryClient = useQueryClient();
   
   // Fetch latest diary to check if one was already submitted today
   const { data: latestDiary, isLoading: diaryLoading } = useQuery({
@@ -17,6 +19,39 @@ export default function MorningDiaryPage() {
       const res = await fetch("/api/morning-diary/latest");
       if (!res.ok) return null;
       return await res.json();
+    }
+  });
+  
+  // Mutation to delete the latest diary entry
+  const deleteDiaryMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/morning-diary/latest", {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete diary entry");
+      }
+      
+      return await response.json();
+    },
+    onSuccess: () => {
+      // Invalidate queries after successful deletion
+      queryClient.invalidateQueries({ queryKey: ["/api/morning-diary/latest"] });
+      toast({
+        title: "Entry cleared",
+        description: "Your diary entry has been cleared. You can now fill out a new one.",
+        variant: "default",
+      });
+      setSubmitting(true);
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to clear entry",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   });
   
@@ -70,15 +105,35 @@ export default function MorningDiaryPage() {
                 Feel free to check the Smart Doctor section for personalized recommendations based on your input.
               </p>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button
-                variant="outline"
-                onClick={() => navigate("/athlete")}
+            <CardFooter className="flex flex-col gap-3">
+              <div className="flex justify-between w-full">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/athlete")}
+                >
+                  Back to Home
+                </Button>
+                <Button onClick={() => navigate("/athlete/smart-doctor")}>
+                  View Recommendations
+                </Button>
+              </div>
+              <Button 
+                variant="ghost" 
+                className="w-full flex items-center justify-center text-gray-400 hover:text-white border border-gray-800"
+                onClick={() => deleteDiaryMutation.mutate()}
+                disabled={deleteDiaryMutation.isPending}
               >
-                Back to Home
-              </Button>
-              <Button onClick={() => navigate("/athlete/smart-doctor")}>
-                View Recommendations
+                {deleteDiaryMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Clearing entry...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Clear Entry & Restart
+                  </>
+                )}
               </Button>
             </CardFooter>
           </Card>

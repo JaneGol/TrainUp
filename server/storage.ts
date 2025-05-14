@@ -203,6 +203,22 @@ export class MemStorage implements IStorage {
     return diaries.length > 0 ? diaries[0] : undefined;
   }
   
+  async deleteLatestMorningDiary(userId: number): Promise<boolean> {
+    try {
+      const latestDiary = await this.getLatestMorningDiary(userId);
+      
+      if (!latestDiary) {
+        return false;
+      }
+      
+      this.morningDiaries.delete(latestDiary.id);
+      return true;
+    } catch (error) {
+      console.error("Error deleting latest morning diary:", error);
+      return false;
+    }
+  }
+  
   // Fitness metrics methods
   async createFitnessMetrics(metrics: InsertFitnessMetrics): Promise<FitnessMetrics> {
     const id = this.metricsCurrentId++;
