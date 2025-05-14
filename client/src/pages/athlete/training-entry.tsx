@@ -31,7 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 const trainingEntryFormSchema = z.object({
   trainingType: z.string().min(1, "Training type is required"),
   effortLevel: z.number().min(1).max(10),
-  duration: z.number().min(5, "Duration must be at least 5 minutes"),
+  emotionalLoad: z.number().min(1).max(10),
   date: z.date().default(() => new Date()),
   mood: z.enum(["happy", "neutral", "tired", "exhausted"]),
   notes: z.string().optional(),
@@ -45,6 +45,7 @@ export default function TrainingEntryForm() {
   const queryClient = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const [effortDescription, setEffortDescription] = useState("Normal effort");
+  const [emotionalDescription, setEmotionalDescription] = useState("Moderate emotional impact");
   
   // Define form
   const form = useForm<TrainingEntryFormValues>({
@@ -52,15 +53,16 @@ export default function TrainingEntryForm() {
     defaultValues: {
       trainingType: "",
       effortLevel: 5,
-      duration: 60,
+      emotionalLoad: 5,
       date: new Date(), // Add date with current date as default
       mood: "neutral",
       notes: "",
     },
   });
   
-  // Watch effort level to provide description
+  // Watch effort level and emotional load to provide descriptions
   const effortLevel = form.watch("effortLevel");
+  const emotionalLoad = form.watch("emotionalLoad");
   
   // Update effort description when effortLevel changes
   useEffect(() => {
@@ -76,6 +78,21 @@ export default function TrainingEntryForm() {
       setEffortDescription("Maximum effort");
     }
   }, [effortLevel]);
+  
+  // Update emotional load description when emotionalLoad changes
+  useEffect(() => {
+    if (emotionalLoad <= 2) {
+      setEmotionalDescription("Minimal emotional impact");
+    } else if (emotionalLoad <= 4) {
+      setEmotionalDescription("Light emotional impact");
+    } else if (emotionalLoad <= 6) {
+      setEmotionalDescription("Moderate emotional impact");
+    } else if (emotionalLoad <= 8) {
+      setEmotionalDescription("High emotional impact");
+    } else {
+      setEmotionalDescription("Extreme emotional impact");
+    }
+  }, [emotionalLoad]);
   
   // Submit form mutation
   const submitTrainingEntry = useMutation({
@@ -216,33 +233,7 @@ export default function TrainingEntryForm() {
                   )}
                 />
                 
-                <FormField
-                  control={form.control}
-                  name="duration"
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <FormItem>
-                      <FormLabel>Duration (minutes)</FormLabel>
-                      <FormControl>
-                        <div className="space-y-2">
-                          <Slider
-                            min={5}
-                            max={240}
-                            step={5}
-                            defaultValue={[value]}
-                            onValueChange={(vals) => onChange(vals[0])}
-                            {...field}
-                          />
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">5 min</span>
-                            <span className="text-sm font-medium">{value} min</span>
-                            <span className="text-sm text-muted-foreground">240 min</span>
-                          </div>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
                 
                 <FormField
                   control={form.control}
@@ -268,7 +259,38 @@ export default function TrainingEntryForm() {
                         </div>
                       </FormControl>
                       <FormDescription>
-                        How hard was your training session?
+                        How physically demanding was your training session?
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="emotionalLoad"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Emotional Load</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2">
+                          <Slider
+                            min={1}
+                            max={10}
+                            step={1}
+                            defaultValue={[value]}
+                            onValueChange={(vals) => onChange(vals[0])}
+                            {...field}
+                          />
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Low (1)</span>
+                            <span className="text-sm font-medium">{value} - {emotionalDescription}</span>
+                            <span className="text-sm text-muted-foreground">High (10)</span>
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        Rate the emotional intensity of your training session
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

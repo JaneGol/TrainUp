@@ -25,6 +25,7 @@ export const trainingEntries = pgTable("training_entries", {
   trainingType: text("training_type").notNull(),
   date: timestamp("date").notNull(),
   effortLevel: integer("effort_level").notNull(),
+  emotionalLoad: integer("emotional_load").notNull(),
   mood: text("mood").notNull(),
   notes: text("notes"),
   coachReviewed: boolean("coach_reviewed").default(false),
