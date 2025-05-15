@@ -57,15 +57,37 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
           formattedDate: formatDateShort(date),
         };
         
+        // First collect all category values
+        const categoryValues: Record<string, number> = {};
+        
         uniqueCategories.forEach(category => {
           const metricData = dataForDay.find((item: HealthMetric) => item.category === category);
           if (metricData) {
             // Convert from 0-1 scale to 0-100
-            dataPoint[category] = Math.round(metricData.value * 100);
+            const value = Math.round(metricData.value * 100);
+            dataPoint[category] = value;
+            categoryValues[category] = value;
           } else {
             dataPoint[category] = 0;
+            categoryValues[category] = 0;
           }
         });
+        
+        // Calculate Energy as average of Motivation and Mood if they exist
+        const hasMood = 'Mood' in categoryValues;
+        const hasMotivation = 'Motivation' in categoryValues;
+        
+        if (hasMood || hasMotivation) {
+          const moodValue = hasMood ? categoryValues['Mood'] : 0;
+          const motivationValue = hasMotivation ? categoryValues['Motivation'] : 0;
+          
+          // If both metrics exist, average them; otherwise use the one that exists
+          const divisor = (hasMood && hasMotivation) ? 2 : 1;
+          const energyValue = Math.round((moodValue + motivationValue) / divisor);
+          
+          // Add Energy as a new parameter
+          dataPoint['Energy'] = energyValue;
+        }
         
         return dataPoint;
       });
@@ -88,6 +110,9 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
     'Recovery': '#f59e0b', // amber
     'Sleep': '#8b5cf6', // violet
     'Sick/Injured': '#ef4444', // red
+    'Energy': '#22c55e', // green
+    'Mood': '#ec4899', // pink
+    'Motivation': '#f97316', // orange
   };
 
   return (
@@ -102,29 +127,31 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 25, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+          <ResponsiveContainer width="100%" height={180}>
+            <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 20, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" opacity={0.5} />
               <XAxis 
                 dataKey="formattedDate" 
                 tick={{ 
                   fill: 'rgba(156, 163, 175, 0.7)', 
-                  fontSize: 10 
+                  fontSize: 9 
                 }} 
                 tickLine={{ stroke: '#4b5563' }}
                 axisLine={{ stroke: '#4b5563' }}
-                dy={10}
+                dy={8}
+                height={20}
               />
               <YAxis 
                 tick={{ 
                   fill: 'rgba(156, 163, 175, 0.7)', 
-                  fontSize: 10
+                  fontSize: 9
                 }} 
                 tickLine={{ stroke: '#4b5563' }}
                 axisLine={{ stroke: '#4b5563' }}
                 domain={[0, 100]}
                 tickFormatter={(value) => `${value}%`}
-                width={30}
+                width={25}
+                tickCount={5}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -132,19 +159,21 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
                   borderColor: '#3f3f46',
                   color: 'white',
                   borderRadius: '4px',
-                  fontSize: '12px'
+                  fontSize: '11px',
+                  padding: '4px 8px'
                 }}
-                labelStyle={{ color: 'white' }}
+                labelStyle={{ color: 'white', fontSize: '11px' }}
                 formatter={(value) => [`${value}%`, '']}
               />
               <Legend 
                 verticalAlign="bottom" 
                 iconType="circle"
                 wrapperStyle={{
-                  paddingTop: '10px',
-                  fontSize: '11px',
+                  paddingTop: '5px',
+                  fontSize: '10px',
                   opacity: 0.7
                 }}
+                iconSize={8}
               />
               {Object.keys(categoryColors).map((category) => {
                 // Only render the category if it exists in the data

@@ -36,15 +36,38 @@ function AthleteIcon({
         ? 'text-yellow-500' 
         : 'text-red-500';
   };
-
-  // Helper function to determine border color based on sleep quality
-  const getSleepQualityBorderColor = () => {
-    return sleepQuality === 'good'
-      ? 'border-green-500'
-      : sleepQuality === 'average'
-        ? 'border-yellow-500'
-        : 'border-red-500';
+  
+  // Helper function to determine background color and fill percentage based on sleep quality
+  const getSleepQualityStyle = () => {
+    let bgColor, fillPercentage;
+    
+    if (sleepQuality === 'good') {
+      bgColor = 'rgba(34, 197, 94, 0.6)'; // Green with 60% opacity
+      fillPercentage = '100%';
+    } else if (sleepQuality === 'average') {
+      bgColor = 'rgba(234, 179, 8, 0.6)'; // Yellow with 60% opacity
+      fillPercentage = '70%';
+    } else {
+      bgColor = 'rgba(239, 68, 68, 0.6)'; // Red with 60% opacity
+      fillPercentage = '40%';
+    }
+    
+    return {
+      backgroundColor: bgColor,
+      height: fillPercentage
+    };
   };
+  
+  // Get battery fill color based on readiness
+  const getBatteryFillColor = () => {
+    return readinessScore >= 75 
+      ? '#22c55e' // green
+      : readinessScore >= 50 
+        ? '#eab308' // yellow
+        : '#ef4444'; // red
+  };
+  
+  const sleepQualityStyle = getSleepQualityStyle();
   
   return (
     <div 
@@ -53,33 +76,39 @@ function AthleteIcon({
     >
       {/* Athlete icon with indicators */}
       <div className="relative w-14 h-14 mb-1">
-        {/* Outer circle - Sleep quality */}
-        <div className={`absolute inset-0 rounded-full border-3 ${getSleepQualityBorderColor()}`} />
-        
-        {/* Inner circle - Mood level */}
-        <div 
-          className="absolute inset-1 rounded-full border-2 border-dashed" 
-          style={{ 
-            borderColor: moodScore >= 75 
-              ? 'rgba(34, 197, 94, 0.7)' 
-              : moodScore >= 50 
-                ? 'rgba(234, 179, 8, 0.7)' 
-                : 'rgba(239, 68, 68, 0.7)'
-          }}
-        />
-        
-        {/* Avatar/initials */}
-        <div className="absolute inset-2 rounded-full bg-zinc-800 flex items-center justify-center">
-          <span className="text-sm font-semibold">{initials}</span>
+        {/* Outer circle - Sleep quality shown as filled circle */}
+        <div className="absolute inset-0 rounded-full overflow-hidden border border-zinc-700">
+          <div 
+            className="absolute bottom-0 left-0 right-0"
+            style={{ 
+              backgroundColor: sleepQualityStyle.backgroundColor,
+              height: sleepQualityStyle.height
+            }}
+          />
         </div>
         
-        {/* Recovery status - Top right corner */}
+        {/* Battery icon in center for readiness */}
+        <div className="absolute inset-1/4 flex items-center justify-center z-10">
+          <div className="relative w-7 h-4 border-2 rounded-sm flex items-center justify-center"
+               style={{ borderColor: getBatteryFillColor() }}>
+            <div 
+              className="absolute inset-y-0 left-0 rounded-l-[1px]"
+              style={{ 
+                backgroundColor: getBatteryFillColor(),
+                width: `${readinessScore}%`,
+                maxWidth: 'calc(100% - 1px)'
+              }}
+            />
+            <div 
+              className="absolute -right-[3px] inset-y-[1px] rounded-r-[1px] w-[2px]"
+              style={{ backgroundColor: getBatteryFillColor() }}
+            />
+          </div>
+        </div>
+        
+        {/* Recovery status - Top right corner with light gray background circle */}
         <div 
-          className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${
-            recoveryScore >= 75 ? 'bg-green-500/20' : 
-            recoveryScore >= 50 ? 'bg-yellow-500/20' : 
-            'bg-red-500/20'
-          }`}
+          className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-zinc-700 flex items-center justify-center z-20"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
@@ -99,7 +128,7 @@ function AthleteIcon({
         
         {/* Health issue indicator - Bottom left */}
         {hasIssues && (
-          <div className="absolute -bottom-1 -left-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center">
+          <div className="absolute -bottom-1 -left-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center z-20">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               width="12" 
