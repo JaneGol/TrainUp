@@ -191,6 +191,21 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(users).where(eq(users.role, "athlete"));
   }
   
+  async updateUserPassword(userId: number, hashedPassword: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, userId))
+        .returning({ id: users.id });
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error updating user password:", error);
+      return false;
+    }
+  }
+  
   // Training entry methods
   async createTrainingEntry(entry: InsertTrainingEntry): Promise<TrainingEntry> {
     const [newEntry] = await db
