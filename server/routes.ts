@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { setupPasswordResetRoutes } from "./password-reset-routes";
+import { HealthRecommendationService } from "./ai-health";
 import { 
   insertTrainingEntrySchema, 
   insertHealthReportSchema, 
@@ -36,6 +37,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Set up password reset routes
   setupPasswordResetRoutes(app);
+  
+  // Initialize health recommendation service
+  const healthRecommendationService = new HealthRecommendationService(storage);
   
   // Change password route for logged-in users
   app.post("/api/user/change-password", (req, res) => {
