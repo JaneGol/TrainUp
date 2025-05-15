@@ -158,3 +158,8 @@ button:not([disabled]):active {
          bg-background border border-gray-700;
 }
 
+/* Custom border width utility class */
+.border-3 {
+  border-width: 3px;
+}
+
