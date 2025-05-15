@@ -86,30 +86,30 @@ function AthleteIcon({
       onClick={onClick}
     >
       {/* Athlete icon with indicators */}
-      <div className="relative w-16 h-16 mb-1">
+      <div className="relative w-20 h-20 mb-1">
         {/* Outer circle - Sleep quality as donut chart */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <svg width="48" height="48" viewBox="0 0 48 48" className="transform -rotate-90">
+          <svg width="64" height="64" viewBox="0 0 64 64" className="transform -rotate-90">
             {/* Dark gray base ring */}
             <circle 
-              cx="24" 
-              cy="24" 
-              r={radius} 
+              cx="32" 
+              cy="32" 
+              r={radius * 1.35} 
               fill="transparent" 
               stroke="#333" 
-              strokeWidth="3"
+              strokeWidth="4"
               strokeLinecap="round"
             />
             {/* Colored progress ring */}
             <circle 
-              cx="24" 
-              cy="24" 
-              r={radius} 
+              cx="32" 
+              cy="32" 
+              r={radius * 1.35} 
               fill="transparent" 
               stroke={sleepInfo.color} 
-              strokeWidth="3"
-              strokeDasharray={circumference}
-              strokeDashoffset={dashoffset}
+              strokeWidth="4"
+              strokeDasharray={circumference * 1.35}
+              strokeDashoffset={dashoffset * 1.35}
               strokeLinecap="round"
               style={{ transition: 'stroke-dashoffset 0.5s ease' }}
             />
@@ -118,12 +118,12 @@ function AthleteIcon({
         
         {/* Battery icon directly in center for readiness */}
         <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className="flex items-center bg-zinc-900/80 rounded-sm px-0.5 py-px">
+          <div className="flex items-center bg-zinc-900/90 rounded-sm px-1 py-0.5 shadow">
             {/* Battery segments */}
             {Array.from({ length: batterySegments }).map((_, index) => (
               <div 
                 key={index}
-                className={`w-1.5 h-4 mx-0.5 ${index < filledSegments ? 'opacity-100' : 'opacity-30'}`}
+                className={`w-2 h-5 mx-0.5 ${index < filledSegments ? 'opacity-100' : 'opacity-30'}`}
                 style={{ 
                   backgroundColor: getBatteryFillColor(),
                   borderRadius: index === 0 ? '2px 0 0 2px' : index === batterySegments - 1 ? '0 2px 2px 0' : '0'
@@ -133,7 +133,7 @@ function AthleteIcon({
             
             {/* Battery cap */}
             <div 
-              className="w-0.5 h-2 ml-0.5"
+              className="w-1 h-3 ml-0.5"
               style={{ backgroundColor: getBatteryFillColor() }}
             />
           </div>
@@ -141,12 +141,12 @@ function AthleteIcon({
         
         {/* Recovery status - Top right corner with light gray background circle */}
         <div 
-          className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-zinc-700 flex items-center justify-center z-20"
+          className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center z-20 shadow-md"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            width="12" 
-            height="12" 
+            width="14" 
+            height="14" 
             viewBox="0 0 24 24" 
             fill="none" 
             stroke="currentColor" 
@@ -161,11 +161,11 @@ function AthleteIcon({
         
         {/* Health issue indicator - Bottom left */}
         {hasIssues && (
-          <div className="absolute -bottom-1 -left-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center z-20">
+          <div className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center z-20 shadow-md">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width="12" 
-              height="12" 
+              width="14" 
+              height="14" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
