@@ -207,74 +207,77 @@ export default function NewCoachDashboard() {
           </div>
         </div>
         
-        {/* Modern Infographic Style Key Metrics Panel - Compact Version */}
-        <div className="bg-zinc-900 rounded-lg py-3 px-4 mb-6 flex justify-between items-center gap-2 shadow-md">
+        {/* Ultra-Compact Key Metrics Panel */}
+        <div className="bg-zinc-900 rounded-full py-2 px-2 mb-6 flex justify-between items-center gap-1 shadow-md mx-auto max-w-3xl">
           {/* Recovery Metric */}
-          <div className="flex items-center space-x-2 px-2 py-1 rounded-lg">
+          <div className="flex items-center gap-1.5 px-2">
             <div className="relative">
-              {/* Circular progress indicator */}
-              <div className="relative h-10 w-10">
-                <CircleDashed 
-                  className="h-10 w-10 text-zinc-700 absolute" 
-                  strokeWidth={1} 
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  {readinessLoading ? (
-                    <div className="h-2 w-2 rounded-full animate-pulse bg-blue-500"></div>
-                  ) : (
-                    <>
-                      {/* Battery icon based on recovery percentage */}
+              <div className="relative h-7 w-7">
+                {readinessLoading ? (
+                  <div className="h-2 w-2 rounded-full animate-pulse bg-blue-500 mx-auto my-auto"></div>
+                ) : (
+                  <>
+                    {/* Battery icon with circular progress */}
+                    <div className="absolute inset-0 flex items-center justify-center">
                       {averageReadiness >= 90 ? (
-                        <BatteryFull className="h-5 w-5 text-blue-500" />
+                        <BatteryFull className="h-4 w-4 text-blue-500 z-10" />
                       ) : averageReadiness >= 60 ? (
-                        <BatteryMedium className="h-5 w-5 text-yellow-400" />
+                        <BatteryMedium className="h-4 w-4 text-yellow-400 z-10" />
                       ) : (
-                        <BatteryWarning className="h-5 w-5 text-red-500" />
+                        <BatteryWarning className="h-4 w-4 text-red-500 z-10" />
                       )}
-                      {/* Colored circle around the progress bar based on value */}
-                      <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-                        <circle 
-                          className={`
-                            ${averageReadiness >= 90 ? 'stroke-blue-500' : 
-                               averageReadiness >= 60 ? 'stroke-yellow-400' : 
-                               'stroke-red-500'}
-                          `}
-                          strokeWidth="6"
-                          strokeLinecap="round"
-                          fill="transparent"
-                          r="40"
-                          cx="50"
-                          cy="50"
-                          strokeDasharray="251.3"
-                          strokeDashoffset={251.3 - (251.3 * averageReadiness / 100)}
-                        />
-                      </svg>
-                    </>
-                  )}
-                </div>
+                    </div>
+                    {/* Circular progress indicator */}
+                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                      <circle 
+                        className="stroke-zinc-700"
+                        strokeWidth="10"
+                        fill="transparent"
+                        r="40"
+                        cx="50"
+                        cy="50"
+                        strokeDasharray="251.3"
+                      />
+                      <circle 
+                        className={`
+                          ${averageReadiness >= 90 ? 'stroke-blue-500' : 
+                             averageReadiness >= 60 ? 'stroke-yellow-400' : 
+                             'stroke-red-500'}
+                        `}
+                        strokeWidth="10"
+                        strokeLinecap="round"
+                        fill="transparent"
+                        r="40"
+                        cx="50"
+                        cy="50"
+                        strokeDasharray="251.3"
+                        strokeDashoffset={251.3 - (251.3 * averageReadiness / 100)}
+                      />
+                    </svg>
+                  </>
+                )}
               </div>
             </div>
             <div>
-              <div className="font-semibold text-sm">
+              <div className="text-xs font-medium leading-none">
                 {readinessLoading ? "..." : `${averageReadiness}%`}
               </div>
-              <div className="text-xs text-zinc-400">Recovery</div>
+              <div className="text-[10px] text-zinc-400 leading-none">Recovery</div>
             </div>
           </div>
 
-          {/* Vertical Divider */}
-          <div className="w-px h-10 bg-zinc-800"></div>
+          <div className="w-px h-6 bg-zinc-800"></div>
 
           {/* Readiness Metric */}
-          <div className="flex items-center space-x-2 px-2 py-1 rounded-lg">
-            <div className="relative h-10 w-10 flex items-center justify-center">
-              <Zap className={`h-6 w-6 
+          <div className="flex items-center gap-1.5 px-2">
+            <div className="relative h-7 w-7 flex items-center justify-center">
+              <Zap className={`h-4 w-4 
                 ${averageReadiness > 80 ? 'text-green-500' : 
                   averageReadiness > 50 ? 'text-yellow-400' : 
                   'text-red-500'}`} 
               />
               {/* Horizontal bar indicator */}
-              <div className="absolute bottom-1 w-8 h-1 bg-zinc-700 rounded-full overflow-hidden">
+              <div className="absolute bottom-0.5 w-6 h-0.5 bg-zinc-700 rounded-full overflow-hidden">
                 <div 
                   className={`h-full rounded-full 
                     ${averageReadiness > 80 ? 'bg-green-500' : 
@@ -285,26 +288,25 @@ export default function NewCoachDashboard() {
               </div>
             </div>
             <div>
-              <div className="font-semibold text-sm">
+              <div className="text-xs font-medium leading-none">
                 {readinessLoading ? "..." : `${averageReadiness}%`}
               </div>
-              <div className="text-xs text-zinc-400">Readiness</div>
+              <div className="text-[10px] text-zinc-400 leading-none">Readiness</div>
             </div>
           </div>
 
-          {/* Vertical Divider */}
-          <div className="w-px h-10 bg-zinc-800"></div>
+          <div className="w-px h-6 bg-zinc-800"></div>
 
           {/* High Risk Metric */}
-          <div className="flex items-center space-x-2 px-2 py-1 rounded-lg">
-            <div className="relative h-10 w-10 flex items-center justify-center">
-              <div className={`h-8 w-8 rounded flex items-center justify-center
+          <div className="flex items-center gap-1.5 px-2">
+            <div className="relative">
+              <div className={`h-6 w-6 rounded-full flex items-center justify-center
                 ${athletesAtRisk === 0 ? 'bg-green-500/10' : 
                   athletesAtRisk <= 2 ? 'bg-yellow-400/10' : 
                   'bg-red-500/10'}`}
               >
                 <Triangle 
-                  className={`h-5 w-5 
+                  className={`h-3.5 w-3.5 
                     ${athletesAtRisk === 0 ? 'text-green-500' : 
                       athletesAtRisk <= 2 ? 'text-yellow-400' : 
                       'text-red-500'}`} 
@@ -313,39 +315,38 @@ export default function NewCoachDashboard() {
               </div>
             </div>
             <div>
-              <div className={`font-semibold text-sm
+              <div className={`text-xs font-medium leading-none
                 ${athletesAtRisk === 0 ? 'text-green-500' : 
                   athletesAtRisk <= 2 ? 'text-yellow-400' : 
                   'text-red-500'}`}
               >
                 {athletesLoading ? "..." : athletesAtRisk}
               </div>
-              <div className="text-xs text-zinc-400">High Risk</div>
+              <div className="text-[10px] text-zinc-400 leading-none">High Risk</div>
             </div>
           </div>
 
-          {/* Vertical Divider */}
-          <div className="w-px h-10 bg-zinc-800"></div>
+          <div className="w-px h-6 bg-zinc-800"></div>
 
           {/* Sick/Injured Metric */}
-          <div className="flex items-center space-x-2 px-2 py-1 rounded-lg">
-            <div className="relative h-10 w-10 flex items-center justify-center">
-              <div className={`h-8 w-8 rounded flex items-center justify-center
+          <div className="flex items-center gap-1.5 px-2">
+            <div className="relative">
+              <div className={`h-6 w-6 rounded-full flex items-center justify-center
                 ${sickOrInjuredAthletes === 0 ? 'bg-green-500/10' : 'bg-red-500/10'}`}
               >
                 <HeartPulse 
-                  className={`h-5 w-5 
+                  className={`h-3.5 w-3.5 
                     ${sickOrInjuredAthletes === 0 ? 'text-green-500' : 'text-red-500'}`}
                 />
               </div>
             </div>
             <div>
-              <div className={`font-semibold text-sm
+              <div className={`text-xs font-medium leading-none
                 ${sickOrInjuredAthletes === 0 ? 'text-green-500' : 'text-red-500'}`}
               >
                 {athletesLoading ? "..." : sickOrInjuredAthletes}
               </div>
-              <div className="text-xs text-zinc-400">Sick/Injured</div>
+              <div className="text-[10px] text-zinc-400 leading-none">Sick/Injured</div>
             </div>
           </div>
         </div>
