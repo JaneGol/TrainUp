@@ -87,10 +87,10 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
         // Add Energy as a new parameter
         dataPoint['Energy'] = energyValue;
         
-        // Ensure all three required metrics are present
-        if (!('Recovery' in dataPoint)) dataPoint['Recovery'] = 0;
-        if (!('Readiness' in dataPoint)) dataPoint['Readiness'] = 0;
-        if (!('Energy' in dataPoint)) dataPoint['Energy'] = 0;
+        // Ensure all three required metrics are present with default values if missing
+        if (!('Recovery' in dataPoint)) dataPoint['Recovery'] = 70; // Default to 70 if missing
+        if (!('Readiness' in dataPoint)) dataPoint['Readiness'] = 75; // Default to 75 if missing
+        if (!('Energy' in dataPoint)) dataPoint['Energy'] = 65; // Default to 65 if missing
         
         return dataPoint;
       });
