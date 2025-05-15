@@ -86,14 +86,14 @@ function AthleteIcon({
       onClick={onClick}
     >
       {/* Athlete icon with indicators */}
-      <div className="relative w-14 h-14 mb-1">
+      <div className="relative w-16 h-16 mb-1">
         {/* Outer circle - Sleep quality as donut chart */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <svg width="40" height="40" viewBox="0 0 44 44" className="transform -rotate-90">
+          <svg width="48" height="48" viewBox="0 0 48 48" className="transform -rotate-90">
             {/* Dark gray base ring */}
             <circle 
-              cx="22" 
-              cy="22" 
+              cx="24" 
+              cy="24" 
               r={radius} 
               fill="transparent" 
               stroke="#333" 
@@ -102,8 +102,8 @@ function AthleteIcon({
             />
             {/* Colored progress ring */}
             <circle 
-              cx="22" 
-              cy="22" 
+              cx="24" 
+              cy="24" 
               r={radius} 
               fill="transparent" 
               stroke={sleepInfo.color} 
@@ -116,9 +116,9 @@ function AthleteIcon({
           </svg>
         </div>
         
-        {/* Battery icon in center for readiness */}
-        <div className="absolute inset-1/4 flex items-center justify-center z-10">
-          <div className="flex items-center">
+        {/* Battery icon directly in center for readiness */}
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <div className="flex items-center bg-zinc-900/80 rounded-sm px-0.5 py-px">
             {/* Battery segments */}
             {Array.from({ length: batterySegments }).map((_, index) => (
               <div 
@@ -288,7 +288,7 @@ export default function AthleteIconGrid() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : mergedAthleteData.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
             {mergedAthleteData.map((athlete: any) => (
               <AthleteIcon
                 key={athlete.athleteId}

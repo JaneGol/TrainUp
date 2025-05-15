@@ -152,13 +152,13 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
     return `${day}.${month}`;
   };
 
-  // Define colors for each category
+  // Define colors for each category with specific requirements
   const categoryColors = {
-    'Readiness': '#3b82f6', // blue
-    'Recovery': '#f59e0b', // amber
+    'Readiness': '#3b82f6', // consistent blue tone matching app's palette
+    'Recovery': 'rgb(200, 255, 1)', // specified yellow color with RGB value (200, 255, 1)
     'Sleep': '#8b5cf6', // violet
     'Sick/Injured': '#ef4444', // red
-    'Energy': '#CBFF00', // bright yellow-green from app design
+    'Energy': '#22c55e', // green color for Energy (average of Motivation and Mood)
     'Mood': '#ec4899', // pink
     'Motivation': '#f97316', // orange
   };
@@ -226,14 +226,14 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
               {/* Weekly average trend line for Energy */}
               <ReferenceLine 
                 y={trendData.averageReadiness} 
-                stroke="#CBFF00" 
+                stroke={categoryColors['Energy']} 
                 strokeDasharray="3 3"
                 strokeWidth={1.5}
                 opacity={0.7}
                 label={{ 
                   value: 'Avg Energy', 
                   position: 'right', 
-                  fill: '#CBFF00', 
+                  fill: categoryColors['Energy'], 
                   fontSize: 9
                 }}
               />
@@ -249,10 +249,10 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
                         key={category}
                         type="monotone"
                         dataKey={category}
-                        stroke="#CBFF00" // Bright yellow-green from the app design
+                        stroke={categoryColors[category as keyof typeof categoryColors]} // Use the green color from our palette
                         strokeWidth={3}
-                        dot={{ r: 4, fill: "#CBFF00", strokeWidth: 1, stroke: "#111" }}
-                        activeDot={{ r: 5, fill: "#CBFF00", stroke: "#111" }}
+                        dot={{ r: 4, fill: categoryColors[category as keyof typeof categoryColors], strokeWidth: 1, stroke: "#111" }}
+                        activeDot={{ r: 5, fill: categoryColors[category as keyof typeof categoryColors], stroke: "#111" }}
                         name={category}
                         connectNulls={true}
                       />
