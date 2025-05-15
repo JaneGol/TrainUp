@@ -74,9 +74,14 @@ class PasswordResetManager {
         return false;
       }
       
-      // In a real implementation, we would update the user's password in the database
-      // Here we're just going to return true
-      console.log(`Password reset for user ${userId} with new password: ${newPassword}`);
+      // Hash the new password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update the user's password in the storage
+      // For our in-memory implementation, we can directly modify the user object
+      user.password = hashedPassword;
+      
+      console.log(`Password reset for user ${userId} (${user.username}) - successfully updated`);
       
       // Clear any tokens for this user
       const tokensToDelete: string[] = [];

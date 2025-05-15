@@ -71,15 +71,14 @@ export function setupPasswordResetRoutes(app: Express) {
         return res.status(400).json({ error: "Invalid or expired token" });
       }
       
-      // Hash the new password
-      const hashedPassword = await hashPassword(newPassword);
+      // Reset the user's password
+      const success = await passwordResetManager.resetPassword(user.id, newPassword);
       
-      // In a real app, we would update the user's password in the database
-      // For demo purposes, we'll just log it
-      console.log(`Resetting password for user ${user.id} (${user.username})`);
+      if (!success) {
+        return res.status(500).json({ error: "Failed to reset password" });
+      }
       
-      // Clear the reset token
-      await passwordResetManager.clearResetToken(token);
+      // No need to clear the token separately as resetPassword already does this
       
       res.status(200).json({ message: "Password reset successfully" });
     } catch (error) {
