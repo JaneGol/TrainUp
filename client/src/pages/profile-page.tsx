@@ -1,10 +1,11 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2, User } from "lucide-react";
-import { Redirect } from "wouter";
+import { Redirect, useLocation } from "wouter";
 import { ChangePasswordForm } from "@/components/profile/change-password-form";
 
 export default function ProfilePage() {
   const { user, isLoading } = useAuth();
+  const [location, navigate] = useLocation();
 
   if (isLoading) {
     return (
@@ -16,6 +17,19 @@ export default function ProfilePage() {
 
   if (!user) {
     return <Redirect to="/auth" />;
+  }
+  
+  // Redirect to appropriate dashboard based on role
+  // This prevents users from accessing profiles they shouldn't view
+  const viewingOwnProfile = true; // Since we only support viewing own profile now
+  
+  if (!viewingOwnProfile) {
+    // Redirect to appropriate home page based on role
+    if (user.role === "coach") {
+      return <Redirect to="/coach" />;
+    } else {
+      return <Redirect to="/" />;
+    }
   }
 
   return (

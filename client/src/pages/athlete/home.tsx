@@ -10,7 +10,8 @@ import {
   Trophy,
   ArrowRight,
   LogOut,
-  LineChart
+  LineChart,
+  User
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
