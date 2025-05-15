@@ -1,24 +1,18 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  ResponsiveContainer, 
-  Legend,
-  CartesianGrid,
-  ReferenceArea,
-  ReferenceLine
-} from "recharts";
-import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 interface HealthMetric {
   date: string;
   value: number;
   category: string;
+}
+
+interface TrendData {
+  trend: 'improving' | 'stable' | 'declining';
+  changePercentage: number;
 }
 
 interface HealthTrendChartProps {
@@ -27,21 +21,15 @@ interface HealthTrendChartProps {
 }
 
 export default function HealthTrendChart({ title, description }: HealthTrendChartProps) {
-  // Get wellness trends data
-  const { data: wellnessTrends, isLoading } = useQuery({
-    queryKey: ["/api/analytics/team-wellness-trends"],
-  });
-
-  // Get last 7 days data
   const [chartData, setChartData] = useState<any[]>([]);
-  const [trendData, setTrendData] = useState<{
-    averageReadiness: number;
-    trend: 'up' | 'down' | 'stable';
-    trendValue: number;
-  }>({
-    averageReadiness: 0,
+  const [trendData, setTrendData] = useState<TrendData>({
     trend: 'stable',
-    trendValue: 0
+    changePercentage: 0
+  });
+  
+  const { data: wellnessTrends, isLoading, error } = useQuery({
+    queryKey: ['/api/analytics/team-wellness-trends'],
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   useEffect(() => {
@@ -98,53 +86,49 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
           
           // Add Energy as a new parameter
           dataPoint['Energy'] = energyValue;
-          
-          // Remove Mood as it's now incorporated into Energy
-          if (hasMood) {
-            delete dataPoint['Mood'];
-          }
         }
+        
+        // Ensure all three required metrics are present
+        if (!('Recovery' in dataPoint)) dataPoint['Recovery'] = 0;
+        if (!('Readiness' in dataPoint)) dataPoint['Readiness'] = 0;
+        if (!('Energy' in dataPoint)) dataPoint['Energy'] = 0;
         
         return dataPoint;
       });
       
-      setChartData(formattedData);
+      // Analyze trends (focus on Readiness as it's most important)
+      const readinessValues = formattedData
+        .filter(d => 'Readiness' in d && d.Readiness !== undefined)
+        .map(d => d.Readiness);
       
-      // Calculate trend data 
-      if (formattedData.length > 0) {
-        // Calculate Energy trend over the last 7 days
-        const energyValues = formattedData
-          .filter(item => 'Energy' in item)
-          .map(item => item.Energy);
+      let trend: 'improving' | 'stable' | 'declining' = 'stable';
+      let changePercentage = 0;
+      
+      if (readinessValues.length >= 2) {
+        const firstHalf = readinessValues.slice(0, Math.floor(readinessValues.length / 2));
+        const secondHalf = readinessValues.slice(Math.floor(readinessValues.length / 2));
         
-        if (energyValues.length > 1) {
-          // Calculate overall average
-          const averageReadiness = Math.round(
-            energyValues.reduce((sum, val) => sum + val, 0) / energyValues.length
-          );
-          
-          // Calculate trend (first half vs second half)
-          const midpoint = Math.floor(energyValues.length / 2);
-          const firstHalf = energyValues.slice(0, midpoint);
-          const secondHalf = energyValues.slice(midpoint);
-          
-          const firstHalfAvg = firstHalf.reduce((sum, val) => sum + val, 0) / firstHalf.length;
-          const secondHalfAvg = secondHalf.reduce((sum, val) => sum + val, 0) / secondHalf.length;
-          
-          const trendValue = secondHalfAvg - firstHalfAvg;
-          const trend = trendValue > 1 ? 'up' : trendValue < -1 ? 'down' : 'stable';
-          
-          setTrendData({
-            averageReadiness,
-            trend,
-            trendValue: Math.abs(trendValue)
-          });
+        const firstHalfAvg = firstHalf.reduce((sum, val) => sum + val, 0) / firstHalf.length;
+        const secondHalfAvg = secondHalf.reduce((sum, val) => sum + val, 0) / secondHalf.length;
+        
+        changePercentage = Math.round(((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100);
+        
+        if (changePercentage > 5) {
+          trend = 'improving';
+        } else if (changePercentage < -5) {
+          trend = 'declining';
         }
       }
+      
+      setChartData(formattedData);
+      setTrendData({
+        trend,
+        changePercentage
+      });
     }
   }, [wellnessTrends]);
-
-  // Format date to DD.MM format (e.g., "15.05")
+  
+  // Helper function to format date in a more compact format (DD.MM)
   const formatDateShort = (dateString: string) => {
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
@@ -157,11 +141,6 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
     'Readiness': '#3b82f6', // consistent blue tone matching app's palette
     'Recovery': 'rgb(200, 255, 1)', // specified yellow color with RGB value (200, 255, 1)
     'Energy': '#22c55e', // green color for Energy (average of Motivation and Mood)
-    // These are kept for data processing but won't be displayed in the final chart
-    'Sleep': '#8b5cf6',
-    'Sick/Injured': '#ef4444',
-    'Mood': '#ec4899',
-    'Motivation': '#f97316',
   };
 
   return (
@@ -177,44 +156,58 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
           <div className="flex justify-center items-center h-48">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : chartData.length > 0 ? (
+        ) : error ? (
+          <div className="flex justify-center items-center h-48 text-red-500">
+            Error loading data
+          </div>
+        ) : chartData && chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 20, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#444" opacity={0.5} />
+            <LineChart
+              data={chartData}
+              margin={{
+                top: 5,
+                right: 35,
+                left: -20,
+                bottom: 5,
+              }}
+            >
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="rgba(255,255,255,0.1)" 
+                vertical={false}
+              />
               <XAxis 
                 dataKey="formattedDate" 
-                tick={{ 
-                  fill: 'rgba(156, 163, 175, 0.7)', 
-                  fontSize: 9 
-                }} 
-                tickLine={{ stroke: '#4b5563' }}
-                axisLine={{ stroke: '#4b5563' }}
-                dy={8}
-                height={20}
+                tick={{ fontSize: 10, fill: '#9ca3af' }}
+                axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
               />
               <YAxis 
-                tick={{ 
-                  fill: 'rgba(156, 163, 175, 0.7)', 
-                  fontSize: 9
-                }} 
-                tickLine={{ stroke: '#4b5563' }}
-                axisLine={{ stroke: '#4b5563' }}
+                tick={{ fontSize: 10, fill: '#9ca3af' }}
                 domain={[0, 100]}
+                ticks={[0, 25, 50, 75, 100]}
+                axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                 tickFormatter={(value) => `${value}%`}
-                width={25}
-                tickCount={5}
               />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: '#18181b', 
-                  borderColor: '#3f3f46',
-                  color: 'white',
+                  backgroundColor: 'rgba(23,23,23,0.9)', 
+                  border: '1px solid #333',
                   borderRadius: '4px',
-                  fontSize: '11px',
-                  padding: '4px 8px'
+                  color: 'white',
+                  fontSize: '12px'
                 }}
-                labelStyle={{ color: 'white', fontSize: '11px' }}
-                formatter={(value) => [`${value}%`, '']}
+                itemStyle={{ 
+                  padding: '2px 0', 
+                  margin: 0,
+                }}
+                labelStyle={{
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  marginBottom: '4px'
+                }}
+                formatter={(value, name) => [`${value}%`, name]}
               />
               <Legend 
                 verticalAlign="bottom" 
@@ -226,51 +219,33 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
                 }}
                 iconSize={8}
               />
-              {/* Weekly average trend lines for our three metrics */}
-              <ReferenceLine 
-                y={trendData.averageReadiness} 
-                stroke={categoryColors['Energy']} 
-                strokeDasharray="3 3"
-                strokeWidth={1}
-                opacity={0.5}
-                label={{ 
-                  value: 'Avg Energy', 
-                  position: 'right', 
-                  fill: categoryColors['Energy'], 
-                  fontSize: 8
-                }}
-              />
               
               {/* Only display the 3 specified metrics: Recovery, Readiness, and Energy */}
               {['Recovery', 'Readiness', 'Energy'].map((category) => {
-                // Only render the category if it exists in the data
-                if (chartData.some(item => category in item)) {
-                  const strokeWidth = category === 'Energy' ? 3 : 2;
-                  const dotRadius = category === 'Energy' ? 4 : 3;
-                  const activeDotRadius = category === 'Energy' ? 5 : 4;
-                  const color = categoryColors[category as keyof typeof categoryColors];
-                  
-                  return (
-                    <Line
-                      key={category}
-                      type="monotone"
-                      dataKey={category}
-                      stroke={color}
-                      strokeWidth={strokeWidth}
-                      dot={{ r: dotRadius, fill: color, strokeWidth: 1, stroke: "#111" }}
-                      activeDot={{ r: activeDotRadius, fill: color, stroke: "#111" }}
-                      name={category}
-                      connectNulls={true}
-                    />
-                  );
-                }
-                return null;
+                const strokeWidth = category === 'Energy' ? 3 : 2;
+                const dotRadius = category === 'Energy' ? 4 : 3;
+                const activeDotRadius = category === 'Energy' ? 5 : 4;
+                const color = categoryColors[category as keyof typeof categoryColors];
+                
+                return (
+                  <Line
+                    key={category}
+                    type="monotone"
+                    dataKey={category}
+                    stroke={color}
+                    strokeWidth={strokeWidth}
+                    dot={{ r: dotRadius, fill: color, strokeWidth: 1, stroke: "#111" }}
+                    activeDot={{ r: activeDotRadius, fill: color, stroke: "#111" }}
+                    name={category}
+                    connectNulls={true}
+                  />
+                );
               })}
             </LineChart>
           </ResponsiveContainer>
         ) : (
           <div className="flex justify-center items-center h-48 text-gray-400">
-            No data available
+            No wellness data available
           </div>
         )}
       </CardContent>
