@@ -144,3 +144,33 @@ export type HealthReport = typeof healthReports.$inferSelect;
 
 export type InsertCoachFeedback = z.infer<typeof insertCoachFeedbackSchema>;
 export type CoachFeedback = typeof coachFeedback.$inferSelect;
+
+// Password reset schemas
+export const requestResetSchema = z.object({
+  email: z.string().email(),
+});
+
+export const verifyResetTokenSchema = z.object({
+  token: z.string(),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string(),
+  newPassword: z.string().min(8).max(100),
+});
+
+export const securityQuestionSchema = z.object({
+  username: z.string(),
+});
+
+export const securityAnswerSchema = z.object({
+  username: z.string(),
+  answer: z.string(),
+  newPassword: z.string().min(8).max(100),
+});
+
+export const setupSecurityQuestionSchema = z.object({
+  userId: z.number(),
+  question: z.string(),
+  answer: z.string(),
+});

@@ -55,6 +55,7 @@ export interface IStorage {
   getTeamWellnessTrends(): Promise<{ date: string; value: number; category: string }[]>;
   getAthleteRecoveryReadiness(): Promise<{ athleteId: number; name: string; readinessScore: number; trend: string; issues: string[] }[]>;
   getInjuryRiskFactors(): Promise<{ athleteId: number; name: string; riskScore: number; factors: string[] }[]>;
+
   
   // Session store
   sessionStore: SessionStoreType;
