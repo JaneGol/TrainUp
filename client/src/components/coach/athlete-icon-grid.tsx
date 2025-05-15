@@ -127,28 +127,28 @@ function AthleteIcon({
           </svg>
         </div>
         
-        {/* Readiness indicator - Battery with segments */}
+        {/* Readiness indicator - Battery with segments, simplified outline design */}
         <div className="absolute inset-0 flex items-center justify-center z-10">
           <div className="relative w-10 h-5 flex items-center">
             {/* Battery outline */}
             <div className="flex items-center">
               {/* Battery body */}
-              <div className="w-8 h-4 border border-zinc-500 rounded-sm bg-zinc-800 flex overflow-hidden p-0.5">
-                {/* Battery segments */}
-                <div className="h-full flex gap-0.5">
+              <div className="w-8 h-4 border border-zinc-500 rounded-none bg-transparent flex items-center justify-center overflow-hidden">
+                {/* Battery segments as blocks side by side */}
+                <div className="w-full h-3 px-0.5 flex space-x-1">
                   {/* Segment 1 - always filled if readiness >= 1 */}
-                  <div className={`w-2 h-full rounded-sm ${readinessLevel >= 1 ? 'bg-zinc-400' : 'bg-zinc-700'}`}></div>
+                  <div className={`flex-1 h-full ${readinessLevel >= 1 ? 'bg-zinc-400' : 'bg-zinc-800 border border-zinc-700'}`}></div>
                   
                   {/* Segment 2 - filled if readiness >= 2 */}
-                  <div className={`w-2 h-full rounded-sm ${readinessLevel >= 2 ? 'bg-zinc-400' : 'bg-zinc-700'}`}></div>
+                  <div className={`flex-1 h-full ${readinessLevel >= 2 ? 'bg-zinc-400' : 'bg-zinc-800 border border-zinc-700'}`}></div>
                   
                   {/* Segment 3 - filled if readiness = 3 */}
-                  <div className={`w-2 h-full rounded-sm ${readinessLevel >= 3 ? 'bg-zinc-400' : 'bg-zinc-700'}`}></div>
+                  <div className={`flex-1 h-full ${readinessLevel >= 3 ? 'bg-zinc-400' : 'bg-zinc-800 border border-zinc-700'}`}></div>
                 </div>
               </div>
               
               {/* Battery tip */}
-              <div className="w-1 h-2 bg-zinc-500 rounded-r-sm"></div>
+              <div className="w-1 h-2 bg-zinc-500"></div>
             </div>
           </div>
         </div>
