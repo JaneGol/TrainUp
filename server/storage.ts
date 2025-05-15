@@ -149,6 +149,25 @@ export class MemStorage implements IStorage {
     );
   }
   
+  async updateUserPassword(userId: number, hashedPassword: string): Promise<boolean> {
+    try {
+      const user = await this.getUser(userId);
+      
+      if (!user) {
+        return false;
+      }
+      
+      // Update the user's password
+      user.password = hashedPassword;
+      this.users.set(userId, user);
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating user password:", error);
+      return false;
+    }
+  }
+  
   // Training entry methods
   async createTrainingEntry(entry: InsertTrainingEntry): Promise<TrainingEntry> {
     const id = this.entryCurrentId++;

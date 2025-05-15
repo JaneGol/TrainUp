@@ -49,7 +49,7 @@ export function setupProfileRoutes(app: Express) {
     }
   });
   
-  // Get user profile (only for the authenticated user)
+  // Get user profile (based on user role)
   app.get("/api/profile/:userId", async (req: Request, res: Response) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Authentication required" });
@@ -57,21 +57,32 @@ export function setupProfileRoutes(app: Express) {
     
     const requestedUserId = parseInt(req.params.userId);
     const currentUserId = req.user?.id;
-    
-    // Ensure users can only access their own profiles
-    if (requestedUserId !== currentUserId) {
-      return res.status(403).json({ error: "Access denied: You can only view your own profile" });
-    }
+    const currentUserRole = req.user?.role;
     
     try {
-      const user = await storage.getUser(requestedUserId);
+      // Get the requested user
+      const requestedUser = await storage.getUser(requestedUserId);
       
-      if (!user) {
+      if (!requestedUser) {
         return res.status(404).json({ error: "User not found" });
       }
       
+      // Role-based access control
+      // 1. Users can always access their own profiles
+      // 2. Coaches can access athlete profiles
+      // 3. Athletes can only access their own profiles
+      const isOwnProfile = requestedUserId === currentUserId;
+      const isCoachViewingAthlete = currentUserRole === 'coach' && requestedUser.role === 'athlete';
+      
+      if (!isOwnProfile && !isCoachViewingAthlete) {
+        return res.status(403).json({ 
+          error: "Access denied: You don't have permission to view this profile",
+          details: "Athletes can only view their own profiles, while coaches can view athlete profiles."
+        });
+      }
+      
       // Don't send the password hash
-      const { password, ...userWithoutPassword } = user;
+      const { password, ...userWithoutPassword } = requestedUser;
       
       res.status(200).json(userWithoutPassword);
     } catch (error) {

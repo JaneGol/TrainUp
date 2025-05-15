@@ -77,9 +77,13 @@ class PasswordResetManager {
       // Hash the new password
       const hashedPassword = await hashPassword(newPassword);
       
-      // Update the user's password in the storage
-      // For our in-memory implementation, we can directly modify the user object
-      user.password = hashedPassword;
+      // Update the user's password in the storage using the storage interface method
+      const updated = await storage.updateUserPassword(userId, hashedPassword);
+      
+      if (!updated) {
+        console.error(`Failed to update password for user ${userId} (${user.username})`);
+        return false;
+      }
       
       console.log(`Password reset for user ${userId} (${user.username}) - successfully updated`);
       
