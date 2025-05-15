@@ -156,18 +156,21 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
   const categoryColors = {
     'Readiness': '#3b82f6', // consistent blue tone matching app's palette
     'Recovery': 'rgb(200, 255, 1)', // specified yellow color with RGB value (200, 255, 1)
-    'Sleep': '#8b5cf6', // violet
-    'Sick/Injured': '#ef4444', // red
     'Energy': '#22c55e', // green color for Energy (average of Motivation and Mood)
-    'Mood': '#ec4899', // pink
-    'Motivation': '#f97316', // orange
+    // These are kept for data processing but won't be displayed in the final chart
+    'Sleep': '#8b5cf6',
+    'Sick/Injured': '#ef4444',
+    'Mood': '#ec4899',
+    'Motivation': '#f97316',
   };
 
   return (
     <Card className="bg-zinc-900 border-zinc-800 text-white">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">{title}</CardTitle>
-        {description && <p className="text-xs text-zinc-400">{description}</p>}
+        <CardTitle className="text-lg">{title || "7-Day Team Wellness Trends"}</CardTitle>
+        <p className="text-xs text-zinc-400">
+          {description || "Tracking team Recovery, Readiness, and Energy metrics over the past week"}
+        </p>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -223,51 +226,39 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
                 }}
                 iconSize={8}
               />
-              {/* Weekly average trend line for Energy */}
+              {/* Weekly average trend lines for our three metrics */}
               <ReferenceLine 
                 y={trendData.averageReadiness} 
                 stroke={categoryColors['Energy']} 
                 strokeDasharray="3 3"
-                strokeWidth={1.5}
-                opacity={0.7}
+                strokeWidth={1}
+                opacity={0.5}
                 label={{ 
                   value: 'Avg Energy', 
                   position: 'right', 
                   fill: categoryColors['Energy'], 
-                  fontSize: 9
+                  fontSize: 8
                 }}
               />
               
-              {/* Category lines */}
-              {Object.keys(categoryColors).map((category) => {
+              {/* Only display the 3 specified metrics: Recovery, Readiness, and Energy */}
+              {['Recovery', 'Readiness', 'Energy'].map((category) => {
                 // Only render the category if it exists in the data
                 if (chartData.some(item => category in item)) {
-                  // If this is Energy and we have a trend, make it bolder
-                  if (category === 'Energy') {
-                    return (
-                      <Line
-                        key={category}
-                        type="monotone"
-                        dataKey={category}
-                        stroke={categoryColors[category as keyof typeof categoryColors]} // Use the green color from our palette
-                        strokeWidth={3}
-                        dot={{ r: 4, fill: categoryColors[category as keyof typeof categoryColors], strokeWidth: 1, stroke: "#111" }}
-                        activeDot={{ r: 5, fill: categoryColors[category as keyof typeof categoryColors], stroke: "#111" }}
-                        name={category}
-                        connectNulls={true}
-                      />
-                    );
-                  }
+                  const strokeWidth = category === 'Energy' ? 3 : 2;
+                  const dotRadius = category === 'Energy' ? 4 : 3;
+                  const activeDotRadius = category === 'Energy' ? 5 : 4;
+                  const color = categoryColors[category as keyof typeof categoryColors];
                   
                   return (
                     <Line
                       key={category}
                       type="monotone"
                       dataKey={category}
-                      stroke={categoryColors[category as keyof typeof categoryColors]}
-                      strokeWidth={2}
-                      dot={{ r: 3, fill: categoryColors[category as keyof typeof categoryColors] }}
-                      activeDot={{ r: 4 }}
+                      stroke={color}
+                      strokeWidth={strokeWidth}
+                      dot={{ r: dotRadius, fill: color, strokeWidth: 1, stroke: "#111" }}
+                      activeDot={{ r: activeDotRadius, fill: color, stroke: "#111" }}
                       name={category}
                       connectNulls={true}
                     />
