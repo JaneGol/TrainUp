@@ -8,14 +8,15 @@ export function setupPasswordResetRoutes(app: Express) {
     const { email } = req.body;
     
     try {
-      // In a real app, we would look up the user by email
-      // For demo purposes, we'll just use the first user we find
+      // Look up the user by email
       const users = await storage.getAthletes();
       const user = users.find(u => u.email === email);
       
       if (!user) {
-        // Don't reveal that the email doesn't exist for security reasons
-        return res.status(200).json({ message: "If your email is registered, you will receive password reset instructions." });
+        // Return user not found error but with 200 status for security
+        return res.status(200).json({ 
+          error: "User not found. Please check your email." 
+        });
       }
       
       // Create a reset token
@@ -24,9 +25,10 @@ export function setupPasswordResetRoutes(app: Express) {
       // In a real app, we would send an email with the reset link
       // For demo purposes, we'll return the token in the response (for development)
       
-      // Send response
+      // Send response with the username (for the username display step)
       res.status(200).json({
-        message: "Password reset instructions sent. Please check your email.",
+        message: "Account found. You can now reset your password.",
+        username: user.username,
         // Include the token in debug mode only
         debug: {
           token,

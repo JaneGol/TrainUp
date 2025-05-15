@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Mail } from "lucide-react";
+import { Mail, AlertCircle } from "lucide-react";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -17,13 +17,14 @@ const ForgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof ForgotPasswordSchema>;
 
 interface ForgotPasswordFormProps {
-  onSuccess?: (token?: string) => void;
+  onSuccess?: (token?: string, username?: string) => void;
   onBack?: () => void;
 }
 
 export function ForgotPasswordForm({ onSuccess, onBack }: ForgotPasswordFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetToken, setResetToken] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<ForgotPasswordFormValues>({
@@ -40,6 +41,7 @@ export function ForgotPasswordForm({ onSuccess, onBack }: ForgotPasswordFormProp
     },
     onSuccess: (data) => {
       setIsSubmitting(false);
+      setError(null);
       
       // For demonstration purposes, we'll use the debug token
       // In a real app, this would be sent via email
@@ -47,17 +49,23 @@ export function ForgotPasswordForm({ onSuccess, onBack }: ForgotPasswordFormProp
         setResetToken(data.debug.token);
       }
       
-      toast({
-        title: "Reset instructions sent",
-        description: "If your email is registered, you will receive password reset instructions.",
-      });
+      if (data.error) {
+        setError(data.error);
+        toast({
+          title: "User not found",
+          description: data.error,
+          variant: "destructive",
+        });
+        return;
+      }
       
-      if (onSuccess) {
-        onSuccess(data.debug?.token);
+      if (onSuccess && data.username) {
+        onSuccess(data.debug?.token, data.username);
       }
     },
     onError: (error: Error) => {
       setIsSubmitting(false);
+      setError(error.message || "An unexpected error occurred");
       
       toast({
         title: "Failed to request password reset",
@@ -69,6 +77,7 @@ export function ForgotPasswordForm({ onSuccess, onBack }: ForgotPasswordFormProp
 
   function onSubmit(data: ForgotPasswordFormValues) {
     setIsSubmitting(true);
+    setError(null);
     requestResetMutation.mutate(data);
   }
 

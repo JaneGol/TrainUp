@@ -94,11 +94,7 @@ export function ResetPasswordForm({ token, onSuccess, onInvalidToken, onBack }: 
     onSuccess: () => {
       setIsSubmitting(false);
       
-      toast({
-        title: "Password reset successful",
-        description: "Your password has been updated. You can now log in with your new password.",
-      });
-      
+      // We'll show success in a separate step, no need for toast here
       if (onSuccess) {
         onSuccess();
       }
