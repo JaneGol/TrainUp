@@ -178,20 +178,30 @@ export default function NewCoachDashboard() {
               Today - {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
           </div>
-          <Button 
-            variant="ghost" 
-            className="text-white hover:bg-zinc-800 flex items-center gap-2"
-            onClick={() => {
-              logoutMutation.mutate(undefined, {
-                onSuccess: () => {
-                  navigate("/auth");
-                }
-              });
-            }}
-          >
-            <LogOut className="h-5 w-5" />
-            Log Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              className="text-white hover:bg-zinc-800 flex items-center gap-2"
+              onClick={() => navigate("/profile")}
+            >
+              <Users className="h-5 w-5" />
+              Profile
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="text-white hover:bg-zinc-800 flex items-center gap-2"
+              onClick={() => {
+                logoutMutation.mutate(undefined, {
+                  onSuccess: () => {
+                    navigate("/auth");
+                  }
+                });
+              }}
+            >
+              <LogOut className="h-5 w-5" />
+              Log Out
+            </Button>
+          </div>
         </div>
         
         {/* Ultra-compact summary metrics with icons */}

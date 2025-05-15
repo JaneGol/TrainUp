@@ -141,12 +141,21 @@ export default function AthleteHomePage() {
         </div>
       </main>
       
-      {/* Logout button */}
-      <div className="bg-zinc-900 py-3 mt-4">
+      {/* Profile and Logout buttons */}
+      <div className="bg-zinc-900 py-3 mt-4 flex justify-center space-x-4">
+        <Button 
+          onClick={() => navigate("/profile")}
+          variant="ghost"
+          className="flex items-center text-lime-300 hover:text-lime-400 font-semibold gap-2"
+        >
+          <User className="h-5 w-5" />
+          <span>Profile</span>
+        </Button>
+        
         <Button 
           onClick={handleLogout}
           variant="ghost"
-          className="mx-auto flex items-center text-lime-300 hover:text-lime-400 font-semibold gap-2"
+          className="flex items-center text-lime-300 hover:text-lime-400 font-semibold gap-2"
           disabled={logoutMutation.isPending}
         >
           {logoutMutation.isPending ? (
