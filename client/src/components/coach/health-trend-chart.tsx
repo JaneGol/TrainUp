@@ -139,7 +139,7 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
   const categoryColors = {
     'Readiness': '#3b82f6', // consistent blue tone matching app's palette
     'Recovery': 'rgb(200, 255, 1)', // specified yellow color with RGB value (200, 255, 1)
-    'Energy': '#f97316', // bright orange color for Energy (average of Motivation and Mood)
+    'Energy': 'rgb(239, 68, 68)', // bright red color (rgb(239,68,68)) for Energy (average of Motivation and Mood)
   };
 
   return (
