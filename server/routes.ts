@@ -225,7 +225,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
-      const validatedData = insertMorningDiarySchema.parse(req.body);
+      // Ensure data has the required fields with default values before validation
+      const dataToValidate = {
+        ...req.body,
+        userId: req.user!.id,
+        symptoms: Array.isArray(req.body.symptoms) && req.body.symptoms.length > 0 
+          ? req.body.symptoms 
+          : ["no_symptoms"],
+        sorenessMap: req.body.sorenessMap && Object.keys(req.body.sorenessMap).length > 0 
+          ? req.body.sorenessMap 
+          : { "_no_soreness": true }
+      };
+      
+      console.log("Validating morning diary data:", dataToValidate);
+      
+      const validatedData = insertMorningDiarySchema.parse(dataToValidate);
       
       // Use the readiness score from the frontend if provided
       let readinessScore = req.body.readinessScore;
@@ -243,8 +257,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           else if (data.sleepQuality === "average") score += 0.5;
           
           // Sleep hours (max 1 point)
-          if (data.sleepHours >= 8) score += 1;
-          else if (data.sleepHours >= 6) score += 0.5;
+          const sleepHours = parseFloat(data.sleepHours);
+          if (sleepHours >= 8) score += 1;
+          else if (sleepHours >= 6) score += 0.5;
           
           // Stress level (max 1 point)
           if (data.stressLevel === "low") score += 1;
@@ -269,8 +284,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Step 3: Muscle Soreness & Injury
           // Soreness (max 1 point)
-          const sorenessCount = Object.keys(data.sorenessMap).length;
-          if (sorenessCount === 0) score += 1;
+          const sorenessMap = data.sorenessMap as Record<string, boolean>;
+          const sorenessCount = Object.keys(sorenessMap).filter(key => key !== '_no_soreness').length;
+          if (sorenessCount === 0 || sorenessMap._no_soreness) score += 1;
           else if (sorenessCount <= 3) score += 0.5;
           
           // Injury (max 1 point)
