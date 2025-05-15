@@ -76,17 +76,16 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
         const hasMood = 'Mood' in categoryValues;
         const hasMotivation = 'Motivation' in categoryValues;
         
-        if (hasMood || hasMotivation) {
-          const moodValue = hasMood ? categoryValues['Mood'] : 0;
-          const motivationValue = hasMotivation ? categoryValues['Motivation'] : 0;
-          
-          // If both metrics exist, average them; otherwise use the one that exists
-          const divisor = (hasMood && hasMotivation) ? 2 : 1;
-          const energyValue = Math.round((moodValue + motivationValue) / divisor);
-          
-          // Add Energy as a new parameter
-          dataPoint['Energy'] = energyValue;
-        }
+        // Always calculate an Energy value, even if source metrics are missing
+        // We'll use default values if the real ones aren't available
+        const moodValue = hasMood ? categoryValues['Mood'] : 65;  // Default mood if missing
+        const motivationValue = hasMotivation ? categoryValues['Motivation'] : 70;  // Default motivation if missing
+        
+        // Calculate energy as average of mood and motivation
+        const energyValue = Math.round((moodValue + motivationValue) / 2);
+        
+        // Add Energy as a new parameter
+        dataPoint['Energy'] = energyValue;
         
         // Ensure all three required metrics are present
         if (!('Recovery' in dataPoint)) dataPoint['Recovery'] = 0;
@@ -140,7 +139,7 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
   const categoryColors = {
     'Readiness': '#3b82f6', // consistent blue tone matching app's palette
     'Recovery': 'rgb(200, 255, 1)', // specified yellow color with RGB value (200, 255, 1)
-    'Energy': '#22c55e', // green color for Energy (average of Motivation and Mood)
+    'Energy': '#f97316', // bright orange color for Energy (average of Motivation and Mood)
   };
 
   return (

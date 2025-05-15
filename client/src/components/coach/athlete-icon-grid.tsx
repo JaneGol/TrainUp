@@ -29,12 +29,27 @@ function AthleteIcon({
   onClick 
 }: AthleteIconProps) {
   // Helper function to determine color based on score
-  const getColorClass = (score: number) => {
-    return score >= 75 
-      ? 'text-green-500' 
-      : score >= 50 
-        ? 'text-yellow-500' 
-        : 'text-red-500';
+  const getHeartStyles = (score: number) => {
+    // Return background color and text color based on recovery score
+    if (score >= 75) {
+      // No health threats - faded gray
+      return { 
+        bg: 'bg-zinc-700',
+        heart: 'text-zinc-400' 
+      };
+    } else if (score >= 50) {
+      // Some concerns - yellow fill
+      return { 
+        bg: 'bg-yellow-600',
+        heart: 'text-yellow-300' 
+      };
+    } else {
+      // High concern - red fill
+      return { 
+        bg: 'bg-red-700',
+        heart: 'text-red-400' 
+      };
+    }
   };
   
   // Helper function to simulate both sleep quality and quantity as a percentage for donut chart
