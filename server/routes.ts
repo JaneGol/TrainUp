@@ -41,6 +41,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize health recommendation service
   const healthRecommendationService = new HealthRecommendationService(storage);
   
+  // AI Health Recommendations API
+  app.get("/api/health-recommendations/:userId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = parseInt(req.params.userId);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+    
+    try {
+      const recommendations = await healthRecommendationService.generateRecommendationsForAthlete(userId);
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error generating health recommendations:", error);
+      res.status(500).json({ error: "Failed to generate health recommendations" });
+    }
+  });
+  
+  // Get health recommendations for the current user
+  app.get("/api/health-recommendations", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const recommendations = await healthRecommendationService.generateRecommendationsForAthlete(req.user!.id);
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error generating health recommendations:", error);
+      res.status(500).json({ error: "Failed to generate health recommendations" });
+    }
+  });
+  
   // Change password route for logged-in users
   app.post("/api/user/change-password", (req, res) => {
     if (!req.isAuthenticated()) {
@@ -490,13 +522,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Process each date
-      for (const [date, diaries] of diariesByDate.entries()) {
+      // Convert Map entries to array before iteration to fix type error
+      for (const [date, diaries] of Array.from(diariesByDate.entries())) {
         // Calculate average sleep quality
         let sleepQualitySum = 0;
         for (const diary of diaries) {
-          if (diary.sleepQuality === 'good') sleepQualitySum += 1;
-          else if (diary.sleepQuality === 'average') sleepQualitySum += 0.5;
-          // 'poor' = 0
+          // Type guard to avoid implicit any type
+          if (typeof diary === 'object' && diary && 'sleepQuality' in diary) {
+            if (diary.sleepQuality === 'good') sleepQualitySum += 1;
+            else if (diary.sleepQuality === 'average') sleepQualitySum += 0.5;
+            // 'poor' = 0
+          }
         }
         const avgSleepQuality = diaries.length > 0 ? sleepQualitySum / diaries.length : 0;
         

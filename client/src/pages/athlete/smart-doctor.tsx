@@ -11,7 +11,12 @@ import {
   AlertCircle,
   CheckCircle2,
   Info,
-  Activity
+  Activity,
+  Brain,
+  Zap,
+  Target,
+  Award,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,6 +65,17 @@ export default function SmartDoctorPage() {
       if (!res.ok) throw new Error("Failed to fetch health reports");
       return await res.json();
     }
+  });
+  
+  // Fetch AI health recommendations
+  const { data: aiRecommendations, isLoading: isLoadingRecommendations } = useQuery({
+    queryKey: ["/api/health-recommendations"],
+    queryFn: async () => {
+      const res = await fetch("/api/health-recommendations");
+      if (!res.ok) throw new Error("Failed to fetch AI recommendations");
+      return await res.json();
+    },
+    enabled: !!user // Only fetch if user is logged in
   });
 
   // Check if athlete submitted a morning diary today
@@ -304,12 +320,119 @@ export default function SmartDoctorPage() {
               </Card>
             )}
 
+            {/* AI Health Recommendations */}
+            {aiRecommendations && (
+              <Card className="border-primary/20 bg-gradient-to-b from-black/20 to-primary/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-primary" />
+                    AI Health Insights
+                  </CardTitle>
+                  <CardDescription>
+                    Personalized health recommendations based on your data
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Summary */}
+                  <div className="bg-black/30 p-4 rounded-md border border-primary/20">
+                    <p className="text-sm">{aiRecommendations.summary}</p>
+                  </div>
+                  
+                  {/* Key Insights */}
+                  {aiRecommendations.insights.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-semibold flex items-center gap-1">
+                        <Zap className="h-4 w-4 text-yellow-400" />
+                        Key Insights
+                      </h3>
+                      <ul className="space-y-1">
+                        {aiRecommendations.insights.map((insight: string, i: number) => (
+                          <li key={i} className="text-sm flex gap-2">
+                            <span className="text-yellow-400">•</span>
+                            <span>{insight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {/* Recommendations */}
+                  {aiRecommendations.recommendations.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-semibold flex items-center gap-1">
+                        <Target className="h-4 w-4 text-primary" />
+                        Recommendations
+                      </h3>
+                      <ul className="space-y-1">
+                        {aiRecommendations.recommendations.map((rec: string, i: number) => (
+                          <li key={i} className="text-sm flex gap-2">
+                            <span className="text-primary">•</span>
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {/* Risk Areas */}
+                  {aiRecommendations.riskAreas.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-semibold flex items-center gap-1">
+                        <AlertCircle className="h-4 w-4 text-red-400" />
+                        Risk Areas
+                      </h3>
+                      <div className="flex flex-wrap gap-1">
+                        {aiRecommendations.riskAreas.map((area: string, i: number) => (
+                          <Badge key={i} variant="outline" className="bg-red-500/10 text-red-200 border-red-500/30">
+                            {area}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Improvement Areas */}
+                  {aiRecommendations.improvementAreas.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-semibold flex items-center gap-1">
+                        <Award className="h-4 w-4 text-blue-400" />
+                        Focus Areas
+                      </h3>
+                      <div className="flex flex-wrap gap-1">
+                        {aiRecommendations.improvementAreas.map((area: string, i: number) => (
+                          <Badge key={i} variant="outline" className="bg-blue-500/10 text-blue-200 border-blue-500/30">
+                            {area}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+                <CardFooter className="text-xs text-muted-foreground pt-0">
+                  <div className="flex items-center">
+                    <Sparkles className="h-3 w-3 mr-1 text-primary/70" />
+                    Generated on {new Date(aiRecommendations.generatedAt).toLocaleDateString()}
+                  </div>
+                </CardFooter>
+              </Card>
+            )}
+            
             <Button 
               className="w-full mt-4"
               onClick={() => navigate("/athlete/morning-diary")}
             >
               Update Morning Diary
             </Button>
+          </div>
+        )}
+        
+        {/* Loading state for AI recommendations */}
+        {isLoadingRecommendations && !isLoading && latestDiary && (
+          <div className="mt-6 p-6 bg-black/20 rounded-lg border border-primary/20 flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-primary" />
+              <p className="text-sm text-muted-foreground">Analyzing your health data...</p>
+            </div>
           </div>
         )}
       </main>
