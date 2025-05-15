@@ -194,51 +194,51 @@ export default function NewCoachDashboard() {
           </Button>
         </div>
         
-        {/* Top-level summary cards - compact metrics with icons */}
-        <div className="flex items-center justify-center gap-3 mb-6 bg-zinc-900 rounded-full py-2 px-4 mx-auto w-fit">
+        {/* Ultra-compact summary metrics with icons */}
+        <div className="flex items-center justify-center gap-1 mb-6 bg-zinc-900 rounded-full py-1 px-3 mx-auto w-fit">
           <div className="flex items-center text-primary">
-            <div className="bg-primary bg-opacity-20 p-2 rounded-full mr-1">
-              <Activity className="h-4 w-4" />
+            <div className="bg-primary bg-opacity-20 p-1.5 rounded-full mr-1">
+              <Activity className="h-3 w-3" />
             </div>
             <div>
-              <p className="text-xs text-zinc-400 leading-none">Recovery</p>
-              <p className="text-lg font-bold">{readinessLoading ? "..." : `${averageReadiness}%`}</p>
+              <p className="text-[10px] text-zinc-400 leading-none">Recovery</p>
+              <p className="text-sm font-bold">{readinessLoading ? "..." : `${averageReadiness}%`}</p>
             </div>
           </div>
           
-          <div className="w-px h-8 bg-zinc-800 mx-1"></div>
+          <div className="w-px h-6 bg-zinc-800 mx-1"></div>
           
           <div className="flex items-center text-secondary">
-            <div className="bg-secondary bg-opacity-20 p-2 rounded-full mr-1">
-              <Gauge className="h-4 w-4" />
+            <div className="bg-secondary bg-opacity-20 p-1.5 rounded-full mr-1">
+              <Gauge className="h-3 w-3" />
             </div>
             <div>
-              <p className="text-xs text-zinc-400 leading-none">Readiness</p>
-              <p className="text-lg font-bold">{readinessLoading ? "..." : `${averageReadiness}%`}</p>
+              <p className="text-[10px] text-zinc-400 leading-none">Readiness</p>
+              <p className="text-sm font-bold">{readinessLoading ? "..." : `${averageReadiness}%`}</p>
             </div>
           </div>
           
-          <div className="w-px h-8 bg-zinc-800 mx-1"></div>
+          <div className="w-px h-6 bg-zinc-800 mx-1"></div>
           
           <div className="flex items-center text-yellow-500">
-            <div className="bg-yellow-500 bg-opacity-20 p-2 rounded-full mr-1">
-              <AlertTriangle className="h-4 w-4" />
+            <div className="bg-yellow-500 bg-opacity-20 p-1.5 rounded-full mr-1">
+              <AlertTriangle className="h-3 w-3" />
             </div>
             <div>
-              <p className="text-xs text-zinc-400 leading-none">High Risk</p>
-              <p className="text-lg font-bold">{athletesLoading ? "..." : athletesAtRisk}</p>
+              <p className="text-[10px] text-zinc-400 leading-none">High Risk</p>
+              <p className="text-sm font-bold">{athletesLoading ? "..." : athletesAtRisk}</p>
             </div>
           </div>
           
-          <div className="w-px h-8 bg-zinc-800 mx-1"></div>
+          <div className="w-px h-6 bg-zinc-800 mx-1"></div>
           
           <div className="flex items-center text-red-500">
-            <div className="bg-red-500 bg-opacity-20 p-2 rounded-full mr-1">
-              <HeartPulse className="h-4 w-4" />
+            <div className="bg-red-500 bg-opacity-20 p-1.5 rounded-full mr-1">
+              <HeartPulse className="h-3 w-3" />
             </div>
             <div>
-              <p className="text-xs text-zinc-400 leading-none">Sick/Injured</p>
-              <p className="text-lg font-bold">{athletesLoading ? "..." : sickOrInjuredAthletes}</p>
+              <p className="text-[10px] text-zinc-400 leading-none">Sick/Injured</p>
+              <p className="text-sm font-bold">{athletesLoading ? "..." : sickOrInjuredAthletes}</p>
             </div>
           </div>
         </div>
