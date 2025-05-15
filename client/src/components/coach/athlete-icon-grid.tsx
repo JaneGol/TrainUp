@@ -28,26 +28,22 @@ function AthleteIcon({
   hasIssues, 
   onClick 
 }: AthleteIconProps) {
-  // Helper function to determine color based on score
-  const getHeartStyles = (score: number) => {
-    // Return background color and text color based on recovery score
-    if (score >= 75) {
-      // No health threats - faded gray
-      return { 
-        bg: 'bg-zinc-700',
-        heart: 'text-zinc-400' 
-      };
-    } else if (score >= 50) {
-      // Some concerns - yellow fill
-      return { 
-        bg: 'bg-yellow-600',
-        heart: 'text-yellow-300' 
+  // Helper function to determine heart color based on symptoms
+  // Check if athlete has symptoms and return appropriate heart style
+  const hasSymptoms = hasIssues;
+  
+  // Helper function to determine heart color based on symptoms
+  const getHeartStyles = () => {
+    // Return heart color based on presence of symptoms
+    if (hasSymptoms) {
+      // At least one symptom - bright red outline
+      return {
+        heart: 'text-red-500' // rgb(239, 68, 68)
       };
     } else {
-      // High concern - red fill
-      return { 
-        bg: 'bg-red-700',
-        heart: 'text-red-400' 
+      // No symptoms - transparent/colorless outline
+      return {
+        heart: 'text-transparent stroke-zinc-400'
       };
     }
   };
@@ -75,15 +71,18 @@ function AthleteIcon({
     };
   };
   
-  // Get readiness indicator color using the app's bright lime color (#CBFF00)
-  const getReadinessColor = () => {
-    // Use bright lime (#CBFF00) with varying opacity based on readiness score
-    return readinessScore >= 75 
-      ? 'rgb(200, 255, 0)' // full brightness for high readiness
-      : readinessScore >= 50 
-        ? 'rgba(200, 255, 0, 0.8)' // slightly dimmed for medium readiness
-        : 'rgba(200, 255, 0, 0.5)'; // more dimmed for low readiness
+  // Get readiness level (1-3) based on readiness score
+  const getReadinessLevel = (): number => {
+    if (readinessScore >= 75) {
+      return 3; // Fully ready - 3 segments filled
+    } else if (readinessScore >= 50) {
+      return 2; // Moderately ready - 2 segments filled
+    } else {
+      return 1; // Low readiness - 1 segment filled
+    }
   };
+  
+  const readinessLevel = getReadinessLevel();
   
   const sleepInfo = getSleepQualityInfo();
   
@@ -128,49 +127,51 @@ function AthleteIcon({
           </svg>
         </div>
         
-        {/* Readiness indicator - modern progress bar style */}
+        {/* Readiness indicator - Battery with segments */}
         <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className="w-10 h-4 bg-zinc-900/80 rounded-sm overflow-hidden flex items-center">
-            {/* Progress fill */}
-            <div 
-              className="h-full transition-all duration-300 ease-in-out"
-              style={{ 
-                width: `${readinessScore}%`, 
-                backgroundColor: getReadinessColor(),
-              }}
-            />
-            {/* Readiness percentage text */}
-            <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white">
-              {readinessScore}%
-            </span>
+          <div className="relative w-10 h-5 flex items-center">
+            {/* Battery outline */}
+            <div className="flex items-center">
+              {/* Battery body */}
+              <div className="w-8 h-4 border border-zinc-500 rounded-sm bg-zinc-800 flex overflow-hidden p-0.5">
+                {/* Battery segments */}
+                <div className="h-full flex gap-0.5">
+                  {/* Segment 1 - always filled if readiness >= 1 */}
+                  <div className={`w-2 h-full rounded-sm ${readinessLevel >= 1 ? 'bg-zinc-400' : 'bg-zinc-700'}`}></div>
+                  
+                  {/* Segment 2 - filled if readiness >= 2 */}
+                  <div className={`w-2 h-full rounded-sm ${readinessLevel >= 2 ? 'bg-zinc-400' : 'bg-zinc-700'}`}></div>
+                  
+                  {/* Segment 3 - filled if readiness = 3 */}
+                  <div className={`w-2 h-full rounded-sm ${readinessLevel >= 3 ? 'bg-zinc-400' : 'bg-zinc-700'}`}></div>
+                </div>
+              </div>
+              
+              {/* Battery tip */}
+              <div className="w-1 h-2 bg-zinc-500 rounded-r-sm"></div>
+            </div>
           </div>
         </div>
         
-        {/* Recovery status - Top right corner with appropriate color indicating recovery level */}
-        {/* Apply the heart styles based on recovery score */}
-        {(() => {
-          const heartStyles = getHeartStyles(recoveryScore);
-          return (
-            <div 
-              className={`absolute -top-1 -right-1 w-6 h-6 rounded-full ${heartStyles.bg} flex items-center justify-center z-20 shadow-md`}
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="14" 
-                height="14" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className={heartStyles.heart}
-              >
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-              </svg>
-            </div>
-          );
-        })()}
+        {/* Recovery status - Top right corner with light gray background and red/transparent heart based on symptoms */}
+        <div 
+          className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-zinc-800/40 flex items-center justify-center z-20 shadow-md"
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="14" 
+            height="14" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            className={getHeartStyles().heart}
+          >
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+          </svg>
+        </div>
         
         {/* Health issue indicator - Bottom left */}
         {hasIssues && (
@@ -293,27 +294,7 @@ export default function AthleteIconGrid() {
   return (
     <Card className="bg-zinc-900 border-zinc-800 text-white">
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">Athlete Status</CardTitle>
-          <div className="flex space-x-3 text-xs">
-            <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
-              <span>Good Recovery</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 rounded-full bg-yellow-600"></div>
-              <span>Moderate Risk</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 rounded-full bg-red-700"></div>
-              <span>High Risk</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span>Health Issue</span>
-            </div>
-          </div>
-        </div>
+        <CardTitle className="text-lg">Athlete Status</CardTitle>
       </CardHeader>
       <CardContent>
         {readinessLoading || athletesLoading ? (
