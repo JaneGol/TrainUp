@@ -319,6 +319,23 @@ export default function MultiStepMorningDiaryForm() {
   });
   
   function onSubmit(data: MorningDiaryFormValues) {
+    // Ensure userId is set properly
+    if (!data.userId && user) {
+      data.userId = user.id;
+    }
+    
+    // Ensure symptoms array is properly initialized if empty
+    if (!Array.isArray(data.symptoms) || data.symptoms.length === 0) {
+      data.symptoms = ["no_symptoms"];
+    }
+    
+    // Ensure sorenessMap is initialized if empty
+    if (!data.sorenessMap || Object.keys(data.sorenessMap).length === 0) {
+      data.sorenessMap = { "_no_soreness": true };
+    }
+    
+    console.log("Submitting diary data:", data);
+    
     submitMutation.mutate(data);
   }
   
