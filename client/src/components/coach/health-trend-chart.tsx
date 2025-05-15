@@ -112,21 +112,21 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
       
       // Calculate trend data 
       if (formattedData.length > 0) {
-        // Calculate Readiness trend over the last 7 days
-        const readinessValues = formattedData
-          .filter(item => 'Readiness' in item)
-          .map(item => item.Readiness);
+        // Calculate Energy trend over the last 7 days
+        const energyValues = formattedData
+          .filter(item => 'Energy' in item)
+          .map(item => item.Energy);
         
-        if (readinessValues.length > 1) {
+        if (energyValues.length > 1) {
           // Calculate overall average
           const averageReadiness = Math.round(
-            readinessValues.reduce((sum, val) => sum + val, 0) / readinessValues.length
+            energyValues.reduce((sum, val) => sum + val, 0) / energyValues.length
           );
           
           // Calculate trend (first half vs second half)
-          const midpoint = Math.floor(readinessValues.length / 2);
-          const firstHalf = readinessValues.slice(0, midpoint);
-          const secondHalf = readinessValues.slice(midpoint);
+          const midpoint = Math.floor(energyValues.length / 2);
+          const firstHalf = energyValues.slice(0, midpoint);
+          const secondHalf = energyValues.slice(midpoint);
           
           const firstHalfAvg = firstHalf.reduce((sum, val) => sum + val, 0) / firstHalf.length;
           const secondHalfAvg = secondHalf.reduce((sum, val) => sum + val, 0) / secondHalf.length;
@@ -158,7 +158,7 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
     'Recovery': '#f59e0b', // amber
     'Sleep': '#8b5cf6', // violet
     'Sick/Injured': '#ef4444', // red
-    'Energy': '#22c55e', // green
+    'Energy': '#CBFF00', // bright yellow-green from app design
     'Mood': '#ec4899', // pink
     'Motivation': '#f97316', // orange
   };
@@ -223,13 +223,19 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
                 }}
                 iconSize={8}
               />
-              {/* Weekly average trend line */}
+              {/* Weekly average trend line for Energy */}
               <ReferenceLine 
                 y={trendData.averageReadiness} 
-                stroke="#22c55e" 
+                stroke="#CBFF00" 
                 strokeDasharray="3 3"
-                strokeWidth={1}
-                opacity={0.5}
+                strokeWidth={1.5}
+                opacity={0.7}
+                label={{ 
+                  value: 'Avg Energy', 
+                  position: 'right', 
+                  fill: '#CBFF00', 
+                  fontSize: 9
+                }}
               />
               
               {/* Category lines */}
@@ -243,10 +249,10 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
                         key={category}
                         type="monotone"
                         dataKey={category}
-                        stroke="#22c55e" // Green color for Energy
+                        stroke="#CBFF00" // Bright yellow-green from the app design
                         strokeWidth={3}
-                        dot={{ r: 4, fill: "#22c55e" }}
-                        activeDot={{ r: 5 }}
+                        dot={{ r: 4, fill: "#CBFF00", strokeWidth: 1, stroke: "#111" }}
+                        activeDot={{ r: 5, fill: "#CBFF00", stroke: "#111" }}
                         name={category}
                         connectNulls={true}
                       />

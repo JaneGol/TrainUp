@@ -53,10 +53,10 @@ function AthleteIcon({
     return {
       percentage,
       color: sleepQuality === 'good' 
-        ? '#eab308' // Yellow for good (per request)
+        ? '#CBFF00' // Bright yellow-green from app design
         : sleepQuality === 'average' 
-          ? 'rgba(234, 179, 8, 0.7)' // Yellow with reduced opacity
-          : 'rgba(234, 179, 8, 0.5)' // Yellow with even more reduced opacity
+          ? 'rgba(203, 255, 0, 0.7)' // Same bright yellow with reduced opacity
+          : 'rgba(203, 255, 0, 0.5)' // Same bright yellow with even more reduced opacity
     };
   };
   
