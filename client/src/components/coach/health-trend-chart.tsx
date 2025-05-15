@@ -221,9 +221,10 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
               
               {/* Only display the 3 specified metrics: Recovery, Readiness, and Energy */}
               {['Recovery', 'Readiness', 'Energy'].map((category) => {
-                const strokeWidth = category === 'Energy' ? 3 : 2;
-                const dotRadius = category === 'Energy' ? 4 : 3;
-                const activeDotRadius = category === 'Energy' ? 5 : 4;
+                // All lines now have the same thickness, dots, and active dots
+                const strokeWidth = 2.5;
+                const dotRadius = 4;
+                const activeDotRadius = 6;
                 const color = categoryColors[category as keyof typeof categoryColors];
                 
                 return (
