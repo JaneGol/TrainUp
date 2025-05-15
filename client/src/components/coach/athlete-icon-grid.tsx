@@ -60,25 +60,22 @@ function AthleteIcon({
     };
   };
   
-  // Get battery fill color based on readiness
-  const getBatteryFillColor = () => {
+  // Get readiness indicator color using the app's bright lime color (#CBFF00)
+  const getReadinessColor = () => {
+    // Use bright lime (#CBFF00) with varying opacity based on readiness score
     return readinessScore >= 75 
-      ? '#22c55e' // green
+      ? 'rgb(200, 255, 0)' // full brightness for high readiness
       : readinessScore >= 50 
-        ? '#eab308' // yellow
-        : '#ef4444'; // red
+        ? 'rgba(200, 255, 0, 0.8)' // slightly dimmed for medium readiness
+        : 'rgba(200, 255, 0, 0.5)'; // more dimmed for low readiness
   };
   
   const sleepInfo = getSleepQualityInfo();
   
   // Calculate the circumference and the dash offset for the donut chart
-  const radius = 18; // Slightly smaller than half the width (0.5*w-2 = 0.5*28-2 = 12)
+  const radius = 18; // Slightly smaller than half the width
   const circumference = 2 * Math.PI * radius;
   const dashoffset = circumference * (1 - sleepInfo.percentage / 100);
-  
-  // Calculate battery segments based on readiness score
-  const batterySegments = 5; // We'll show 5 segments
-  const filledSegments = Math.ceil((readinessScore / 100) * batterySegments);
   
   return (
     <div 
@@ -116,26 +113,21 @@ function AthleteIcon({
           </svg>
         </div>
         
-        {/* Battery icon directly in center for readiness */}
+        {/* Readiness indicator - modern progress bar style */}
         <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className="flex items-center bg-zinc-900/80 rounded-sm px-0.5 py-px">
-            {/* Battery segments */}
-            {Array.from({ length: batterySegments }).map((_, index) => (
-              <div 
-                key={index}
-                className={`w-1 h-3 mx-px ${index < filledSegments ? 'opacity-100' : 'opacity-30'}`}
-                style={{ 
-                  backgroundColor: getBatteryFillColor(),
-                  borderRadius: index === 0 ? '1px 0 0 1px' : index === batterySegments - 1 ? '0 1px 1px 0' : '0'
-                }}
-              />
-            ))}
-            
-            {/* Battery cap */}
+          <div className="w-10 h-4 bg-zinc-900/80 rounded-sm overflow-hidden flex items-center">
+            {/* Progress fill */}
             <div 
-              className="w-0.5 h-1.5 ml-px"
-              style={{ backgroundColor: getBatteryFillColor() }}
+              className="h-full transition-all duration-300 ease-in-out"
+              style={{ 
+                width: `${readinessScore}%`, 
+                backgroundColor: getReadinessColor(),
+              }}
             />
+            {/* Readiness percentage text */}
+            <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white">
+              {readinessScore}%
+            </span>
           </div>
         </div>
         
