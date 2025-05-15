@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { 
   Users, Activity, AlertTriangle, HeartPulse, 
   Dumbbell, Gauge, UserCheck, ClipboardList, 
-  ChevronRight, LogOut
+  ChevronRight, LogOut, Battery, Zap, 
+  BatteryMedium, BatteryWarning, BatteryFull,
+  CircleDashed, TrendingUp, TrendingDown,
+  PlusCircle, Triangle
 } from "lucide-react";
 
 // Define card component for metrics
@@ -204,51 +207,145 @@ export default function NewCoachDashboard() {
           </div>
         </div>
         
-        {/* Ultra-compact summary metrics with icons */}
-        <div className="flex items-center justify-center gap-1 mb-6 bg-zinc-900 rounded-full py-1 px-3 mx-auto w-fit">
-          <div className="flex items-center text-primary">
-            <div className="bg-primary bg-opacity-20 p-1.5 rounded-full mr-1">
-              <Activity className="h-3 w-3" />
-            </div>
-            <div>
-              <p className="text-[10px] text-zinc-400 leading-none">Recovery</p>
-              <p className="text-sm font-bold">{readinessLoading ? "..." : `${averageReadiness}%`}</p>
+        {/* Modern Infographic Style Key Metrics Panel */}
+        <div className="bg-zinc-900 rounded-lg py-4 px-6 mb-6 flex justify-between items-center gap-4 shadow-md">
+          {/* Recovery Metric */}
+          <div className="flex-1">
+            <div className="relative">
+              <div className="flex flex-col items-center">
+                {/* Circular progress bar */}
+                <div className="relative w-16 h-16 mb-1">
+                  <CircleDashed 
+                    className="w-16 h-16 text-zinc-700 absolute" 
+                    strokeWidth={1} 
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {readinessLoading ? (
+                      <div className="h-3 w-3 rounded-full animate-pulse bg-blue-500"></div>
+                    ) : (
+                      <>
+                        {/* Battery icon based on recovery percentage */}
+                        {averageReadiness >= 90 ? (
+                          <BatteryFull className="h-7 w-7 text-blue-500" />
+                        ) : averageReadiness >= 60 ? (
+                          <BatteryMedium className="h-7 w-7 text-yellow-400" />
+                        ) : (
+                          <BatteryWarning className="h-7 w-7 text-red-500" />
+                        )}
+                        {/* Colored circle around the progress bar based on value */}
+                        <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                          <circle 
+                            className={`
+                              ${averageReadiness >= 90 ? 'stroke-blue-500' : 
+                                 averageReadiness >= 60 ? 'stroke-yellow-400' : 
+                                 'stroke-red-500'}
+                            `}
+                            strokeWidth="4"
+                            strokeLinecap="round"
+                            fill="transparent"
+                            r="36"
+                            cx="50"
+                            cy="50"
+                            strokeDasharray="226.2"
+                            strokeDashoffset={226.2 - (226.2 * averageReadiness / 100)}
+                          />
+                        </svg>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <span className="text-lg font-semibold">
+                    {readinessLoading ? "..." : `${averageReadiness}%`}
+                  </span>
+                  <p className="text-xs text-zinc-400 uppercase tracking-wider mt-0.5">Recovery</p>
+                </div>
+              </div>
             </div>
           </div>
-          
-          <div className="w-px h-6 bg-zinc-800 mx-1"></div>
-          
-          <div className="flex items-center text-secondary">
-            <div className="bg-secondary bg-opacity-20 p-1.5 rounded-full mr-1">
-              <Gauge className="h-3 w-3" />
-            </div>
-            <div>
-              <p className="text-[10px] text-zinc-400 leading-none">Readiness</p>
-              <p className="text-sm font-bold">{readinessLoading ? "..." : `${averageReadiness}%`}</p>
+
+          {/* Readiness Metric */}
+          <div className="flex-1">
+            <div className="flex flex-col items-center">
+              {/* Lightning bolt icon */}
+              <div className="relative w-16 h-16 mb-1 flex items-center justify-center">
+                <Zap className={`h-10 w-10 
+                  ${averageReadiness > 80 ? 'text-green-500' : 
+                    averageReadiness > 50 ? 'text-yellow-400' : 
+                    'text-red-500'}`} 
+                />
+                {/* Horizontal bar indicator */}
+                <div className="absolute bottom-0 w-12 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full 
+                      ${averageReadiness > 80 ? 'bg-green-500' : 
+                        averageReadiness > 50 ? 'bg-yellow-400' : 
+                        'bg-red-500'}`}
+                    style={{ width: `${averageReadiness}%` }}
+                  ></div>
+                </div>
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-semibold">
+                  {readinessLoading ? "..." : `${averageReadiness}%`}
+                </span>
+                <p className="text-xs text-zinc-400 uppercase tracking-wider mt-0.5">Readiness</p>
+              </div>
             </div>
           </div>
-          
-          <div className="w-px h-6 bg-zinc-800 mx-1"></div>
-          
-          <div className="flex items-center text-yellow-500">
-            <div className="bg-yellow-500 bg-opacity-20 p-1.5 rounded-full mr-1">
-              <AlertTriangle className="h-3 w-3" />
-            </div>
-            <div>
-              <p className="text-[10px] text-zinc-400 leading-none">High Risk</p>
-              <p className="text-sm font-bold">{athletesLoading ? "..." : athletesAtRisk}</p>
+
+          {/* High Risk Metric */}
+          <div className="flex-1">
+            <div className="flex flex-col items-center">
+              <div className="relative w-16 h-16 mb-1 flex items-center justify-center">
+                <div className={`w-12 h-12 rounded-lg flex items-center justify-center
+                  ${athletesAtRisk === 0 ? 'bg-green-500/10' : 
+                    athletesAtRisk <= 2 ? 'bg-yellow-400/10' : 
+                    'bg-red-500/10'}`}
+                >
+                  <Triangle 
+                    className={`h-8 w-8 
+                      ${athletesAtRisk === 0 ? 'text-green-500' : 
+                        athletesAtRisk <= 2 ? 'text-yellow-400' : 
+                        'text-red-500'}`} 
+                    fill={athletesAtRisk > 2 ? 'currentColor' : 'none'}
+                  />
+                </div>
+              </div>
+              <div className="text-center">
+                <span className={`text-lg font-semibold 
+                  ${athletesAtRisk === 0 ? 'text-green-500' : 
+                    athletesAtRisk <= 2 ? 'text-yellow-400' : 
+                    'text-red-500'}`}
+                >
+                  {athletesLoading ? "..." : athletesAtRisk}
+                </span>
+                <p className="text-xs text-zinc-400 uppercase tracking-wider mt-0.5">High Risk</p>
+              </div>
             </div>
           </div>
-          
-          <div className="w-px h-6 bg-zinc-800 mx-1"></div>
-          
-          <div className="flex items-center text-red-500">
-            <div className="bg-red-500 bg-opacity-20 p-1.5 rounded-full mr-1">
-              <HeartPulse className="h-3 w-3" />
-            </div>
-            <div>
-              <p className="text-[10px] text-zinc-400 leading-none">Sick/Injured</p>
-              <p className="text-sm font-bold">{athletesLoading ? "..." : sickOrInjuredAthletes}</p>
+
+          {/* Sick/Injured Metric */}
+          <div className="flex-1">
+            <div className="flex flex-col items-center">
+              <div className="relative w-16 h-16 mb-1 flex items-center justify-center">
+                <div className={`w-12 h-12 rounded-lg flex items-center justify-center
+                  ${sickOrInjuredAthletes === 0 ? 'bg-green-500/10' : 'bg-red-500/10'}`}
+                >
+                  <HeartPulse 
+                    className={`h-8 w-8 
+                      ${sickOrInjuredAthletes === 0 ? 'text-green-500' : 'text-red-500'}`}
+                  />
+                </div>
+              </div>
+              <div className="text-center">
+                <span className={`text-lg font-semibold 
+                  ${sickOrInjuredAthletes === 0 ? 'text-green-500' : 'text-red-500'}`}
+                >
+                  {athletesLoading ? "..." : sickOrInjuredAthletes}
+                </span>
+                <p className="text-xs text-zinc-400 uppercase tracking-wider mt-0.5">Sick/Injured</p>
+              </div>
             </div>
           </div>
         </div>
