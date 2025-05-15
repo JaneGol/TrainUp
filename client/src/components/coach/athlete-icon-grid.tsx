@@ -10,8 +10,8 @@ interface AthleteIconProps {
   name: string;
   initials: string;
   readinessScore: number;
-  sleepQuality?: 'good' | 'average' | 'poor' | undefined;
-  sleepHours?: number | undefined;
+  moodScore?: number;
+  recoveryScore?: number;
   hasIssues: boolean;
   onClick?: () => void;
 }
@@ -21,87 +21,75 @@ function AthleteIcon({
   name, 
   initials, 
   readinessScore, 
-  sleepQuality, 
-  sleepHours, 
+  moodScore = 70, 
+  recoveryScore = 65, 
   hasIssues, 
   onClick 
 }: AthleteIconProps) {
-  // Determine color for recovery status
-  const recoveryColor = readinessScore >= 75 
-    ? 'bg-green-500' 
-    : readinessScore >= 50 
-      ? 'bg-yellow-500' 
-      : 'bg-red-500';
-  
-  // Determine color for sleep quality (outer ring)
-  const sleepQualityColor = !sleepQuality 
-    ? 'border-gray-600' // No data
-    : sleepQuality === 'good' 
-      ? 'border-green-500' 
-      : sleepQuality === 'average' 
-        ? 'border-yellow-500' 
-        : 'border-red-500';
-  
-  // Determine sleep hours display (inner ring percentage)
-  // Assuming 8 hours is optimal (100%)
-  const sleepHoursPercentage = !sleepHours 
-    ? 0 
-    : Math.min(Math.round((sleepHours / 8) * 100), 100);
+  // Helper function to determine color based on score
+  const getColorClass = (score: number) => {
+    return score >= 75 
+      ? 'bg-green-500' 
+      : score >= 50 
+        ? 'bg-yellow-500' 
+        : 'bg-red-500';
+  };
   
   return (
     <div 
-      className="relative flex flex-col items-center p-2 cursor-pointer transition-all hover:bg-zinc-800 rounded-lg"
+      className="flex p-3 cursor-pointer transition-all hover:bg-zinc-800 rounded-lg"
       onClick={onClick}
     >
-      {/* Athlete profile with dual-ring indicator */}
-      <div className={`w-16 h-16 rounded-full flex items-center justify-center relative mb-1
-        border-4 ${sleepQualityColor}`}
-      >
-        {/* Inner circle with sleep duration indicator */}
-        <div className="w-full h-full rounded-full bg-zinc-900 flex items-center justify-center overflow-hidden">
-          {/* Sleep hours progress circle */}
-          {sleepHours && (
+      {/* Left side: Athlete avatar/initials */}
+      <div className="h-12 w-12 bg-zinc-800 flex items-center justify-center rounded-lg mr-3">
+        <span className="text-sm font-semibold">{initials}</span>
+        
+        {/* Health issue indicator */}
+        {hasIssues && (
+          <Badge 
+            variant="outline" 
+            className="absolute -top-1 -right-1 p-1 min-w-0 min-h-0 h-4 w-4 flex items-center justify-center bg-red-500 border-red-500"
+          >
+            <span className="sr-only">Health issue</span>
+          </Badge>
+        )}
+      </div>
+      
+      {/* Right side: Status bars */}
+      <div className="flex-1 flex flex-col gap-1.5 justify-center">
+        {/* Readiness bar */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-zinc-400 w-14">Readiness</span>
+          <div className="h-1.5 flex-1 bg-zinc-800 rounded-full overflow-hidden">
             <div 
-              className="absolute bottom-0 left-0 right-0 bg-blue-500/30"
-              style={{ 
-                height: `${sleepHoursPercentage}%`,
-                borderTopLeftRadius: sleepHoursPercentage < 100 ? '50%' : '0',
-                borderTopRightRadius: sleepHoursPercentage < 100 ? '50%' : '0'
-              }}
+              className={`h-full ${getColorClass(readinessScore)}`} 
+              style={{ width: `${readinessScore}%` }}
             />
-          )}
-          
-          {/* Initials displayed over sleep indicator */}
-          <span className="text-sm font-semibold z-10">{initials}</span>
+          </div>
+        </div>
+        
+        {/* Mood bar */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-zinc-400 w-14">Mood</span>
+          <div className="h-1.5 flex-1 bg-zinc-800 rounded-full overflow-hidden">
+            <div 
+              className={`h-full ${getColorClass(moodScore)}`} 
+              style={{ width: `${moodScore}%` }}
+            />
+          </div>
+        </div>
+        
+        {/* Recovery bar */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-zinc-400 w-14">Recovery</span>
+          <div className="h-1.5 flex-1 bg-zinc-800 rounded-full overflow-hidden">
+            <div 
+              className={`h-full ${getColorClass(recoveryScore)}`} 
+              style={{ width: `${recoveryScore}%` }}
+            />
+          </div>
         </div>
       </div>
-      
-      {/* Recovery status vertical bar */}
-      <div className="absolute bottom-10 right-2 w-1.5 h-8 bg-zinc-800 rounded-full overflow-hidden">
-        <div 
-          className={`w-full ${recoveryColor}`} 
-          style={{ 
-            height: `${readinessScore}%`,
-            position: 'absolute',
-            bottom: 0
-          }}
-        />
-      </div>
-      
-      {/* Health issue indicator */}
-      {hasIssues && (
-        <Badge 
-          variant="outline" 
-          className="absolute -top-1 -right-1 p-1 min-w-0 min-h-0 h-4 w-4 flex items-center justify-center bg-red-500 border-red-500"
-        >
-          <HeartPulse className="h-3 w-3 text-white" />
-        </Badge>
-      )}
-      
-      {/* Athlete name */}
-      <span className="text-xs font-medium text-center truncate w-full">
-        {name}
-      </span>
     </div>
   );
 }
@@ -146,35 +134,21 @@ export default function AthleteIconGrid() {
           issue.includes("pain")
         );
         
-        // Generate synthetic sleep data based on readiness
-        // In a real app, this would come from the morning diary entries
-        let sleepQuality: 'good' | 'average' | 'poor' | undefined;
-        let sleepHours: number | undefined;
+        // Generate mood score based on readiness (in a real app this would come from the diary entries)
+        // Mood is slightly higher than readiness on average
+        const moodScore = Math.min(100, Math.max(0, readiness.readinessScore + 5 + (Math.random() * 10 - 5)));
         
-        if (readiness.readinessScore > 75) {
-          sleepQuality = 'good';
-          sleepHours = 7 + Math.random();
-        } else if (readiness.readinessScore > 50) {
-          sleepQuality = 'average';
-          sleepHours = 5.5 + Math.random() * 1.5;
-        } else {
-          sleepQuality = 'poor';
-          sleepHours = 4 + Math.random() * 1.5;
-        }
-        
-        // Add 20% chance of no sleep data
-        if (Math.random() > 0.8) {
-          sleepQuality = undefined;
-          sleepHours = undefined;
-        }
+        // Generate recovery score based on readiness (in a real app this would come from the diary entries)
+        // Recovery is slightly lower than readiness on average
+        const recoveryScore = Math.min(100, Math.max(0, readiness.readinessScore - 5 + (Math.random() * 10 - 5)));
         
         return {
           ...readiness,
           athleteId: athlete.id,
           initials,
           hasIssues,
-          sleepQuality,
-          sleepHours: sleepHours ? parseFloat(sleepHours.toFixed(1)) : undefined
+          moodScore: Math.round(moodScore),
+          recoveryScore: Math.round(recoveryScore)
         };
       }).filter(Boolean);
       
@@ -198,7 +172,7 @@ export default function AthleteIconGrid() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : mergedAthleteData.length > 0 ? (
-          <div className="grid grid-cols-5 gap-1">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {mergedAthleteData.map((athlete: any) => (
               <AthleteIcon
                 key={athlete.athleteId}
@@ -206,8 +180,8 @@ export default function AthleteIconGrid() {
                 name={athlete.name}
                 initials={athlete.initials}
                 readinessScore={athlete.readinessScore}
-                sleepQuality={athlete.sleepQuality}
-                sleepHours={athlete.sleepHours}
+                moodScore={athlete.moodScore}
+                recoveryScore={athlete.recoveryScore}
                 hasIssues={athlete.hasIssues}
                 onClick={() => handleAthleteClick(athlete.athleteId)}
               />

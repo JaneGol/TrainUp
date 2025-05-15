@@ -52,7 +52,10 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
       // Create data for the chart
       const formattedData = last7Days.map(date => {
         const dataForDay = wellnessTrends.filter((item: HealthMetric) => item.date === date);
-        const dataPoint: any = { date: formatDate(date) };
+        const dataPoint: any = { 
+          date: date,
+          formattedDate: formatDateShort(date),
+        };
         
         uniqueCategories.forEach(category => {
           const metricData = dataForDay.find((item: HealthMetric) => item.category === category);
@@ -71,25 +74,27 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
     }
   }, [wellnessTrends]);
 
-  // Format date to be more readable (e.g., "May 8")
-  const formatDate = (dateString: string) => {
+  // Format date to DD.MM format (e.g., "15.05")
+  const formatDateShort = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    return `${day}.${month}`;
   };
 
   // Define colors for each category
   const categoryColors = {
     'Readiness': '#3b82f6', // blue
-    'Mood': '#10b981', // green
     'Recovery': '#f59e0b', // amber
     'Sleep': '#8b5cf6', // violet
+    'Sick/Injured': '#ef4444', // red
   };
 
   return (
     <Card className="bg-zinc-900 border-zinc-800 text-white">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">{title}</CardTitle>
-        {description && <p className="text-sm text-gray-400">{description}</p>}
+        {description && <p className="text-xs text-zinc-400">{description}</p>}
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -98,35 +103,47 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
           </div>
         ) : chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 25, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#444" />
               <XAxis 
-                dataKey="date" 
-                tick={{ fill: '#9ca3af' }} 
+                dataKey="formattedDate" 
+                tick={{ 
+                  fill: 'rgba(156, 163, 175, 0.7)', 
+                  fontSize: 10 
+                }} 
                 tickLine={{ stroke: '#4b5563' }}
                 axisLine={{ stroke: '#4b5563' }}
+                dy={10}
               />
               <YAxis 
-                tick={{ fill: '#9ca3af' }} 
+                tick={{ 
+                  fill: 'rgba(156, 163, 175, 0.7)', 
+                  fontSize: 10
+                }} 
                 tickLine={{ stroke: '#4b5563' }}
                 axisLine={{ stroke: '#4b5563' }}
                 domain={[0, 100]}
                 tickFormatter={(value) => `${value}%`}
+                width={30}
               />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: '#18181b', 
                   borderColor: '#3f3f46',
                   color: 'white',
-                  borderRadius: '4px'
+                  borderRadius: '4px',
+                  fontSize: '12px'
                 }}
                 labelStyle={{ color: 'white' }}
+                formatter={(value) => [`${value}%`, '']}
               />
               <Legend 
                 verticalAlign="bottom" 
                 iconType="circle"
                 wrapperStyle={{
-                  paddingTop: '10px'
+                  paddingTop: '10px',
+                  fontSize: '11px',
+                  opacity: 0.7
                 }}
               />
               {Object.keys(categoryColors).map((category) => {
@@ -140,7 +157,7 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
                       stroke={categoryColors[category as keyof typeof categoryColors]}
                       strokeWidth={2}
                       dot={{ r: 3, fill: categoryColors[category as keyof typeof categoryColors] }}
-                      activeDot={{ r: 5 }}
+                      activeDot={{ r: 4 }}
                       name={category}
                     />
                   );
