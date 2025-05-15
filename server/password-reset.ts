@@ -83,11 +83,11 @@ class PasswordResetManager {
       }
       
       // Clear any reset tokens for this user
-      for (const [key, data] of this.resetTokens.entries()) {
+      Array.from(this.resetTokens.entries()).forEach(([key, data]) => {
         if (data.userId === userId) {
           this.resetTokens.delete(key);
         }
-      }
+      });
       
       return true;
     } catch (error) {

@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
+import { setupPasswordResetRoutes } from "./password-reset-routes";
 import { 
   insertTrainingEntrySchema, 
   insertHealthReportSchema, 
@@ -14,6 +15,9 @@ import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   setupAuth(app);
+  
+  // Set up password reset routes
+  setupPasswordResetRoutes(app);
 
   // Athlete Routes
   app.post("/api/training-entries", async (req, res) => {
