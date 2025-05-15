@@ -11,6 +11,24 @@ import {
   insertMorningDiarySchema 
 } from "@shared/schema";
 import { z } from "zod";
+// Import for password hashing and comparison
+import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { promisify } from "util";
+
+const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
+
+async function comparePasswords(supplied: string, stored: string) {
+  const [hashed, salt] = stored.split(".");
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -18,6 +36,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Set up password reset routes
   setupPasswordResetRoutes(app);
+  
+  // Change password route for logged-in users
+  app.post("/api/user/change-password", (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "You must be logged in" });
+    }
+    
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+    
+    // Verify current password
+    comparePasswords(currentPassword, req.user.password)
+      .then(async (isMatch) => {
+        if (!isMatch) {
+          return res.status(400).json({ error: "Current password is incorrect" });
+        }
+        
+        try {
+          // Hash the new password
+          const hashedPassword = await hashPassword(newPassword);
+          
+          // Update the user's password
+          req.user.password = hashedPassword;
+          
+          console.log(`Password changed for user ${req.user.id} (${req.user.username})`);
+          
+          res.status(200).json({ message: "Password changed successfully" });
+        } catch (error) {
+          console.error("Error changing password:", error);
+          res.status(500).json({ error: "Failed to change password" });
+        }
+      })
+      .catch((error) => {
+        console.error("Error verifying password:", error);
+        res.status(500).json({ error: "Failed to verify password" });
+      });
+  });
 
   // Athlete Routes
   app.post("/api/training-entries", async (req, res) => {

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "./hooks/use-auth";
 import AuthPage from "@/pages/auth-page";
+import ProfilePage from "@/pages/profile-page";
 import { ProtectedRoute } from "./lib/protected-route";
 
 // Athlete pages
@@ -32,6 +33,9 @@ function Router() {
     <Switch>
       {/* Auth routes */}
       <Route path="/auth" component={AuthPage} />
+      
+      {/* Common routes */}
+      <ProtectedRoute path="/profile" component={ProfilePage} />
       
       {/* Athlete routes */}
       <ProtectedRoute path="/" component={AthleteHomePage} />
