@@ -8,7 +8,9 @@ import {
   Tooltip, 
   ResponsiveContainer, 
   Legend,
-  CartesianGrid
+  CartesianGrid,
+  ReferenceArea,
+  ReferenceLine
 } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
@@ -32,6 +34,15 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
 
   // Get last 7 days data
   const [chartData, setChartData] = useState<any[]>([]);
+  const [trendData, setTrendData] = useState<{
+    averageReadiness: number;
+    trend: 'up' | 'down' | 'stable';
+    trendValue: number;
+  }>({
+    averageReadiness: 0,
+    trend: 'stable',
+    trendValue: 0
+  });
 
   useEffect(() => {
     if (wellnessTrends && Array.isArray(wellnessTrends)) {
@@ -87,12 +98,49 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
           
           // Add Energy as a new parameter
           dataPoint['Energy'] = energyValue;
+          
+          // Remove Mood as it's now incorporated into Energy
+          if (hasMood) {
+            delete dataPoint['Mood'];
+          }
         }
         
         return dataPoint;
       });
       
       setChartData(formattedData);
+      
+      // Calculate trend data 
+      if (formattedData.length > 0) {
+        // Calculate Readiness trend over the last 7 days
+        const readinessValues = formattedData
+          .filter(item => 'Readiness' in item)
+          .map(item => item.Readiness);
+        
+        if (readinessValues.length > 1) {
+          // Calculate overall average
+          const averageReadiness = Math.round(
+            readinessValues.reduce((sum, val) => sum + val, 0) / readinessValues.length
+          );
+          
+          // Calculate trend (first half vs second half)
+          const midpoint = Math.floor(readinessValues.length / 2);
+          const firstHalf = readinessValues.slice(0, midpoint);
+          const secondHalf = readinessValues.slice(midpoint);
+          
+          const firstHalfAvg = firstHalf.reduce((sum, val) => sum + val, 0) / firstHalf.length;
+          const secondHalfAvg = secondHalf.reduce((sum, val) => sum + val, 0) / secondHalf.length;
+          
+          const trendValue = secondHalfAvg - firstHalfAvg;
+          const trend = trendValue > 1 ? 'up' : trendValue < -1 ? 'down' : 'stable';
+          
+          setTrendData({
+            averageReadiness,
+            trend,
+            trendValue: Math.abs(trendValue)
+          });
+        }
+      }
     }
   }, [wellnessTrends]);
 
@@ -175,9 +223,36 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
                 }}
                 iconSize={8}
               />
+              {/* Weekly average trend line */}
+              <ReferenceLine 
+                y={trendData.averageReadiness} 
+                stroke="#22c55e" 
+                strokeDasharray="3 3"
+                strokeWidth={1}
+                opacity={0.5}
+              />
+              
+              {/* Category lines */}
               {Object.keys(categoryColors).map((category) => {
                 // Only render the category if it exists in the data
                 if (chartData.some(item => category in item)) {
+                  // If this is Energy and we have a trend, make it bolder
+                  if (category === 'Energy') {
+                    return (
+                      <Line
+                        key={category}
+                        type="monotone"
+                        dataKey={category}
+                        stroke="#22c55e" // Green color for Energy
+                        strokeWidth={3}
+                        dot={{ r: 4, fill: "#22c55e" }}
+                        activeDot={{ r: 5 }}
+                        name={category}
+                        connectNulls={true}
+                      />
+                    );
+                  }
+                  
                   return (
                     <Line
                       key={category}
@@ -188,6 +263,7 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
                       dot={{ r: 3, fill: categoryColors[category as keyof typeof categoryColors] }}
                       activeDot={{ r: 4 }}
                       name={category}
+                      connectNulls={true}
                     />
                   );
                 }

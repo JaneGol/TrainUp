@@ -37,24 +37,26 @@ function AthleteIcon({
         : 'text-red-500';
   };
   
-  // Helper function to determine background color and fill percentage based on sleep quality
-  const getSleepQualityStyle = () => {
-    let bgColor, fillPercentage;
+  // Helper function to simulate both sleep quality and quantity as a percentage for donut chart
+  const getSleepQualityInfo = () => {
+    // Base sleep percentage from quality
+    let basePercentage = sleepQuality === 'good' 
+      ? 90 
+      : sleepQuality === 'average' 
+        ? 65 
+        : 40;
     
-    if (sleepQuality === 'good') {
-      bgColor = 'rgba(34, 197, 94, 0.6)'; // Green with 60% opacity
-      fillPercentage = '100%';
-    } else if (sleepQuality === 'average') {
-      bgColor = 'rgba(234, 179, 8, 0.6)'; // Yellow with 60% opacity
-      fillPercentage = '70%';
-    } else {
-      bgColor = 'rgba(239, 68, 68, 0.6)'; // Red with 60% opacity
-      fillPercentage = '40%';
-    }
+    // Add some slight variation
+    const variation = Math.random() * 10 - 5; // +/- 5%
+    const percentage = Math.min(100, Math.max(5, basePercentage + variation));
     
     return {
-      backgroundColor: bgColor,
-      height: fillPercentage
+      percentage,
+      color: sleepQuality === 'good' 
+        ? '#eab308' // Yellow for good (per request)
+        : sleepQuality === 'average' 
+          ? 'rgba(234, 179, 8, 0.7)' // Yellow with reduced opacity
+          : 'rgba(234, 179, 8, 0.5)' // Yellow with even more reduced opacity
     };
   };
   
@@ -67,7 +69,16 @@ function AthleteIcon({
         : '#ef4444'; // red
   };
   
-  const sleepQualityStyle = getSleepQualityStyle();
+  const sleepInfo = getSleepQualityInfo();
+  
+  // Calculate the circumference and the dash offset for the donut chart
+  const radius = 18; // Slightly smaller than half the width (0.5*w-2 = 0.5*28-2 = 12)
+  const circumference = 2 * Math.PI * radius;
+  const dashoffset = circumference * (1 - sleepInfo.percentage / 100);
+  
+  // Calculate battery segments based on readiness score
+  const batterySegments = 5; // We'll show 5 segments
+  const filledSegments = Math.ceil((readinessScore / 100) * batterySegments);
   
   return (
     <div 
@@ -76,31 +87,53 @@ function AthleteIcon({
     >
       {/* Athlete icon with indicators */}
       <div className="relative w-14 h-14 mb-1">
-        {/* Outer circle - Sleep quality shown as filled circle */}
-        <div className="absolute inset-0 rounded-full overflow-hidden border border-zinc-700">
-          <div 
-            className="absolute bottom-0 left-0 right-0"
-            style={{ 
-              backgroundColor: sleepQualityStyle.backgroundColor,
-              height: sleepQualityStyle.height
-            }}
-          />
+        {/* Outer circle - Sleep quality as donut chart */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <svg width="40" height="40" viewBox="0 0 44 44" className="transform -rotate-90">
+            {/* Dark gray base ring */}
+            <circle 
+              cx="22" 
+              cy="22" 
+              r={radius} 
+              fill="transparent" 
+              stroke="#333" 
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+            {/* Colored progress ring */}
+            <circle 
+              cx="22" 
+              cy="22" 
+              r={radius} 
+              fill="transparent" 
+              stroke={sleepInfo.color} 
+              strokeWidth="3"
+              strokeDasharray={circumference}
+              strokeDashoffset={dashoffset}
+              strokeLinecap="round"
+              style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+            />
+          </svg>
         </div>
         
         {/* Battery icon in center for readiness */}
         <div className="absolute inset-1/4 flex items-center justify-center z-10">
-          <div className="relative w-7 h-4 border-2 rounded-sm flex items-center justify-center"
-               style={{ borderColor: getBatteryFillColor() }}>
+          <div className="flex items-center">
+            {/* Battery segments */}
+            {Array.from({ length: batterySegments }).map((_, index) => (
+              <div 
+                key={index}
+                className={`w-1.5 h-4 mx-0.5 ${index < filledSegments ? 'opacity-100' : 'opacity-30'}`}
+                style={{ 
+                  backgroundColor: getBatteryFillColor(),
+                  borderRadius: index === 0 ? '2px 0 0 2px' : index === batterySegments - 1 ? '0 2px 2px 0' : '0'
+                }}
+              />
+            ))}
+            
+            {/* Battery cap */}
             <div 
-              className="absolute inset-y-0 left-0 rounded-l-[1px]"
-              style={{ 
-                backgroundColor: getBatteryFillColor(),
-                width: `${readinessScore}%`,
-                maxWidth: 'calc(100% - 1px)'
-              }}
-            />
-            <div 
-              className="absolute -right-[3px] inset-y-[1px] rounded-r-[1px] w-[2px]"
+              className="w-0.5 h-2 ml-0.5"
               style={{ backgroundColor: getBatteryFillColor() }}
             />
           </div>
