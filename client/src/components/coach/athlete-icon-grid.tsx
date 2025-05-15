@@ -206,7 +206,6 @@ function AthleteIcon({
 
 export default function AthleteIconGrid() {
   const [, navigate] = useLocation();
-  const [searchTerm, setSearchTerm] = useState("");
   
   // Get all athletes
   const { data: athletes, isLoading: athletesLoading } = useQuery({
@@ -218,8 +217,7 @@ export default function AthleteIconGrid() {
     queryKey: ["/api/analytics/athlete-recovery-readiness"],
   });
   
-  // Get morning diary data for all athletes (would be implemented in a real API)
-  // For demo purposes, we'll create synthetic sleep data
+  // Get morning diary data for all athletes
   const [mergedAthleteData, setMergedAthleteData] = useState<any[]>([]);
   
   useEffect(() => {
@@ -291,17 +289,32 @@ export default function AthleteIconGrid() {
     navigate(`/coach/athlete/${athleteId}`);
   };
   
+  // Get risk level counts
+  const getRiskLevelCounts = () => {
+    if (!mergedAthleteData?.length) return { high: 0, moderate: 0, low: 0, total: 0 };
+    
+    const high = mergedAthleteData.filter(a => a.readinessScore < 50).length;
+    const moderate = mergedAthleteData.filter(a => a.readinessScore >= 50 && a.readinessScore < 75).length;
+    const low = mergedAthleteData.filter(a => a.readinessScore >= 75).length;
+    
+    return {
+      high,
+      moderate,
+      low,
+      total: mergedAthleteData.length
+    };
+  };
+  
+  const riskCounts = getRiskLevelCounts();
+  
   return (
-    <Card className="bg-zinc-900 border-zinc-800 text-white">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Athlete Status</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {readinessLoading || athletesLoading ? (
-          <div className="flex justify-center items-center py-10">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : mergedAthleteData.length > 0 ? (
+    <>
+      {readinessLoading || athletesLoading ? (
+        <div className="flex justify-center items-center py-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : mergedAthleteData.length > 0 ? (
+        <>
           <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-1">
             {mergedAthleteData.map((athlete: any) => (
               <AthleteIcon
@@ -318,13 +331,31 @@ export default function AthleteIconGrid() {
               />
             ))}
           </div>
-        ) : (
-          <div className="text-center py-8 text-zinc-400">
-            <User2 className="h-12 w-12 mx-auto mb-2 opacity-30" />
-            <p>No athlete data available</p>
+          
+          {/* Risk distribution footer */}
+          <div className="flex justify-end mt-4 pt-3 border-t border-zinc-800">
+            <div className="flex gap-3 text-xs">
+              <span className="text-green-500 flex items-center">
+                <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                {riskCounts.low} Low Risk
+              </span>
+              <span className="text-yellow-500 flex items-center">
+                <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1"></span>
+                {riskCounts.moderate} Moderate 
+              </span>
+              <span className="text-red-500 flex items-center">
+                <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
+                {riskCounts.high} High Risk
+              </span>
+            </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </>
+      ) : (
+        <div className="text-center py-8 text-zinc-400">
+          <User2 className="h-12 w-12 mx-auto mb-2 opacity-30" />
+          <p>No athlete data available</p>
+        </div>
+      )}
+    </>
   );
 }
