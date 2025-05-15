@@ -82,7 +82,7 @@ function AthleteIcon({
   
   return (
     <div 
-      className="p-2 cursor-pointer transition-all hover:bg-zinc-800 rounded-lg flex flex-col items-center"
+      className="p-1 cursor-pointer transition-all hover:bg-zinc-800 rounded-lg flex flex-col items-center"
       onClick={onClick}
     >
       {/* Athlete icon with indicators */}
@@ -118,22 +118,22 @@ function AthleteIcon({
         
         {/* Battery icon directly in center for readiness */}
         <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className="flex items-center bg-zinc-900/90 rounded-sm px-1 py-0.5 shadow">
+          <div className="flex items-center bg-zinc-900/80 rounded-sm px-0.5 py-px">
             {/* Battery segments */}
             {Array.from({ length: batterySegments }).map((_, index) => (
               <div 
                 key={index}
-                className={`w-2 h-5 mx-0.5 ${index < filledSegments ? 'opacity-100' : 'opacity-30'}`}
+                className={`w-1 h-3 mx-px ${index < filledSegments ? 'opacity-100' : 'opacity-30'}`}
                 style={{ 
                   backgroundColor: getBatteryFillColor(),
-                  borderRadius: index === 0 ? '2px 0 0 2px' : index === batterySegments - 1 ? '0 2px 2px 0' : '0'
+                  borderRadius: index === 0 ? '1px 0 0 1px' : index === batterySegments - 1 ? '0 1px 1px 0' : '0'
                 }}
               />
             ))}
             
             {/* Battery cap */}
             <div 
-              className="w-1 h-3 ml-0.5"
+              className="w-0.5 h-1.5 ml-px"
               style={{ backgroundColor: getBatteryFillColor() }}
             />
           </div>
@@ -183,7 +183,7 @@ function AthleteIcon({
       </div>
       
       {/* Athlete name */}
-      <div className="text-xs font-medium text-center truncate w-full mt-1">
+      <div className="text-[10px] font-medium text-center truncate w-full mt-0.5">
         {name}
       </div>
     </div>
@@ -288,7 +288,7 @@ export default function AthleteIconGrid() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : mergedAthleteData.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-1">
             {mergedAthleteData.map((athlete: any) => (
               <AthleteIcon
                 key={athlete.athleteId}
