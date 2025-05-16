@@ -42,9 +42,6 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
   useEffect(() => {
     if (wellnessTrends && Array.isArray(wellnessTrends)) {
       // Process data for chart
-      const uniqueCategories = Array.from(
-        new Set(wellnessTrends.map((item: HealthMetric) => item.category))
-      );
       const uniqueDates = Array.from(
         new Set(wellnessTrends.map((item: HealthMetric) => item.date))
       );
@@ -57,35 +54,23 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
       
       // Create data for the chart
       const formattedData = last7Days.map(date => {
+        // Filter metrics for this specific date
         const dataForDay = wellnessTrends.filter((item: HealthMetric) => item.date === date);
+        
+        // Start with the date and formatted date
         const dataPoint: any = { 
           date: date,
           formattedDate: formatDateShort(date),
         };
         
-        // First collect all category values
-        const categoryValues: Record<string, number> = {};
-        
-        uniqueCategories.forEach(category => {
-          const metricData = dataForDay.find((item: HealthMetric) => item.category === category);
-          if (metricData) {
-            // Convert from 0-1 scale to 0-100
-            const value = Math.round(metricData.value * 100);
-            dataPoint[category] = value;
-            categoryValues[category] = value;
-          } else {
-            dataPoint[category] = 0;
-            categoryValues[category] = 0;
-          }
+        // Process data for each metric category, preserving their unique values
+        dataForDay.forEach(metric => {
+          // Convert from 0-1 scale to 0-100 percentage
+          const value = Math.round(metric.value * 100);
+          
+          // Store the value for this category
+          dataPoint[metric.category] = value;
         });
-        
-        // Don't calculate Energy based on other metrics, use values directly from the API
-        // This ensures we get the unique values for each metric
-        
-        // Make sure our three required metrics are properly set
-        // If a category is missing for a date, leave it as undefined to create breaks in the line
-        
-        // Note: We no longer set default values for missing metrics to avoid flat lines
         
         return dataPoint;
       });
