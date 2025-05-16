@@ -14,7 +14,7 @@ export default function AthleteStatusPage() {
   
   // Go back to dashboard
   const handleBackClick = () => {
-    navigate("/coach/dashboard");
+    navigate("/coach");
   };
   
   // Get all athletes
@@ -54,7 +54,7 @@ export default function AthleteStatusPage() {
             <Button 
               variant="outline" 
               className="text-xs px-3 py-1 h-8 border-zinc-700 hover:bg-zinc-800 text-zinc-300"
-              onClick={() => navigate("/coach/dashboard")}
+              onClick={() => navigate("/coach")}
             >
               Dashboard
             </Button>
