@@ -4,12 +4,18 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
-// Color scheme for the wellness metrics
+// Color scheme for the wellness metrics with exact values from requirements
 const categoryColors = {
-  'Recovery': 'rgb(200, 255, 1)', // Yellow-green/lime color
-  'Readiness': 'rgb(59, 130, 246)', // Blue
-  'Energy': 'rgb(239, 68, 68)' // Red
+  'Recovery': 'rgb(200, 255, 1)', // Yellow-green/lime color (CBFF00)
+  'Readiness': 'rgb(59, 130, 246)', // Blue 
+  'Energy': 'rgb(239, 68, 68)' // Red (rgb(239,68,68))
 };
+
+// Helper function to format dates in DD.MM format
+function formatDateShort(dateString: string): string {
+  const date = new Date(dateString);
+  return `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+}
 
 interface HealthMetric {
   date: string;
@@ -41,8 +47,6 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
 
   useEffect(() => {
     if (wellnessTrends && Array.isArray(wellnessTrends)) {
-      console.log("Raw wellness trends data:", wellnessTrends);
-      
       // Process data for chart
       const uniqueDates = Array.from(
         new Set(wellnessTrends.map((item: HealthMetric) => item.date))
@@ -51,35 +55,30 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
       // Sort dates in ascending order
       uniqueDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
       
-      // Get the last 7 days
+      // Get the last 7 days for the chart
       const last7Days = uniqueDates.slice(-7);
       
-      // Create data for the chart - force all three categories for each day
+      // Create data for the chart - ensure all three categories exist for each day
       const formattedData = last7Days.map(date => {
         // Filter metrics for this specific date
         const dataForDay = wellnessTrends.filter((item: HealthMetric) => item.date === date);
         
-        // Start with the date and formatted date
+        // Create the data point with formatted date
         const dataPoint: any = { 
           date: date,
-          formattedDate: formatDateShort(date),
-          // Pre-set these to undefined so we can detect if they're missing
-          Readiness: undefined,
-          Recovery: undefined,
-          Energy: undefined
+          formattedDate: formatDateShort(date)
         };
         
-        // Process data for each metric category, preserving their unique values
+        // Process data for each metric category
         dataForDay.forEach(metric => {
           // Convert from 0-1 scale to 0-100 percentage
           const value = Math.round(metric.value * 100);
           
-          // Store the value for this category
-          dataPoint[metric.category] = value;
+          // Only process the three metrics we care about
+          if (['Readiness', 'Recovery', 'Energy'].includes(metric.category)) {
+            dataPoint[metric.category] = value;
+          }
         });
-        
-        // Check if we have data for 'Readiness', 'Recovery', and 'Energy' at this date point
-        console.log(`Data point for ${date}:`, dataPoint);
         
         return dataPoint;
       });

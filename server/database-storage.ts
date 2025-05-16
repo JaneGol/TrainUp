@@ -133,55 +133,106 @@ export function generateDefaultWellnessTrends(): { date: string; value: number; 
   const trends: { date: string; value: number; category: string }[] = [];
   const categories = ['Readiness', 'Recovery', 'Energy'];
   
-  // Create distinctive trend patterns for each category
-  const categoryPatterns = {
-    'Readiness': { 
-      baseValue: 65, 
-      trend: 'improving',  // Gradually improving
-      volatility: 10       // Medium volatility
-    },
-    'Recovery': { 
-      baseValue: 75, 
-      trend: 'fluctuating', // Ups and downs
-      volatility: 15        // Higher volatility
-    },
-    'Energy': { 
-      baseValue: 60, 
-      trend: 'decreasing',  // Gradually decreasing
-      volatility: 20        // Highest volatility
-    }
-  };
+  // Simulate data for a team of 5 athletes over 30 days
+  const numAthletes = 5;
   
   for (let i = 29; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
     const dateString = date.toISOString().split('T')[0];
     
-    categories.forEach(category => {
-      const pattern = categoryPatterns[category as keyof typeof categoryPatterns];
-      let baseValue = pattern.baseValue;
+    // Temporary storage for team averages
+    const teamMetrics: Record<string, number[]> = {
+      'Readiness': [],
+      'Recovery': [],
+      'Energy': []
+    };
+    
+    // Generate individual athlete data and accumulate for team average
+    for (let athlete = 0; athlete < numAthletes; athlete++) {
+      // Simulate different athlete profiles and trends
+      const athleteProfile = athlete % 3; // 0 = consistent, 1 = improving, 2 = struggling
       
-      // Apply different trend patterns
-      if (pattern.trend === 'improving') {
-        // Gradually improving trend
-        baseValue += Math.floor((30 - i) / 3);
-      } else if (pattern.trend === 'decreasing') {
-        // Gradually decreasing trend
-        baseValue -= Math.floor((30 - i) / 4);
-      } else if (pattern.trend === 'fluctuating') {
-        // Fluctuating pattern with wave-like behavior
-        baseValue += Math.sin(i * 0.4) * 12;
+      // ------------ READINESS CALCULATION ------------
+      // Based on sleep quality and sleep duration
+      let sleepQuality = 0;
+      let sleepDuration = 0;
+      
+      // Base sleep values that vary by athlete profile
+      if (athleteProfile === 0) { // Consistent athlete
+        sleepQuality = 75 + Math.floor(Math.random() * 15);
+        sleepDuration = 70 + Math.floor(Math.random() * 20);
+      } else if (athleteProfile === 1) { // Improving athlete
+        sleepQuality = 65 + Math.floor((30 - i) / 2) + Math.floor(Math.random() * 10);
+        sleepDuration = 60 + Math.floor((30 - i) / 2) + Math.floor(Math.random() * 15);
+      } else { // Struggling athlete
+        sleepQuality = 80 - Math.floor((30 - i) / 3) + Math.floor(Math.random() * 15);
+        sleepDuration = 75 - Math.floor((30 - i) / 3) + Math.floor(Math.random() * 15);
       }
       
-      // Add random variation based on volatility
-      const randomVariation = Math.floor(Math.random() * pattern.volatility) - (pattern.volatility / 2);
+      // Calculate overall readiness (average of sleep quality and duration)
+      const readiness = Math.round((sleepQuality + sleepDuration) / 2);
+      teamMetrics['Readiness'].push(readiness);
       
-      // Calculate final value with constraints
-      const value = Math.max(20, Math.min(95, baseValue + randomVariation));
+      // ------------ RECOVERY CALCULATION ------------
+      // Based on recovery level and muscle soreness
+      let recoveryLevel = 0;
+      let muscleSoreness = 0;
+      
+      if (athleteProfile === 0) { // Consistent athlete
+        recoveryLevel = 70 + Math.floor(Math.random() * 20);
+        muscleSoreness = 30 + Math.floor(Math.random() * 20); // Lower is better
+      } else if (athleteProfile === 1) { // Improving athlete
+        recoveryLevel = 60 + Math.floor((30 - i) / 2) + Math.floor(Math.random() * 15);
+        muscleSoreness = 40 - Math.floor((30 - i) / 3) + Math.floor(Math.random() * 20);
+      } else { // Struggling athlete
+        recoveryLevel = 75 - Math.floor((30 - i) / 2) + Math.floor(Math.random() * 15);
+        muscleSoreness = 20 + Math.floor((30 - i) / 2) + Math.floor(Math.random() * 15);
+      }
+      
+      // Invert soreness (higher number = less sore = better recovery)
+      const sorenessInverted = 100 - muscleSoreness;
+      
+      // Calculate overall recovery (weighted average favoring recovery level)
+      const recovery = Math.round((recoveryLevel * 0.7) + (sorenessInverted * 0.3));
+      teamMetrics['Recovery'].push(recovery);
+      
+      // ------------ ENERGY CALCULATION ------------
+      // Based on stress level, motivation and energy level
+      let stressLevel = 0;
+      let motivation = 0;
+      let energyLevel = 0;
+      
+      if (athleteProfile === 0) { // Consistent athlete
+        stressLevel = 35 + Math.floor(Math.random() * 20); // Lower is better
+        motivation = 70 + Math.floor(Math.random() * 20);
+        energyLevel = 65 + Math.floor(Math.random() * 25);
+      } else if (athleteProfile === 1) { // Improving athlete
+        stressLevel = 45 - Math.floor((30 - i) / 3) + Math.floor(Math.random() * 15);
+        motivation = 60 + Math.floor((30 - i) / 2) + Math.floor(Math.random() * 15);
+        energyLevel = 55 + Math.floor((30 - i) / 2) + Math.floor(Math.random() * 20);
+      } else { // Struggling athlete
+        stressLevel = 30 + Math.floor((30 - i) / 2) + Math.floor(Math.random() * 15);
+        motivation = 75 - Math.floor((30 - i) / 3) + Math.floor(Math.random() * 15);
+        energyLevel = 70 - Math.floor((30 - i) / 3) + Math.floor(Math.random() * 20);
+      }
+      
+      // Invert stress level (higher number = less stress = better energy)
+      const stressInverted = 100 - stressLevel;
+      
+      // Calculate overall energy (weighted average)
+      const energy = Math.round((stressInverted * 0.3) + (motivation * 0.3) + (energyLevel * 0.4));
+      teamMetrics['Energy'].push(energy);
+    }
+    
+    // Calculate team averages for each category
+    categories.forEach(category => {
+      const teamValues = teamMetrics[category];
+      const teamAverage = teamValues.reduce((sum, val) => sum + val, 0) / teamValues.length;
       
       trends.push({
         date: dateString,
-        value: parseFloat((value / 100).toFixed(2)), // Normalize to 0-1 scale
+        value: parseFloat((teamAverage / 100).toFixed(2)), // Normalize to 0-1 scale
         category
       });
     });
@@ -438,13 +489,21 @@ export class DatabaseStorage implements IStorage {
   
   // Team wellness trends
   async getTeamWellnessTrends(): Promise<{ date: string; value: number; category: string }[]> {
-    // Get all morning diaries
+    // Get all morning diaries with full details needed for calculations
     const diaries = await db
       .select({
+        id: morningDiary.id,
+        userId: morningDiary.userId,
         date: morningDiary.date,
         readinessScore: morningDiary.readinessScore,
+        sleepQuality: morningDiary.sleepQuality,
+        sleepHours: morningDiary.sleepHours,
+        stressLevel: morningDiary.stressLevel,
         mood: morningDiary.mood,
-        recoveryLevel: morningDiary.recoveryLevel
+        recoveryLevel: morningDiary.recoveryLevel,
+        symptoms: morningDiary.symptoms,
+        motivationLevel: morningDiary.motivationLevel,
+        sorenessMap: morningDiary.sorenessMap
       })
       .from(morningDiary)
       .orderBy(morningDiary.date)
@@ -468,38 +527,96 @@ export class DatabaseStorage implements IStorage {
     const result: { date: string; value: number; category: string }[] = [];
     
     Object.entries(diariesByDate).forEach(([date, diariesOnDate]) => {
-      // Calculate average readiness score
-      const avgReadiness = diariesOnDate.reduce((sum, diary) => sum + diary.readinessScore, 0) / diariesOnDate.length;
+      // -------- READINESS CALCULATION --------
+      // Based on sleep quality and sleep duration
+      const readinessValues = diariesOnDate.map(diary => {
+        // Calculate sleep quality score (good/normal/poor -> 1/0.6/0.2)
+        const sleepQualityScore = 
+          diary.sleepQuality === 'good' ? 1 : 
+          diary.sleepQuality === 'normal' ? 0.6 : 0.2;
+        
+        // Calculate sleep duration score (0-10 hours, optimum is 8)
+        const sleepHours = parseFloat(diary.sleepHours) || 0;
+        const sleepHoursScore = Math.min(sleepHours / 8, 1); // Cap at 1 (100%)
+        
+        // Combined sleep score with equal weighting
+        return (sleepQualityScore + sleepHoursScore) / 2;
+      });
+      
+      // Average team readiness
+      const avgReadiness = readinessValues.reduce((sum, val) => sum + val, 0) / readinessValues.length;
       result.push({
         date,
-        value: parseFloat((avgReadiness / 100).toFixed(1)), // Normalize to 0-1 scale
+        value: parseFloat(avgReadiness.toFixed(2)),
         category: 'Readiness'
       });
       
-      // Calculate average mood score (positive/neutral/negative -> 1/0.5/0)
-      const moodScore = diariesOnDate.reduce((sum, diary) => {
-        if (diary.mood === 'positive') return sum + 1;
-        if (diary.mood === 'neutral') return sum + 0.5;
-        return sum;
-      }, 0) / diariesOnDate.length;
-      
-      result.push({
-        date, 
-        value: parseFloat(moodScore.toFixed(1)),
-        category: 'Mood'
+      // -------- RECOVERY CALCULATION --------
+      // Based on self-reported recovery level and muscle soreness
+      const recoveryValues = diariesOnDate.map(diary => {
+        // Calculate recovery score (good/moderate/poor -> 1/0.6/0.2)
+        const recoveryLevelScore = 
+          diary.recoveryLevel === 'good' ? 1 : 
+          diary.recoveryLevel === 'moderate' ? 0.6 : 0.2;
+        
+        // Calculate soreness score (lower soreness = higher score)
+        // Check if no soreness is reported
+        const noSoreness = diary.sorenessMap?._no_soreness === true;
+        
+        // Count number of sore areas if sorenessMap exists and there is soreness
+        const soreAreaCount = noSoreness ? 0 : 
+          (diary.sorenessMap ? Object.keys(diary.sorenessMap).filter(k => 
+            k !== '_no_soreness' && diary.sorenessMap[k] === true
+          ).length : 0);
+        
+        // Calculate soreness score (0 is best, higher is worse)
+        // Scale: 0 areas = 1.0, 1-2 areas = 0.7, 3-4 areas = 0.4, 5+ areas = 0.2
+        const sorenessScore = 
+          soreAreaCount === 0 ? 1.0 :
+          soreAreaCount <= 2 ? 0.7 :
+          soreAreaCount <= 4 ? 0.4 : 0.2;
+        
+        // Combined recovery score (70% recovery self-assessment, 30% soreness)
+        return (recoveryLevelScore * 0.7) + (sorenessScore * 0.3);
       });
       
-      // Calculate average recovery score (good/moderate/poor -> 1/0.5/0)
-      const recoveryScore = diariesOnDate.reduce((sum, diary) => {
-        if (diary.recoveryLevel === 'good') return sum + 1;
-        if (diary.recoveryLevel === 'moderate') return sum + 0.5;
-        return sum;
-      }, 0) / diariesOnDate.length;
-      
+      // Average team recovery
+      const avgRecovery = recoveryValues.reduce((sum, val) => sum + val, 0) / recoveryValues.length;
       result.push({
         date,
-        value: parseFloat(recoveryScore.toFixed(1)),
+        value: parseFloat(avgRecovery.toFixed(2)),
         category: 'Recovery'
+      });
+      
+      // -------- ENERGY CALCULATION --------
+      // Based on stress level, motivation and mood
+      const energyValues = diariesOnDate.map(diary => {
+        // Calculate stress score (lower stress = higher score)
+        // (low/moderate/high -> 1/0.5/0.2)
+        const stressScore = 
+          diary.stressLevel === 'low' ? 1 : 
+          diary.stressLevel === 'moderate' ? 0.5 : 0.2;
+        
+        // Calculate motivation score (high/moderate/low -> 1/0.6/0.2)
+        const motivationScore = 
+          diary.motivationLevel === 'high' ? 1 : 
+          diary.motivationLevel === 'moderate' ? 0.6 : 0.2;
+        
+        // Calculate mood score (positive/neutral/negative -> 1/0.5/0.2)
+        const moodScore = 
+          diary.mood === 'positive' ? 1 : 
+          diary.mood === 'neutral' ? 0.5 : 0.2;
+        
+        // Combined energy score with equal weighting
+        return (stressScore * 0.3) + (motivationScore * 0.3) + (moodScore * 0.4);
+      });
+      
+      // Average team energy
+      const avgEnergy = energyValues.reduce((sum, val) => sum + val, 0) / energyValues.length;
+      result.push({
+        date,
+        value: parseFloat(avgEnergy.toFixed(2)),
+        category: 'Energy'
       });
     });
     
