@@ -41,6 +41,8 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
 
   useEffect(() => {
     if (wellnessTrends && Array.isArray(wellnessTrends)) {
+      console.log("Raw wellness trends data:", wellnessTrends);
+      
       // Process data for chart
       const uniqueDates = Array.from(
         new Set(wellnessTrends.map((item: HealthMetric) => item.date))
@@ -52,7 +54,7 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
       // Get the last 7 days
       const last7Days = uniqueDates.slice(-7);
       
-      // Create data for the chart
+      // Create data for the chart - force all three categories for each day
       const formattedData = last7Days.map(date => {
         // Filter metrics for this specific date
         const dataForDay = wellnessTrends.filter((item: HealthMetric) => item.date === date);
@@ -61,6 +63,10 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
         const dataPoint: any = { 
           date: date,
           formattedDate: formatDateShort(date),
+          // Pre-set these to undefined so we can detect if they're missing
+          Readiness: undefined,
+          Recovery: undefined,
+          Energy: undefined
         };
         
         // Process data for each metric category, preserving their unique values
@@ -71,6 +77,9 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
           // Store the value for this category
           dataPoint[metric.category] = value;
         });
+        
+        // Check if we have data for 'Readiness', 'Recovery', and 'Energy' at this date point
+        console.log(`Data point for ${date}:`, dataPoint);
         
         return dataPoint;
       });
