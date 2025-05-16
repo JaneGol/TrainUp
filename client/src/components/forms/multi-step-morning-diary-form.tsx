@@ -328,6 +328,17 @@ export default function MultiStepMorningDiaryForm() {
       queryClient.invalidateQueries({ queryKey: ["/api/morning-diary"] });
       queryClient.invalidateQueries({ queryKey: ["/api/morning-diary/latest"] });
       
+      // Reset form with fresh default values to prevent data leakage between sessions
+      const freshDefaults = getDefaultValues();
+      form.reset(freshDefaults, {
+        keepDefaultValues: false,
+        keepDirty: false,
+        keepErrors: false,
+        keepIsSubmitted: false,
+        keepTouched: false,
+        keepSubmitCount: false
+      });
+      
       // Show success message
       setIsSubmitted(true);
     },
@@ -360,6 +371,8 @@ export default function MultiStepMorningDiaryForm() {
     
     console.log("Submitting diary data:", data);
     
+    // Submit the form data
+    // Form reset will happen in the onSuccess handler
     submitMutation.mutate(data);
   }
   
