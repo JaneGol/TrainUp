@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { HeartPulse, Loader2, User2 } from "lucide-react";
+import { HeartPulse, Loader2, User2, Thermometer } from "lucide-react";
 import { useLocation } from "wouter";
 
 interface AthleteIconProps {
@@ -14,6 +14,8 @@ interface AthleteIconProps {
   recoveryScore?: number;
   sleepQuality?: string;
   hasIssues: boolean;
+  hasFever?: boolean;
+  symptoms?: string[];
   onClick?: () => void;
 }
 
