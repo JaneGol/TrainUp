@@ -27,7 +27,9 @@ function AthleteIcon({
   moodScore = 70, 
   recoveryScore = 65,
   sleepQuality = 'average',
-  hasIssues, 
+  hasIssues,
+  hasFever = false,
+  symptoms = [],
   onClick 
 }: AthleteIconProps) {
   // Helper function to determine heart color based on symptoms
@@ -175,8 +177,12 @@ function AthleteIcon({
           </svg>
         </div>
         
-        {/* Health issue indicator - Bottom left */}
-        {hasIssues && (
+        {/* Fever indicator - Bottom left */}
+        {hasFever ? (
+          <div className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center z-20 shadow-md">
+            <Thermometer className="h-3.5 w-3.5 text-white" />
+          </div>
+        ) : hasIssues && (
           <div className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center z-20 shadow-md">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
@@ -244,6 +250,16 @@ export default function AthleteIconGrid() {
           issue.includes("pain")
         );
         
+        // Check if athlete has fever or related symptoms
+        const hasFever = Array.isArray(readiness.issues) && readiness.issues.some((issue: string) => 
+          issue.includes("fever") || 
+          issue.includes("temperature") || 
+          issue.includes("flu") ||
+          issue.includes("cold") ||
+          issue.includes("sore throat") ||
+          issue.includes("runny nose")
+        );
+        
         // Generate mood score based on readiness (in a real app this would come from the diary entries)
         // Mood is slightly higher than readiness on average
         const moodScore = Math.min(100, Math.max(0, readiness.readinessScore + 5 + (Math.random() * 10 - 5)));
@@ -276,6 +292,8 @@ export default function AthleteIconGrid() {
           athleteId: athlete.id,
           initials,
           hasIssues,
+          hasFever,
+          symptoms: readiness.issues || [],
           moodScore: Math.round(moodScore),
           recoveryScore: Math.round(recoveryScore),
           sleepQuality
@@ -329,6 +347,8 @@ export default function AthleteIconGrid() {
                 recoveryScore={athlete.recoveryScore}
                 sleepQuality={athlete.sleepQuality}
                 hasIssues={athlete.hasIssues}
+                hasFever={athlete.hasFever}
+                symptoms={athlete.symptoms}
                 onClick={() => handleAthleteClick(athlete.athleteId)}
               />
             ))}
