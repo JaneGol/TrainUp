@@ -131,7 +131,26 @@ function generateDefaultAthleteProgress(): { date: string; value: number }[] {
 // Export default wellness trends helper for use in storage implementation
 export function generateDefaultWellnessTrends(): { date: string; value: number; category: string }[] {
   const trends: { date: string; value: number; category: string }[] = [];
-  const categories = ['Readiness', 'Mood', 'Recovery'];
+  const categories = ['Readiness', 'Recovery', 'Energy'];
+  
+  // Create distinctive trend patterns for each category
+  const categoryPatterns = {
+    'Readiness': { 
+      baseValue: 65, 
+      trend: 'improving',  // Gradually improving
+      volatility: 10       // Medium volatility
+    },
+    'Recovery': { 
+      baseValue: 75, 
+      trend: 'fluctuating', // Ups and downs
+      volatility: 15        // Higher volatility
+    },
+    'Energy': { 
+      baseValue: 60, 
+      trend: 'decreasing',  // Gradually decreasing
+      volatility: 20        // Highest volatility
+    }
+  };
   
   for (let i = 29; i >= 0; i--) {
     const date = new Date();
@@ -139,17 +158,30 @@ export function generateDefaultWellnessTrends(): { date: string; value: number; 
     const dateString = date.toISOString().split('T')[0];
     
     categories.forEach(category => {
-      // Base values for different categories
-      let baseValue = category === 'Readiness' ? 75 : category === 'Mood' ? 80 : 70;
-      // Add a slight trend
-      baseValue += Math.floor((30 - i) / 10);
-      // Add some variation
-      const randomVariation = Math.floor(Math.random() * 16) - 8; // -8 to +8
-      const value = Math.max(0, Math.min(100, baseValue + randomVariation));
+      const pattern = categoryPatterns[category as keyof typeof categoryPatterns];
+      let baseValue = pattern.baseValue;
+      
+      // Apply different trend patterns
+      if (pattern.trend === 'improving') {
+        // Gradually improving trend
+        baseValue += Math.floor((30 - i) / 3);
+      } else if (pattern.trend === 'decreasing') {
+        // Gradually decreasing trend
+        baseValue -= Math.floor((30 - i) / 4);
+      } else if (pattern.trend === 'fluctuating') {
+        // Fluctuating pattern with wave-like behavior
+        baseValue += Math.sin(i * 0.4) * 12;
+      }
+      
+      // Add random variation based on volatility
+      const randomVariation = Math.floor(Math.random() * pattern.volatility) - (pattern.volatility / 2);
+      
+      // Calculate final value with constraints
+      const value = Math.max(20, Math.min(95, baseValue + randomVariation));
       
       trends.push({
         date: dateString,
-        value: parseFloat((value / 100).toFixed(1)), // Normalize to 0-1 scale
+        value: parseFloat((value / 100).toFixed(2)), // Normalize to 0-1 scale
         category
       });
     });
