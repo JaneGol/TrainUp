@@ -4,6 +4,13 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
+// Color scheme for the wellness metrics
+const categoryColors = {
+  'Recovery': 'rgb(200, 255, 1)', // Yellow-green/lime color
+  'Readiness': 'rgb(59, 130, 246)', // Blue
+  'Energy': 'rgb(239, 68, 68)' // Red
+};
+
 interface HealthMetric {
   date: string;
   value: number;
@@ -72,25 +79,13 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
           }
         });
         
-        // Calculate Energy as average of Motivation and Mood if they exist
-        const hasMood = 'Mood' in categoryValues;
-        const hasMotivation = 'Motivation' in categoryValues;
+        // Don't calculate Energy based on other metrics, use values directly from the API
+        // This ensures we get the unique values for each metric
         
-        // Always calculate an Energy value, even if source metrics are missing
-        // We'll use default values if the real ones aren't available
-        const moodValue = hasMood ? categoryValues['Mood'] : 65;  // Default mood if missing
-        const motivationValue = hasMotivation ? categoryValues['Motivation'] : 70;  // Default motivation if missing
+        // Make sure our three required metrics are properly set
+        // If a category is missing for a date, leave it as undefined to create breaks in the line
         
-        // Calculate energy as average of mood and motivation
-        const energyValue = Math.round((moodValue + motivationValue) / 2);
-        
-        // Add Energy as a new parameter
-        dataPoint['Energy'] = energyValue;
-        
-        // Ensure all three required metrics are present with default values if missing
-        if (!('Recovery' in dataPoint)) dataPoint['Recovery'] = 70; // Default to 70 if missing
-        if (!('Readiness' in dataPoint)) dataPoint['Readiness'] = 75; // Default to 75 if missing
-        if (!('Energy' in dataPoint)) dataPoint['Energy'] = 65; // Default to 65 if missing
+        // Note: We no longer set default values for missing metrics to avoid flat lines
         
         return dataPoint;
       });
