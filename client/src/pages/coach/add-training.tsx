@@ -145,11 +145,9 @@ export default function AddTraining() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                          <SelectItem value="strength">Strength</SelectItem>
-                          <SelectItem value="conditioning">Conditioning</SelectItem>
-                          <SelectItem value="technical">Technical</SelectItem>
-                          <SelectItem value="recovery">Recovery</SelectItem>
-                          <SelectItem value="match">Match</SelectItem>
+                          <SelectItem value="field">Field</SelectItem>
+                          <SelectItem value="gym">Gym</SelectItem>
+                          <SelectItem value="match">Game/Match</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -166,8 +164,9 @@ export default function AddTraining() {
                       <FormLabel>Duration (minutes)</FormLabel>
                       <FormControl>
                         <Input
-                          type="number"
-                          min={1}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           className="bg-zinc-800 border-zinc-700 text-white"
                           {...field}
                         />

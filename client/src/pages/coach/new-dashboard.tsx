@@ -198,14 +198,6 @@ export default function NewCoachDashboard() {
             <Button 
               variant="ghost" 
               className="text-white hover:bg-zinc-800 flex items-center gap-2"
-              onClick={() => navigate("/profile")}
-            >
-              <Users className="h-5 w-5" />
-              Profile
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="text-white hover:bg-zinc-800 flex items-center gap-2"
               onClick={() => {
                 logoutMutation.mutate(undefined, {
                   onSuccess: () => {

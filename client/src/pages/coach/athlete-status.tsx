@@ -49,16 +49,6 @@ export default function AthleteStatusPage() {
               <p className="text-sm text-zinc-400">Monitor team health and performance</p>
             </div>
           </div>
-          
-          <div className="flex space-x-2">
-            <Button 
-              variant="outline" 
-              className="text-xs px-3 py-1 h-8 border-zinc-700 hover:bg-zinc-800 text-zinc-300"
-              onClick={() => navigate("/coach")}
-            >
-              Dashboard
-            </Button>
-          </div>
         </div>
         
         {/* 7-Day Health Trends Chart */}
