@@ -11,7 +11,7 @@ import {
   ChevronRight, LogOut, Battery, Zap, 
   BatteryMedium, BatteryWarning, BatteryFull,
   CircleDashed, TrendingUp, TrendingDown,
-  PlusCircle, Triangle
+  PlusCircle, Triangle, FileSpreadsheet
 } from "lucide-react";
 
 // Define card component for metrics
@@ -176,6 +176,10 @@ export default function NewCoachDashboard() {
   const handleSmartDoctorClick = () => {
     navigate("/coach/smart-doctor");
   };
+  
+  const handleDataExportClick = () => {
+    navigate("/coach/data-export");
+  };
 
   return (
     <CoachDashboardLayout>
@@ -330,13 +334,24 @@ export default function NewCoachDashboard() {
                     </div>
                   ))}
                   
-                  <Button 
-                    variant="outline"
-                    className="w-full mt-4 border-zinc-700 hover:bg-zinc-800 text-white"
-                    onClick={handleAthleteStatusClick}
-                  >
-                    View All Athletes
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button 
+                      variant="outline"
+                      className="w-full border-zinc-700 hover:bg-zinc-800 text-white"
+                      onClick={handleAthleteStatusClick}
+                    >
+                      View All Athletes
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      className="w-full border-zinc-700 hover:bg-zinc-800 text-white flex items-center justify-center"
+                      onClick={handleDataExportClick}
+                    >
+                      <FileSpreadsheet className="h-4 w-4 mr-2 text-[rgb(200,255,1)]" />
+                      Export Data to Sheets
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
