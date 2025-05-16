@@ -68,6 +68,43 @@ export const getQueryFn: <T>(options: {
     return await res.json();
   };
 
+export const clearUserDataFromCache = () => {
+  // Clear all query cache
+  queryClient.clear();
+  
+  // Clear any localStorage items that might contain user data
+  try {
+    Object.keys(localStorage).forEach(key => {
+      // Clear form data, cache, and any user-specific data
+      if (
+        key.includes('form') || 
+        key.includes('user') || 
+        key.includes('diary') || 
+        key.includes('training') || 
+        key.includes('state') ||
+        key.includes('cache')
+      ) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Also clear sessionStorage items that might contain user data
+    Object.keys(sessionStorage).forEach(key => {
+      if (
+        key.includes('form') || 
+        key.includes('user') || 
+        key.includes('diary') || 
+        key.includes('training') || 
+        key.includes('state')
+      ) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  } catch (e) {
+    console.error("Error clearing storage:", e);
+  }
+};
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

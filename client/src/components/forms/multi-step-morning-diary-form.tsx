@@ -82,28 +82,36 @@ export default function MultiStepMorningDiaryForm() {
   const [, setLocation] = useLocation();
   
   // Create form with default values
+  const getDefaultValues = () => ({
+    userId: user?.id ?? 0,
+    
+    // Step 1 defaults
+    sleepQuality: "average",
+    sleepHours: "7",
+    stressLevel: "medium",
+    mood: "neutral",
+    
+    // Step 2 defaults
+    recoveryLevel: "moderate",
+    symptoms: [],
+    motivationLevel: "moderate",
+    
+    // Step 3 defaults
+    sorenessMap: {},
+    sorenessNotes: "",
+    hasInjury: false,
+  });
+
   const form = useForm<MorningDiaryFormValues>({
     resolver: zodResolver(morningDiarySchema),
-    defaultValues: {
-      userId: user?.id ?? 0,
-      
-      // Step 1 defaults
-      sleepQuality: "average",
-      sleepHours: "7",
-      stressLevel: "medium",
-      mood: "neutral",
-      
-      // Step 2 defaults
-      recoveryLevel: "moderate",
-      symptoms: [],
-      motivationLevel: "moderate",
-      
-      // Step 3 defaults
-      sorenessMap: {},
-      sorenessNotes: "",
-      hasInjury: false,
-    },
+    defaultValues: getDefaultValues(),
   });
+  
+  // Reset form when user changes to ensure no data leakage between users
+  useEffect(() => {
+    // Reset form with fresh default values when user changes
+    form.reset(getDefaultValues());
+  }, [user?.id, form]);
   
   // Update userId when user changes
   useEffect(() => {
