@@ -335,19 +335,19 @@ export default function AthleteIconGrid() {
           </div>
           
           {/* Risk distribution footer */}
-          <div className="flex justify-end mt-4 pt-3 border-t border-zinc-800">
-            <div className="flex gap-3 text-xs">
-              <span className="text-green-500 flex items-center">
-                <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                {riskCounts.low} Low Risk
+          <div className="flex justify-center w-full mt-4 pt-3 border-t border-zinc-800">
+            <div className="flex gap-5 text-sm">
+              <span className="flex items-center">
+                <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                <span className="text-green-500 font-medium">{riskCounts.low}</span> <span className="text-zinc-400">Low Risk</span>
               </span>
-              <span className="text-yellow-500 flex items-center">
-                <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1"></span>
-                {riskCounts.moderate} Moderate 
+              <span className="flex items-center">
+                <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                <span className="text-yellow-500 font-medium">{riskCounts.moderate}</span> <span className="text-zinc-400">Moderate</span>
               </span>
-              <span className="text-red-500 flex items-center">
-                <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
-                {riskCounts.high} High Risk
+              <span className="flex items-center">
+                <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                <span className="text-red-500 font-medium">{riskCounts.high}</span> <span className="text-zinc-400">High Risk</span>
               </span>
             </div>
           </div>
