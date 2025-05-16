@@ -32,23 +32,17 @@ function AthleteIcon({
   symptoms = [],
   onClick 
 }: AthleteIconProps) {
-  // Helper function to determine heart color based on symptoms
-  // Check if athlete has symptoms and return appropriate heart style
-  const hasSymptoms = hasIssues;
+  // Check if athlete has symptoms for icon display
+  const hasSymptoms = hasIssues || hasFever || (symptoms && symptoms.length > 0);
   
-  // Helper function to determine heart color based on symptoms
-  const getHeartStyles = () => {
-    // Return heart color based on presence of symptoms
+  // Helper function to determine illness icon styles based on symptoms
+  const getIllnessIconStyles = () => {
     if (hasSymptoms) {
-      // At least one symptom - bright red outline
-      return {
-        heart: 'text-red-500' // rgb(239, 68, 68)
-      };
+      // Athlete has symptoms - fully visible icon in red
+      return 'text-red-500 opacity-100'; // rgb(239, 68, 68)
     } else {
-      // No symptoms - transparent/colorless outline
-      return {
-        heart: 'text-transparent stroke-zinc-400'
-      };
+      // No symptoms - semi-transparent gray
+      return 'text-zinc-400 opacity-50';
     }
   };
   
@@ -157,32 +151,18 @@ function AthleteIcon({
           </div>
         </div>
         
-        {/* Recovery status - Top right corner with light gray background and red/transparent heart based on symptoms */}
+        {/* Illness status - Top right corner with light gray background */}
         <div 
           className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-zinc-800/40 flex items-center justify-center z-20 shadow-md"
         >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="14" 
-            height="14" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            className={getHeartStyles().heart}
-          >
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-          </svg>
+          <Thermometer 
+            className={getIllnessIconStyles()}
+            size={14}
+          />
         </div>
         
-        {/* Fever indicator - Bottom left */}
-        {hasFever ? (
-          <div className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center z-20 shadow-md">
-            <Thermometer className="h-3.5 w-3.5 text-white" />
-          </div>
-        ) : hasIssues && (
+        {/* Health issue indicator - Bottom left */}
+        {hasIssues && (
           <div className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center z-20 shadow-md">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
