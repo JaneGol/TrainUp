@@ -1,8 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import DashboardLayout from "@/components/layout/dashboard-layout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useLocation } from "wouter";
@@ -132,8 +130,8 @@ export default function AddTraining() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="p-6 bg-zinc-950 min-h-screen text-white">
+    <div className="bg-zinc-950 min-h-screen text-white">
+      <div className="p-6 max-w-4xl mx-auto">
         <div className="flex items-center mb-6">
           <Button 
             variant="ghost" 
@@ -278,6 +276,6 @@ export default function AddTraining() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
