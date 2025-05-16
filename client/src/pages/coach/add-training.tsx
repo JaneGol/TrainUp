@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -21,10 +21,19 @@ import { insertTrainingEntrySchema } from "@shared/schema";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 
+// Modified training type options
+const TrainingType = {
+  FIELD: "field",
+  GYM: "gym",
+  MATCH: "match"
+} as const;
+
 // Extend the training entry schema for form validation
-const addTrainingSchema = insertTrainingEntrySchema.extend({
-  athletes: z.array(z.number()),
+const addTrainingSchema = z.object({
+  type: z.enum([TrainingType.FIELD, TrainingType.GYM, TrainingType.MATCH]),
   duration: z.coerce.number().min(1, "Duration must be at least 1 minute"),
+  athletes: z.array(z.number()),
+  notes: z.string().optional(),
 });
 
 type AddTrainingFormValues = z.infer<typeof addTrainingSchema>;
@@ -34,20 +43,28 @@ export default function AddTraining() {
   const { toast } = useToast();
   
   // Get athletes
-  const { data: athletes, isLoading } = useQuery({
+  const { data: athletes = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/athletes"],
   });
   
-  // Form definition with default values
+  // Form definition
   const form = useForm<AddTrainingFormValues>({
     resolver: zodResolver(addTrainingSchema),
     defaultValues: {
-      type: "",
+      type: TrainingType.FIELD,
       duration: 60,
       athletes: [],
       notes: "",
     },
   });
+  
+  // Set all athletes as selected by default when data loads
+  useEffect(() => {
+    if (athletes.length > 0) {
+      const athleteIds = athletes.map(athlete => athlete.id);
+      form.setValue("athletes", athleteIds);
+    }
+  }, [athletes, form]);
   
   // Create training entry mutation
   const createTrainingMutation = useMutation({
@@ -56,9 +73,15 @@ export default function AddTraining() {
       const promises = values.athletes.map(async (athleteId) => {
         const trainingData = {
           userId: athleteId,
-          type: values.type,
+          trainingType: values.type === "field" ? "Field Training" : 
+                      values.type === "gym" ? "Gym Training" : "Match/Game",
           duration: values.duration,
           notes: values.notes,
+          // Default values required by the schema
+          date: new Date(),
+          effortLevel: 7,
+          emotionalLoad: 5,
+          mood: "good"
         };
         
         const res = await apiRequest("POST", "/api/training-entries", trainingData);
@@ -69,11 +92,15 @@ export default function AddTraining() {
     },
     onSuccess: () => {
       toast({
-        title: "Training Added",
-        description: "Training has been scheduled for the selected athletes",
+        title: "Thank you",
+        description: "Training has been added",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/training-entries"] });
-      form.reset();
+      
+      // Redirect to coach dashboard after successful submission
+      setTimeout(() => {
+        navigate("/coach");
+      }, 1500);
     },
     onError: (error: Error) => {
       toast({
@@ -119,13 +146,7 @@ export default function AddTraining() {
         </div>
         
         <Card className="bg-zinc-900 border-zinc-800 text-white">
-          <CardHeader>
-            <CardTitle>Schedule Training Session</CardTitle>
-            <CardDescription className="text-zinc-400">
-              Create a training session for one or multiple athletes
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Training Type */}
@@ -145,9 +166,9 @@ export default function AddTraining() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                          <SelectItem value="field">Field</SelectItem>
-                          <SelectItem value="gym">Gym</SelectItem>
-                          <SelectItem value="match">Game/Match</SelectItem>
+                          <SelectItem value={TrainingType.FIELD}>Field</SelectItem>
+                          <SelectItem value={TrainingType.GYM}>Gym</SelectItem>
+                          <SelectItem value={TrainingType.MATCH}>Game/Match</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -169,6 +190,10 @@ export default function AddTraining() {
                           pattern="[0-9]*"
                           className="bg-zinc-800 border-zinc-700 text-white"
                           {...field}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^0-9]/g, '');
+                            field.onChange(value);
+                          }}
                         />
                       </FormControl>
                       <p className="text-xs text-zinc-400">{getLoadHelperText()}</p>
@@ -188,6 +213,7 @@ export default function AddTraining() {
                         <Input
                           className="bg-zinc-800 border-zinc-700 text-white"
                           {...field}
+                          value={field.value || ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -198,47 +224,54 @@ export default function AddTraining() {
                 {/* Athlete Selection */}
                 <div>
                   <FormLabel>Select Athletes</FormLabel>
+                  <p className="text-xs text-zinc-400 mb-2">All athletes are selected by default. Deselect those who did not participate.</p>
                   {isLoading ? (
                     <p className="text-sm text-zinc-400 mt-2">Loading athletes...</p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                      {(athletes || []).map((athlete: any) => (
-                        <div key={athlete.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`athlete-${athlete.id}`}
-                            onCheckedChange={(checked) => {
-                              const currentAthletes = form.getValues("athletes");
-                              if (checked) {
-                                form.setValue("athletes", [...currentAthletes, athlete.id]);
-                              } else {
-                                form.setValue(
-                                  "athletes",
-                                  currentAthletes.filter((id) => id !== athlete.id)
-                                );
-                              }
-                            }}
-                          />
-                          <label
-                            htmlFor={`athlete-${athlete.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {athlete.firstName} {athlete.lastName}
-                          </label>
-                        </div>
-                      ))}
+                      {athletes.map((athlete) => {
+                        // Check if this athlete is in the selected list
+                        const isSelected = form.watch("athletes").includes(athlete.id);
+                        
+                        return (
+                          <div key={athlete.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`athlete-${athlete.id}`}
+                              checked={isSelected}
+                              onCheckedChange={(checked) => {
+                                const currentAthletes = form.getValues("athletes");
+                                if (checked) {
+                                  form.setValue("athletes", [...currentAthletes, athlete.id]);
+                                } else {
+                                  form.setValue(
+                                    "athletes",
+                                    currentAthletes.filter((id) => id !== athlete.id)
+                                  );
+                                }
+                              }}
+                            />
+                            <label
+                              htmlFor={`athlete-${athlete.id}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {athlete.firstName} {athlete.lastName}
+                            </label>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
-                  {!isLoading && (!athletes || athletes.length === 0) && (
+                  {!isLoading && athletes.length === 0 && (
                     <p className="text-sm text-zinc-400 mt-2">No athletes available.</p>
                   )}
                 </div>
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full bg-[#CBFF00] hover:bg-[#b9e800] text-black font-medium"
                   disabled={createTrainingMutation.isPending}
                 >
-                  {createTrainingMutation.isPending ? "Scheduling..." : "Schedule Training"}
+                  {createTrainingMutation.isPending ? "Adding..." : "Add Training"}
                 </Button>
               </form>
             </Form>
