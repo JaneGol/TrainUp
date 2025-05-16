@@ -145,8 +145,8 @@ export default function AddTraining() {
           <h2 className="text-2xl font-bold">Add Training</h2>
         </div>
         
-        <Card className="bg-zinc-900 border-zinc-800 text-white">
-          <CardContent className="pt-6">
+        <div className="bg-zinc-900 rounded-lg">
+          <div className="p-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Training Type */}
@@ -275,8 +275,8 @@ export default function AddTraining() {
                 </Button>
               </form>
             </Form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
