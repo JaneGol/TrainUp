@@ -35,7 +35,7 @@ import {
 import { Loader2, ArrowLeft, Activity } from "lucide-react";
 
 // Define Zod schema for the form based on the database schema requirements
-const morningDiarySchema = z.object({
+export const morningDiarySchema = z.object({
   userId: z.number(),
   
   // Step 1: Sleep & Emotional State
@@ -81,44 +81,60 @@ export default function MultiStepMorningDiaryForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [, setLocation] = useLocation();
   
-  // Create form with default values
-  const getDefaultValues = () => ({
+  // Define properly typed default values using proper enums to match the schema
+  const getDefaultValues = (): MorningDiaryFormValues => ({
     userId: user?.id ?? 0,
     
-    // Step 1 defaults
-    sleepQuality: "average",
+    // Step 1 defaults with explicit types
+    sleepQuality: "average" as "good" | "average" | "poor",
     sleepHours: "7",
-    stressLevel: "medium",
-    mood: "neutral",
+    stressLevel: "medium" as "low" | "medium" | "high",
+    mood: "neutral" as "positive" | "neutral" | "negative",
     
-    // Step 2 defaults
-    recoveryLevel: "moderate",
-    symptoms: [],
-    motivationLevel: "moderate",
+    // Step 2 defaults with explicit types
+    recoveryLevel: "moderate" as "good" | "moderate" | "poor",
+    symptoms: [] as string[],
+    motivationLevel: "moderate" as "high" | "moderate" | "low",
     
     // Step 3 defaults
-    sorenessMap: {},
+    sorenessMap: { _no_soreness: true } as Record<string, boolean>,
     sorenessNotes: "",
     hasInjury: false,
+    // Optional fields initialized properly
+    painLevel: undefined,
+    injuryImproving: undefined,
+    injuryNotes: undefined,
   });
 
+  // Create form with proper typing
   const form = useForm<MorningDiaryFormValues>({
     resolver: zodResolver(morningDiarySchema),
     defaultValues: getDefaultValues(),
+    mode: "onChange", // Validate on change for better UX
   });
   
-  // Reset form when user changes to ensure no data leakage between users
+  // Enhanced protection: Reset form when user changes to ensure no data leakage between sessions
   useEffect(() => {
-    // Reset form with fresh default values when user changes
-    form.reset(getDefaultValues());
+    // Set userId field when user changes and reset entire form with fresh defaults
+    if (user?.id) {
+      const freshDefaults = getDefaultValues();
+      
+      // Always reset the form when the user ID changes to prevent data leakage
+      form.reset(freshDefaults, {
+        keepDefaultValues: false, // Don't keep default values when resetting
+        keepDirty: false, // Don't keep dirty state
+        keepErrors: false, // Reset all error states
+        keepIsSubmitted: false, // Reset submission status
+        keepTouched: false, // Reset touched state
+        keepSubmitCount: false // Reset submission count
+      });
+      
+      // Update form user ID separately to ensure it's always correct
+      form.setValue('userId', user.id);
+    }
   }, [user?.id, form]);
   
-  // Update userId when user changes
-  useEffect(() => {
-    if (user) {
-      form.setValue("userId", user.id);
-    }
-  }, [user, form]);
+  // Remove this effect as we're already handling user ID updates in the reset effect above
   
   // Handle checkbox changes for symptoms
   const handleSymptomChange = (symptom: string, checked: boolean) => {
