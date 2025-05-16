@@ -133,8 +133,17 @@ export default function NewCoachDashboard() {
   
   // Calculate sick or injured athletes
   const sickOrInjuredAthletes = athleteReadiness?.filter((a: any) => 
-    a.issues.some((issue: string) => 
-      issue.includes("sick") || issue.includes("injury") || issue.includes("ill")
+    Array.isArray(a.issues) && a.issues.some((issue: string) => 
+      issue.includes("sick") || 
+      issue.includes("injury") || 
+      issue.includes("ill") ||
+      issue.includes("pain") ||
+      issue.includes("fever") || 
+      issue.includes("temperature") || 
+      issue.includes("flu") ||
+      issue.includes("cold") ||
+      issue.includes("sore throat") ||
+      issue.includes("runny nose")
     )
   ).length || 0;
   
