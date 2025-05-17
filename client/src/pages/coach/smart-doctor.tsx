@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -272,8 +271,8 @@ export default function CoachSmartDoctor() {
   const selectedAthlete = athleteReadiness?.find((a: any) => a.athleteId === selectedAthleteId);
   
   return (
-    <DashboardLayout>
-      <div className="p-6 bg-zinc-950 min-h-screen text-white">
+    <div className="bg-zinc-950 min-h-screen text-white">
+      <div className="p-6 max-w-7xl mx-auto">
         <div className="flex items-center mb-6">
           <Button 
             variant="ghost" 
@@ -292,83 +291,75 @@ export default function CoachSmartDoctor() {
           </TabsList>
           
           <TabsContent value="overview" className="mt-0">
-            <Card className="bg-zinc-900 border-zinc-800 text-white">
-              <CardHeader>
-                <CardTitle>Health & Recovery Recommendations</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <p className="py-10 text-center">Analyzing athlete data...</p>
-                ) : flaggedAthletes.length === 0 ? (
-                  <div className="py-10 text-center">
-                    <p className="text-green-400 font-medium mb-2">All athletes are in good condition</p>
-                    <p className="text-zinc-400">No athletes currently require special attention.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {flaggedAthletes.map((athlete: any, index: number) => (
-                      <HealthRecommendation 
-                        key={index} 
-                        athlete={athlete} 
-                        recommendations={getAthleteRiskFactors(athlete.athleteId)} 
-                      />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-zinc-900 border-zinc-800 text-white mt-6">
-              <CardHeader>
-                <CardTitle>Team Health Overview</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-zinc-800 rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-2">Athletes Ready</h3>
-                    <p className="text-3xl font-bold text-green-400">
-                      {!isLoading && athleteReadiness 
-                        ? athleteReadiness.filter((a: any) => a.readinessScore >= 75).length 
-                        : "-"} 
-                      <span className="text-lg font-normal text-zinc-400">/{athleteReadiness?.length || 0}</span>
-                    </p>
-                  </div>
-                  
-                  <div className="bg-zinc-800 rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-2">Elevated Risk</h3>
-                    <p className="text-3xl font-bold text-yellow-400">
-                      {!isLoading && athleteReadiness 
-                        ? athleteReadiness.filter((a: any) => a.readinessScore >= 50 && a.readinessScore < 75).length 
-                        : "-"}
-                    </p>
-                  </div>
-                  
-                  <div className="bg-zinc-800 rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-2">High Risk</h3>
-                    <p className="text-3xl font-bold text-red-400">
-                      {!isLoading && athleteReadiness 
-                        ? athleteReadiness.filter((a: any) => a.readinessScore < 50).length 
-                        : "-"}
-                    </p>
-                  </div>
+            <div className="bg-zinc-900 rounded-lg p-6">
+              <h3 className="text-xl font-semibold mb-4">Health & Recovery Recommendations</h3>
+              {isLoading ? (
+                <p className="py-10 text-center">Analyzing athlete data...</p>
+              ) : flaggedAthletes.length === 0 ? (
+                <div className="py-10 text-center">
+                  <p className="text-green-400 font-medium mb-2">All athletes are in good condition</p>
+                  <p className="text-zinc-400">No athletes currently require special attention.</p>
                 </div>
-              </CardContent>
-            </Card>
+              ) : (
+                <div className="space-y-6">
+                  {flaggedAthletes.map((athlete: any, index: number) => (
+                    <HealthRecommendation 
+                      key={index} 
+                      athlete={athlete} 
+                      recommendations={getAthleteRiskFactors(athlete.athleteId)} 
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="bg-zinc-900 rounded-lg p-6 mt-6">
+              <h3 className="text-xl font-semibold mb-4">Team Health Overview</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-zinc-800 rounded-lg p-4">
+                  <h3 className="text-lg font-medium mb-2">Athletes Ready</h3>
+                  <p className="text-3xl font-bold text-green-400">
+                    {!isLoading && athleteReadiness 
+                      ? athleteReadiness.filter((a: any) => a.readinessScore >= 75).length 
+                      : "-"} 
+                    <span className="text-lg font-normal text-zinc-400">/{athleteReadiness?.length || 0}</span>
+                  </p>
+                </div>
+                
+                <div className="bg-zinc-800 rounded-lg p-4">
+                  <h3 className="text-lg font-medium mb-2">Elevated Risk</h3>
+                  <p className="text-3xl font-bold text-yellow-400">
+                    {!isLoading && athleteReadiness 
+                      ? athleteReadiness.filter((a: any) => a.readinessScore >= 50 && a.readinessScore < 75).length 
+                      : "-"}
+                  </p>
+                </div>
+                
+                <div className="bg-zinc-800 rounded-lg p-4">
+                  <h3 className="text-lg font-medium mb-2">High Risk</h3>
+                  <p className="text-3xl font-bold text-red-400">
+                    {!isLoading && athleteReadiness 
+                      ? athleteReadiness.filter((a: any) => a.readinessScore < 50).length 
+                      : "-"}
+                  </p>
+                </div>
+              </div>
+            </div>
           </TabsContent>
           
           <TabsContent value="ai-insights" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Athlete List */}
-              <Card className="bg-zinc-900 border-zinc-800 col-span-1">
-                <CardHeader>
-                  <CardTitle className="text-base">Athletes</CardTitle>
-                  <CardDescription className="text-xs">
+              <div className="bg-zinc-900 rounded-lg col-span-1">
+                <div className="p-6 border-b border-zinc-800">
+                  <h3 className="text-base font-semibold">Athletes</h3>
+                  <p className="text-xs text-zinc-400">
                     Select an athlete for AI health insights
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pb-2 px-2">
+                  </p>
+                </div>
+                <div className="pb-2 px-2">
                   <ScrollArea className="h-[500px] pr-4">
-                    <div className="space-y-1 pr-2">
+                    <div className="space-y-1 pr-2 p-4">
                       {isLoading ? (
                         <div className="flex justify-center py-8">
                           <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -390,98 +381,60 @@ export default function CoachSmartDoctor() {
                                 Readiness: {athlete.readinessScore}%
                               </div>
                             </div>
-                            <Badge 
-                              variant="outline" 
-                              className={`
-                                ${athlete.readinessScore >= 75 ? 'bg-green-500/20 text-green-300' : 
-                                  athlete.readinessScore >= 50 ? 'bg-yellow-500/20 text-yellow-300' : 
-                                  'bg-red-500/20 text-red-300'}
-                              `}
-                            >
-                              {athlete.readinessScore >= 75 ? 'Good' : 
-                                athlete.readinessScore >= 50 ? 'Caution' : 'At Risk'}
-                            </Badge>
+                            <div className={`w-2 h-2 rounded-full ${
+                              athlete.readinessScore >= 75 
+                                ? 'bg-green-400' 
+                                : athlete.readinessScore >= 50 
+                                  ? 'bg-yellow-400' 
+                                  : 'bg-red-400'
+                            }`} />
                           </div>
                         ))
                       ) : (
-                        <p className="text-center py-8 text-zinc-400">No athletes found</p>
+                        <p className="text-zinc-400 text-center py-6">No athlete data available</p>
                       )}
                     </div>
                   </ScrollArea>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
               
-              {/* AI Recommendations Panel */}
+              {/* AI Recommendation */}
               <div className="col-span-1 md:col-span-2">
                 {selectedAthleteId ? (
-                  isLoadingRecommendation ? (
-                    <div className="flex items-center justify-center bg-zinc-900 rounded-lg p-10 h-full">
-                      <div className="text-center">
-                        <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-primary" />
-                        <p className="text-lg font-medium">Generating AI Health Insights</p>
-                        <p className="text-sm text-zinc-400 mt-2">
-                          Analyzing training load, recovery patterns, and wellness metrics...
-                        </p>
-                      </div>
-                    </div>
-                  ) : aiRecommendation ? (
-                    <div className="space-y-4">
-                      <div className="bg-zinc-900 rounded-lg p-4 border border-zinc-800">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h2 className="text-xl font-bold">{selectedAthlete?.name}</h2>
-                            <p className="text-sm text-zinc-400">
-                              Readiness Score: {selectedAthlete?.readinessScore}%
-                            </p>
-                          </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="border-zinc-700"
-                            onClick={() => setSelectedAthleteId(null)}
-                          >
-                            Clear Selection
-                          </Button>
+                  <div className="space-y-4">
+                    <div className="bg-zinc-900 rounded-lg p-4">
+                      <div className="flex items-center mb-4">
+                        <div className="font-bold">{selectedAthlete?.name}</div>
+                        <div className={`ml-3 text-xs px-2 py-0.5 rounded ${
+                          selectedAthlete?.readinessScore >= 75 
+                            ? 'bg-green-400/20 text-green-200' 
+                            : selectedAthlete?.readinessScore >= 50 
+                              ? 'bg-yellow-400/20 text-yellow-200' 
+                              : 'bg-red-400/20 text-red-200'
+                        }`}>
+                          {selectedAthlete?.readinessScore}% Readiness
                         </div>
-                        
-                        {selectedAthlete?.issues?.length > 0 && (
-                          <div className="bg-zinc-800 rounded-md p-3 mb-4">
-                            <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                              <AlertCircle className="h-4 w-4 text-amber-400" />
-                              Reported Issues
-                            </h3>
-                            <ul className="space-y-1">
-                              {selectedAthlete.issues.map((issue: string, i: number) => (
-                                <li key={i} className="text-sm flex gap-2">
-                                  <span className="text-amber-400">•</span>
-                                  <span className="text-zinc-300">{issue}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
                       </div>
                       
-                      {/* AI Recommendation Component */}
-                      <AIRecommendation recommendation={aiRecommendation} />
+                      {isLoadingRecommendation ? (
+                        <div className="flex justify-center py-6">
+                          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                          <p className="ml-2">Generating athlete insights...</p>
+                        </div>
+                      ) : aiRecommendation ? (
+                        <AIRecommendation recommendation={aiRecommendation} />
+                      ) : (
+                        <div className="p-4 text-center">
+                          <p className="text-zinc-400">No AI recommendations available for this athlete</p>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-center bg-zinc-900 rounded-lg p-10 h-full">
-                      <p className="text-zinc-400">No recommendation data available</p>
-                    </div>
-                  )
+                  </div>
                 ) : (
-                  <div className="flex items-center justify-center bg-zinc-900 rounded-lg p-10 h-[500px]">
-                    <div className="text-center max-w-md">
-                      <Brain className="h-10 w-10 mx-auto mb-4 text-zinc-600" />
-                      <h2 className="text-xl font-medium mb-2">AI Health Insights</h2>
-                      <p className="text-zinc-400 mb-4">
-                        Select an athlete from the list to view AI-generated health recommendations and insights.
-                      </p>
-                      <p className="text-xs text-zinc-500">
-                        The AI analyzes training load, recovery patterns, and wellness metrics to provide personalized recommendations.
-                      </p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center h-full py-16 bg-zinc-900 rounded-lg">
+                    <Brain className="h-10 w-10 text-zinc-600 mb-3" />
+                    <h3 className="text-zinc-400 font-medium mb-1">No athlete selected</h3>
+                    <p className="text-zinc-500 text-sm">Select an athlete from the list to view AI health insights</p>
                   </div>
                 )}
               </div>
@@ -489,6 +442,6 @@ export default function CoachSmartDoctor() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
