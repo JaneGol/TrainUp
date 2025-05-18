@@ -35,6 +35,7 @@ const trainingEntryFormSchema = z.object({
   }),
   effortLevel: z.number().min(1, "RPE must be at least 1").max(10, "RPE cannot exceed 10"),
   emotionalLoad: z.number().min(1, "Emotional load must be at least 1").max(5, "Emotional load cannot exceed 5"),
+  mood: z.string().default("neutral"), // Add the required mood field
   date: z.date().default(() => new Date()),
   notes: z.string().optional(),
 });
@@ -56,6 +57,7 @@ export default function TrainingEntryForm() {
       trainingType: "Field Training",
       effortLevel: 1,
       emotionalLoad: 1,
+      mood: "neutral", // Add default value for the required mood field
       date: new Date(), // Add date with current date as default
       notes: "",
     },
