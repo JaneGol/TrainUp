@@ -54,8 +54,8 @@ export default function TrainingEntryForm() {
     resolver: zodResolver(trainingEntryFormSchema),
     defaultValues: {
       trainingType: "Field Training",
-      effortLevel: 0,
-      emotionalLoad: 0,
+      effortLevel: 1,
+      emotionalLoad: 1,
       date: new Date(), // Add date with current date as default
       notes: "",
     },
