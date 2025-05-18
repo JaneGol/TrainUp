@@ -68,11 +68,11 @@ export default function MorningControlDiaryForm() {
       userId: user?.id ?? 0,
       sleepHours: "7",
       sleepQuality: "average",
-      motivationEnergy: 3, // Default to position 3 as shown in screenshot
-      recoveryLevel: 3, // Default to position 3 as shown in screenshot
+      motivationEnergy: 0, // Default to position 0 as requested
+      recoveryLevel: 0, // Default to position 0 as requested
       healthSymptoms: [],
       muscleSoreness: "no",
-      sorenessIntensity: 3, // Default to position 3 as shown in screenshot
+      sorenessIntensity: 0, // Default to position 0 as requested
       hasInjury: "no",
       injuryDetails: "",
       additionalNotes: "",

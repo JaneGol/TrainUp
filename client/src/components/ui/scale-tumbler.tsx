@@ -37,8 +37,8 @@ export function ScaleTumbler({
     onChange?.(newValue);
   };
   
-  // I noticed in the screenshot the sliders show position 3 by default
-  const displayValue = value !== undefined ? value : 3; // Default to position 3 for visual display
+  // Display the actual value (which should be 0 by default)
+  const displayValue = value;
 
   return (
     <div className={cn("w-full", className)}>
