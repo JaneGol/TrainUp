@@ -533,80 +533,19 @@ export default function MorningControlDiaryForm() {
             {/* Injury pain intensity, trend, and notes (conditional) */}
             {hasInjury && (
               <div className="space-y-4">
-                {/* Pain Intensity Scale */}
                 <FormField
                   control={form.control}
                   name="injuryPainIntensity"
                   render={({ field }) => (
-                    <FormItem className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
-                      <FormLabel className="text-white">Pain intensity:</FormLabel>
+                    <FormItem className="mb-4">
                       <FormControl>
-                        <div className="space-y-2">
-                          <div className="py-3">
-                            <Slider
-                              min={1}
-                              max={10}
-                              step={1}
-                              value={[field.value || 1]}
-                              onValueChange={(values) => field.onChange(values[0])}
-                              className="py-3"
-                            />
-                          </div>
-                          <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                              <span key={num}>{num}</span>
-                            ))}
-                          </div>
-                          <div className="flex justify-between text-xs text-gray-400 mt-0">
-                            <span>Mild</span>
-                            <span className="ml-auto">Severe</span>
-                          </div>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Pain Trend Dropdown */}
-                <FormField
-                  control={form.control}
-                  name="injuryPainTrend"
-                  render={({ field }) => (
-                    <FormItem className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
-                      <FormLabel className="text-white">How has the pain changed?</FormLabel>
-                      <FormControl>
-                        <Select 
-                          value={field.value} 
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                            <SelectValue placeholder="Select pain trend" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                            <SelectItem value="unchanged">No change</SelectItem>
-                            <SelectItem value="better">Getting better</SelectItem>
-                            <SelectItem value="worse">Getting worse</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Injury Notes */}
-                <FormField
-                  control={form.control}
-                  name="injuryDetails"
-                  render={({ field }) => (
-                    <FormItem className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
-                      <FormLabel className="text-white">Additional notes (optional):</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Describe the location, type, and details of your injury..."
-                          className="resize-none bg-zinc-800 border-zinc-700 text-white"
-                          {...field}
+                        <InjurySelector 
+                          painIntensity={field.value || 1}
+                          onPainIntensityChange={(value) => form.setValue("injuryPainIntensity", value)}
+                          painTrend={form.getValues("injuryPainTrend") || "unchanged"}
+                          onPainTrendChange={(value) => form.setValue("injuryPainTrend", value)}
+                          injuryNotes={form.getValues("injuryDetails") || ""}
+                          onInjuryNotesChange={(value) => form.setValue("injuryDetails", value)}
                         />
                       </FormControl>
                       <FormMessage />
