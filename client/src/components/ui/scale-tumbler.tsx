@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface ScaleTumblerProps {
@@ -25,7 +25,25 @@ export function ScaleTumbler({
   className,
 }: ScaleTumblerProps) {
   const [internalValue, setInternalValue] = useState(defaultValue);
-  const actualValue = value !== undefined ? value : internalValue;
+  
+  // Force the component to always display position 0 initially
+  const [initialRender, setInitialRender] = useState(true);
+  
+  useEffect(() => {
+    // After the component has mounted, set initialRender to false
+    // This will allow the actual value to be shown after the first render
+    const timer = setTimeout(() => {
+      setInitialRender(false);
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // If it's the initial render, always display position 0
+  // Otherwise, use the actual value from props or internal state
+  const displayValue = initialRender 
+    ? 0 
+    : (value !== undefined ? value : internalValue);
   
   const steps = [];
   for (let i = min; i <= max; i += step) {
@@ -37,9 +55,6 @@ export function ScaleTumbler({
     onChange?.(newValue);
   };
   
-  // Use the value from props, defaulting to 0 if undefined
-  const displayValue = value !== undefined ? value : 0;
-
   return (
     <div className={cn("w-full", className)}>
       {/* Tumbler Track with Highlight */}
