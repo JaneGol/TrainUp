@@ -164,7 +164,7 @@ export default function MorningDiaryPage() {
       <main className="flex-1 p-4">
         <Card className="w-full">
           <CardContent className="p-0">
-            <SimplifiedMorningDiaryForm />
+            <MorningControlDiaryForm />
           </CardContent>
         </Card>
       </main>
