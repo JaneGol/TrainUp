@@ -34,6 +34,7 @@ const morningDiarySchema = insertMorningDiarySchema.extend({
   sleepQuality: z.number().min(1).max(10),
   motivationEnergy: z.number().min(1).max(10),
   recoveryLevel: z.number().min(1).max(10),
+  healthSymptoms: z.array(z.string()).default([]), // Health symptoms array
   muscleSoreness: z.enum(["yes", "no"]),
   sorenessIntensity: z.number().min(1).max(10).optional(),
   hasInjury: z.enum(["yes", "no"]),
@@ -61,6 +62,7 @@ export default function MorningControlDiaryForm() {
       sleepQuality: 0, // Default to 0 for slider
       motivationEnergy: 0, // Default to 0 for slider
       recoveryLevel: 0, // Default to 0 for slider
+      healthSymptoms: [], // Empty array by default
       muscleSoreness: "no",
       sorenessIntensity: 0, // Default to 0 for slider
       hasInjury: "no",
@@ -107,7 +109,7 @@ export default function MorningControlDiaryForm() {
         stressLevel: data.motivationEnergy >= 7 ? "low" : data.motivationEnergy >= 4 ? "medium" : "high", // Inverse relation
         mood: "neutral", // We're not collecting mood anymore but API expects it
         recoveryLevel: data.recoveryLevel >= 7 ? "good" : data.recoveryLevel >= 4 ? "moderate" : "poor",
-        symptoms: [], // Empty array as we're not collecting symptoms
+        symptoms: data.healthSymptoms || [], // Restore health symptoms
         motivationLevel: data.motivationEnergy >= 7 ? "high" : data.motivationEnergy >= 4 ? "moderate" : "low",
         sorenessMap: data.muscleSoreness === "yes" ? { general: true } : { _no_soreness: true },
         hasInjury: data.hasInjury === "yes",
@@ -357,6 +359,51 @@ export default function MorningControlDiaryForm() {
                       <div className="text-center text-white font-medium mt-2">
                         {field.value === 0 ? "Please select" : field.value}
                       </div>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Health Symptoms - Restored from original */}
+            <FormField
+              control={form.control}
+              name="healthSymptoms"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel className="text-white">Do you have any health symptoms today? (Select all that apply)</FormLabel>
+                  <FormControl>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        "Headache",
+                        "Sore throat",
+                        "Fever",
+                        "Cough",
+                        "Congestion",
+                        "Upset stomach",
+                        "Fatigue",
+                        "Body aches"
+                      ].map((symptom) => (
+                        <div key={symptom} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={`symptom-${symptom}`}
+                            className="mr-2 h-4 w-4 rounded border-gray-300 focus:ring-primary"
+                            checked={field.value?.includes(symptom)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              const updatedValue = checked
+                                ? [...(field.value || []), symptom]
+                                : (field.value || []).filter((val: string) => val !== symptom);
+                              field.onChange(updatedValue);
+                            }}
+                          />
+                          <label htmlFor={`symptom-${symptom}`} className="text-sm text-gray-300">
+                            {symptom}
+                          </label>
+                        </div>
+                      ))}
                     </div>
                   </FormControl>
                   <FormMessage />
