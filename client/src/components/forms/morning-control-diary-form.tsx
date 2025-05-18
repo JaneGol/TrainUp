@@ -246,29 +246,7 @@ export default function MorningControlDiaryForm() {
           <div className="bg-zinc-900 rounded-lg p-6 mb-6">
             <h4 className="text-lg font-bold text-white mb-4">Sleep & Emotional State</h4>
             
-            {/* Sleep Hours */}
-            <FormField
-              control={form.control}
-              name="sleepHours"
-              render={({ field }) => (
-                <FormItem className="mb-4">
-                  <FormLabel className="text-white">How many hours did you sleep last night?</FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      type="number" 
-                      min="0" 
-                      max="24" 
-                      step="0.5" 
-                      className="bg-zinc-800 border-zinc-700 text-white" 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Sleep Quality Slider */}
+            {/* Sleep Quality Slider - Moved to first position */}
             <FormField
               control={form.control}
               name="sleepQuality"
@@ -293,6 +271,28 @@ export default function MorningControlDiaryForm() {
                         {field.value === 0 ? "Please select" : field.value}
                       </div>
                     </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Sleep Hours - Moved to second position */}
+            <FormField
+              control={form.control}
+              name="sleepHours"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel className="text-white">How many hours did you sleep last night?</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      type="number" 
+                      min="0" 
+                      max="24" 
+                      step="0.5" 
+                      className="bg-zinc-800 border-zinc-700 text-white" 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
