@@ -165,19 +165,10 @@ export default function TrainingEntryForm() {
       return;
     }
     
-    if (!data.emotionalLoad || data.emotionalLoad < 1 || data.emotionalLoad > 10) {
+    if (!data.emotionalLoad || data.emotionalLoad < 1 || data.emotionalLoad > 5) {
       toast({
         title: "Validation Error",
-        description: "Emotional load must be between 1 and 10",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!data.mood) {
-      toast({
-        title: "Validation Error",
-        description: "Please select your mood after training",
+        description: "Emotional load must be between 1 and 5",
         variant: "destructive",
       });
       return;
@@ -294,8 +285,6 @@ export default function TrainingEntryForm() {
                           onChange={onChange}
                           lowLabel="Easy"
                           highLabel="Max effort"
-                          name="RPE"
-                          {...field}
                         />
                       </FormControl>
                       <FormDescription className="mt-2">
@@ -320,8 +309,6 @@ export default function TrainingEntryForm() {
                           onChange={onChange}
                           lowLabel="Low"
                           highLabel="High"
-                          name="EmotionalLoad"
-                          {...field}
                         />
                       </FormControl>
                       <FormDescription className="mt-2">
@@ -332,32 +319,7 @@ export default function TrainingEntryForm() {
                   )}
                 />
                 
-                <FormField
-                  control={form.control}
-                  name="mood"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mood After Training</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select mood" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="happy">Happy/Energized</SelectItem>
-                          <SelectItem value="neutral">Neutral</SelectItem>
-                          <SelectItem value="tired">Tired</SelectItem>
-                          <SelectItem value="exhausted">Exhausted</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
                 
                 <FormField
                   control={form.control}
@@ -388,12 +350,12 @@ export default function TrainingEntryForm() {
                       <div className="text-xl font-semibold">{effortLevel}/10</div>
                     </div>
                     <div className="border rounded p-2 text-center">
-                      <div className="text-sm text-muted-foreground">Emotional Load</div>
-                      <div className="text-xl font-semibold">{emotionalLoad}/10</div>
+                      <div className="text-sm text-muted-foreground">Эмоциональное напряжение</div>
+                      <div className="text-xl font-semibold">{emotionalLoad}/5</div>
                     </div>
                     <div className="border rounded p-2 text-center bg-primary/10">
                       <div className="text-sm text-muted-foreground">Average Load</div>
-                      <div className="text-xl font-semibold">{((effortLevel + emotionalLoad) / 2).toFixed(1)}/10</div>
+                      <div className="text-xl font-semibold">{((effortLevel * 2 + emotionalLoad) / 3).toFixed(1)}</div>
                     </div>
                   </div>
                 </div>
