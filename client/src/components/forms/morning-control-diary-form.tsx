@@ -68,11 +68,11 @@ export default function MorningControlDiaryForm() {
       userId: user?.id ?? 0,
       sleepHours: "7",
       sleepQuality: "average",
-      motivationEnergy: 0, // Default to position 0 as requested
-      recoveryLevel: 0, // Default to position 0 as requested
+      motivationEnergy: 1, // Default to position 1 as requested
+      recoveryLevel: 1, // Default to position 1 as requested
       healthSymptoms: [],
       muscleSoreness: "no",
-      sorenessIntensity: 0, // Default to position 0 as requested
+      sorenessIntensity: 1, // Default to position 1 as requested
       hasInjury: "no",
       injuryDetails: "",
       additionalNotes: "",
@@ -337,7 +337,7 @@ export default function MorningControlDiaryForm() {
                   <FormLabel className="text-white text-lg mb-4">How motivated and energetic do you feel today?</FormLabel>
                   <FormControl>
                     <ScaleTumbler
-                      min={0}
+                      min={1}
                       max={4}
                       value={field.value}
                       onChange={field.onChange}
@@ -365,7 +365,7 @@ export default function MorningControlDiaryForm() {
                   <FormLabel className="text-white text-lg mb-4">How recovered do you feel today?</FormLabel>
                   <FormControl>
                     <ScaleTumbler
-                      min={0}
+                      min={1}
                       max={4}
                       value={field.value}
                       onChange={field.onChange}
@@ -466,9 +466,9 @@ export default function MorningControlDiaryForm() {
                     <FormLabel className="text-white">How intense is the soreness?</FormLabel>
                     <FormControl>
                       <ScaleTumbler
-                        min={0}
+                        min={1}
                         max={4}
-                        value={field.value ?? 0}
+                        value={field.value ?? 1}
                         onChange={field.onChange}
                         lowLabel="Minimal"
                         highLabel="Severe"
