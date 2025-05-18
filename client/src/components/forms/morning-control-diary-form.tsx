@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { ScaleTumbler } from "@/components/ui/scale-tumbler";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import {
@@ -327,7 +328,7 @@ export default function MorningControlDiaryForm() {
               )}
             />
             
-            {/* Motivation/Energy Slider */}
+            {/* Motivation/Energy Slider - Tumbler style */}
             <FormField
               control={form.control}
               name="motivationEnergy"
@@ -335,35 +336,15 @@ export default function MorningControlDiaryForm() {
                 <FormItem className="mb-6 pb-6 border-b border-zinc-800">
                   <FormLabel className="text-white text-lg mb-4">How motivated and energetic do you feel today?</FormLabel>
                   <FormControl>
-                    <div className="space-y-1">
-                      <Slider
-                        min={0}
-                        max={4}
-                        step={1}
-                        value={[field.value]}
-                        onValueChange={(vals) => field.onChange(vals[0])}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-sm text-gray-400 mt-2">
-                        <div className="flex flex-col items-center">
-                          <span>0</span>
-                          <span>Low</span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span>1</span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span>2</span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span>3</span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span>4</span>
-                          <span>High</span>
-                        </div>
-                      </div>
-                    </div>
+                    <ScaleTumbler
+                      min={0}
+                      max={4}
+                      value={field.value}
+                      onChange={field.onChange}
+                      lowLabel="Low"
+                      highLabel="High"
+                      className="mt-4"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -383,35 +364,15 @@ export default function MorningControlDiaryForm() {
                 <FormItem className="mb-6 pb-6 border-b border-zinc-800">
                   <FormLabel className="text-white text-lg mb-4">How recovered do you feel today?</FormLabel>
                   <FormControl>
-                    <div className="space-y-1">
-                      <Slider
-                        min={0}
-                        max={4}
-                        step={1}
-                        value={[field.value]}
-                        onValueChange={(vals) => field.onChange(vals[0])}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-sm text-gray-400 mt-2">
-                        <div className="flex flex-col items-center">
-                          <span>0</span>
-                          <span>Poor</span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span>1</span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span>2</span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span>3</span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <span>4</span>
-                          <span>Great</span>
-                        </div>
-                      </div>
-                    </div>
+                    <ScaleTumbler
+                      min={0}
+                      max={4}
+                      value={field.value}
+                      onChange={field.onChange}
+                      lowLabel="Poor"
+                      highLabel="Great"
+                      className="mt-4"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -504,35 +465,15 @@ export default function MorningControlDiaryForm() {
                   <FormItem className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
                     <FormLabel className="text-white">How intense is the soreness?</FormLabel>
                     <FormControl>
-                      <div className="space-y-1">
-                        <Slider
-                          min={0}
-                          max={4}
-                          step={1}
-                          value={[field.value ?? 0]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-sm text-gray-400 mt-2">
-                          <div className="flex flex-col items-center">
-                            <span>0</span>
-                            <span>Minimal</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>1</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>2</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>3</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>4</span>
-                            <span>Severe</span>
-                          </div>
-                        </div>
-                      </div>
+                      <ScaleTumbler
+                        min={0}
+                        max={4}
+                        value={field.value ?? 0}
+                        onChange={field.onChange}
+                        lowLabel="Minimal"
+                        highLabel="Severe"
+                        className="mt-4"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
