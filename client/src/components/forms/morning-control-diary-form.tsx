@@ -27,14 +27,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Define Zod schema for the form
 const morningDiarySchema = insertMorningDiarySchema.extend({
   sleepHours: z.string(),
-  sleepQuality: z.number().min(1).max(10),
+  sleepQuality: z.enum(["poor", "average", "good"]),
   motivationEnergy: z.number().min(1).max(10),
   recoveryLevel: z.number().min(1).max(10),
-  healthSymptoms: z.array(z.string()).default([]), // Health symptoms array
+  healthSymptoms: z.array(z.string()).default([]),
   muscleSoreness: z.enum(["yes", "no"]),
   sorenessIntensity: z.number().min(1).max(10).optional(),
   hasInjury: z.enum(["yes", "no"]),
@@ -57,14 +64,14 @@ export default function MorningControlDiaryForm() {
   const form = useForm<MorningDiaryFormValues>({
     resolver: zodResolver(morningDiarySchema),
     defaultValues: {
-      userId: user?.id ?? 0, // Default to 0 if user is not loaded yet
-      sleepHours: "7", // Default to 7 hours
-      sleepQuality: 0, // Default to 0 for slider
-      motivationEnergy: 0, // Default to 0 for slider
-      recoveryLevel: 0, // Default to 0 for slider
-      healthSymptoms: [], // Empty array by default
+      userId: user?.id ?? 0,
+      sleepHours: "7",
+      sleepQuality: "average",
+      motivationEnergy: 0,
+      recoveryLevel: 0,
+      healthSymptoms: [],
       muscleSoreness: "no",
-      sorenessIntensity: 0, // Default to 0 for slider
+      sorenessIntensity: 0,
       hasInjury: "no",
       injuryDetails: "",
       additionalNotes: "",
@@ -94,7 +101,7 @@ export default function MorningControlDiaryForm() {
   // Submit the diary entry to the API
   const submitMutation = useMutation({
     mutationFn: async (data: MorningDiaryFormValues) => {
-      console.log("Submitting data:", data); // Debug log
+      console.log("Submitting data:", data);
       
       // Make sure userId is set properly
       if (!data.userId && user) {
@@ -104,16 +111,16 @@ export default function MorningControlDiaryForm() {
       // Transform the data to match the expected API format
       const apiData = {
         userId: data.userId,
-        sleepQuality: data.sleepQuality >= 7 ? "good" : data.sleepQuality >= 4 ? "average" : "poor",
+        sleepQuality: data.sleepQuality, // already in the right format (poor, average, good)
         sleepHours: data.sleepHours,
         stressLevel: data.motivationEnergy >= 7 ? "low" : data.motivationEnergy >= 4 ? "medium" : "high", // Inverse relation
         mood: "neutral", // We're not collecting mood anymore but API expects it
         recoveryLevel: data.recoveryLevel >= 7 ? "good" : data.recoveryLevel >= 4 ? "moderate" : "poor",
-        symptoms: data.healthSymptoms || [], // Restore health symptoms
+        symptoms: data.healthSymptoms || [],
         motivationLevel: data.motivationEnergy >= 7 ? "high" : data.motivationEnergy >= 4 ? "moderate" : "low",
         sorenessMap: data.muscleSoreness === "yes" ? { general: true } : { _no_soreness: true },
         hasInjury: data.hasInjury === "yes",
-        painLevel: data.hasInjury === "yes" ? (data.sorenessIntensity || 5) : null, // Default to 5 if not provided
+        painLevel: data.hasInjury === "yes" ? (data.sorenessIntensity || 5) : null,
         injuryImproving: data.hasInjury === "yes" ? "unchanged" : undefined,
         injuryNotes: data.hasInjury === "yes" ? data.injuryDetails : undefined,
       };
@@ -161,8 +168,10 @@ export default function MorningControlDiaryForm() {
     let score = 0;
     const maxScore = 10;
     
-    // Sleep quality (0-10 scale)
-    score += (data.sleepQuality / 10) * 2; // 20% of total
+    // Sleep quality (poor, average, good)
+    if (data.sleepQuality === "good") score += 2;
+    else if (data.sleepQuality === "average") score += 1;
+    else score += 0;
     
     // Motivation/Energy (0-10 scale)
     score += (data.motivationEnergy / 10) * 2; // 20% of total
@@ -246,54 +255,73 @@ export default function MorningControlDiaryForm() {
           <div className="bg-zinc-900 rounded-lg p-6 mb-6">
             <h4 className="text-lg font-bold text-white mb-4">Sleep & Emotional State</h4>
             
-            {/* Sleep Quality Slider - Moved to first position */}
+            {/* Sleep Quality Select - Now uses dropdown */}
             <FormField
               control={form.control}
               name="sleepQuality"
               render={({ field }) => (
                 <FormItem className="mb-4">
-                  <FormLabel className="text-white">How would you rate the quality of your sleep? (1-10)</FormLabel>
-                  <FormControl>
-                    <div className="space-y-1">
-                      <Slider
-                        min={0}
-                        max={10}
-                        step={1}
-                        value={[field.value]}
-                        onValueChange={(vals) => field.onChange(vals[0])}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>Poor (1)</span>
-                        <span>Excellent (10)</span>
-                      </div>
-                      <div className="text-center text-white font-medium mt-2">
-                        {field.value === 0 ? "Please select" : field.value}
-                      </div>
-                    </div>
-                  </FormControl>
+                  <FormLabel className="text-white">How was your sleep quality?</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full bg-zinc-800 border-zinc-700 text-white">
+                        <SelectValue placeholder="Select sleep quality" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
+                      <SelectItem value="poor">Poor</SelectItem>
+                      <SelectItem value="average">Average</SelectItem>
+                      <SelectItem value="good">Good</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            {/* Sleep Hours - Moved to second position */}
+            {/* Sleep Hours */}
             <FormField
               control={form.control}
               name="sleepHours"
               render={({ field }) => (
                 <FormItem className="mb-4">
-                  <FormLabel className="text-white">How many hours did you sleep last night?</FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      type="number" 
-                      min="0" 
-                      max="24" 
-                      step="0.5" 
-                      className="bg-zinc-800 border-zinc-700 text-white" 
-                    />
-                  </FormControl>
+                  <FormLabel className="text-white">How many hours did you sleep?</FormLabel>
+                  <div className="flex items-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 bg-zinc-800 border-zinc-700 text-white"
+                      onClick={() => {
+                        const currentValue = parseFloat(field.value);
+                        if (currentValue > 0) {
+                          field.onChange((currentValue - 0.5).toString());
+                        }
+                      }}
+                    >
+                      -
+                    </Button>
+                    <div className="flex-1 mx-4 text-center text-white font-medium">
+                      {field.value} hours
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 bg-zinc-800 border-zinc-700 text-white"
+                      onClick={() => {
+                        const currentValue = parseFloat(field.value);
+                        if (currentValue < 24) {
+                          field.onChange((currentValue + 0.5).toString());
+                        }
+                      }}
+                    >
+                      +
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -366,7 +394,7 @@ export default function MorningControlDiaryForm() {
               )}
             />
             
-            {/* Health Symptoms - Restored from original */}
+            {/* Health Symptoms */}
             <FormField
               control={form.control}
               name="healthSymptoms"
