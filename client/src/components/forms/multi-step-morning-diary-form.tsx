@@ -520,7 +520,7 @@ export default function MultiStepMorningDiaryForm() {
                           min={0}
                           max={5}
                           step={1}
-                          defaultValue={[field.value === "low" ? 1 : field.value === "medium" ? 3 : field.value === "high" ? 5 : 1]}
+                          defaultValue={[field.value === "low" ? 1 : field.value === "medium" ? 3 : field.value === "high" ? 5 : 0]}
                           onValueChange={(vals) => {
                             const val = vals[0];
                             if (val <= 1) field.onChange("low");
