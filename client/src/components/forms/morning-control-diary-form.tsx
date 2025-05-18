@@ -39,11 +39,11 @@ import {
 const morningDiarySchema = insertMorningDiarySchema.extend({
   sleepHours: z.string(),
   sleepQuality: z.enum(["poor", "average", "good"]),
-  motivationEnergy: z.number().min(1).max(10),
-  recoveryLevel: z.number().min(1).max(10),
+  motivationEnergy: z.number().min(0).max(10),
+  recoveryLevel: z.number().min(0).max(10),
   healthSymptoms: z.array(z.string()).default([]),
   muscleSoreness: z.enum(["yes", "no"]),
-  sorenessIntensity: z.number().min(1).max(10).optional(),
+  sorenessIntensity: z.number().min(0).max(10).optional(),
   hasInjury: z.enum(["yes", "no"]),
   injuryDetails: z.string().optional(),
   additionalNotes: z.string().optional()
@@ -353,6 +353,9 @@ export default function MorningControlDiaryForm() {
                       </div>
                     </div>
                   </FormControl>
+                  <FormDescription className="text-gray-500 text-xs">
+                    Move the slider to select a value from 1 to 10
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -389,6 +392,9 @@ export default function MorningControlDiaryForm() {
                       </div>
                     </div>
                   </FormControl>
+                  <FormDescription className="text-gray-500 text-xs">
+                    Move the slider to select a value from 1 to 10
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -498,6 +504,9 @@ export default function MorningControlDiaryForm() {
                         </div>
                       </div>
                     </FormControl>
+                    <FormDescription className="text-gray-500 text-xs">
+                      Move the slider to select a value from 1 to 10
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
