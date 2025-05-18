@@ -39,11 +39,11 @@ import {
 const morningDiarySchema = insertMorningDiarySchema.extend({
   sleepHours: z.string(),
   sleepQuality: z.enum(["poor", "average", "good"]),
-  motivationEnergy: z.number().min(0).max(10),
-  recoveryLevel: z.number().min(0).max(10),
+  motivationEnergy: z.number().min(0).max(4), // Change to 0-4 scale
+  recoveryLevel: z.number().min(0).max(4), // Change to 0-4 scale
   healthSymptoms: z.array(z.string()).default([]),
   muscleSoreness: z.enum(["yes", "no"]),
-  sorenessIntensity: z.number().min(0).max(10).optional(),
+  sorenessIntensity: z.number().min(0).max(4).optional(), // Change to 0-4 scale
   hasInjury: z.enum(["yes", "no"]),
   injuryDetails: z.string().optional(),
   additionalNotes: z.string().optional()
@@ -67,11 +67,11 @@ export default function MorningControlDiaryForm() {
       userId: user?.id ?? 0,
       sleepHours: "7",
       sleepQuality: "average",
-      motivationEnergy: 0,
-      recoveryLevel: 0,
+      motivationEnergy: 0, // Default to 0 (far left position)
+      recoveryLevel: 0, // Default to 0 (far left position)
       healthSymptoms: [],
       muscleSoreness: "no",
-      sorenessIntensity: 0,
+      sorenessIntensity: 0, // Default to 0 (far left position)
       hasInjury: "no",
       injuryDetails: "",
       additionalNotes: "",
@@ -332,30 +332,39 @@ export default function MorningControlDiaryForm() {
               control={form.control}
               name="motivationEnergy"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">How motivated and energetic do you feel today? (1-10)</FormLabel>
+                <FormItem className="mb-6 pb-6 border-b border-zinc-800">
+                  <FormLabel className="text-white text-lg mb-4">How motivated and energetic do you feel today?</FormLabel>
                   <FormControl>
                     <div className="space-y-1">
                       <Slider
                         min={0}
-                        max={10}
+                        max={4}
                         step={1}
                         value={[field.value]}
                         onValueChange={(vals) => field.onChange(vals[0])}
                         className="w-full"
                       />
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>Low (1)</span>
-                        <span>High (10)</span>
-                      </div>
-                      <div className="text-center text-white font-medium mt-2">
-                        {field.value === 0 ? "Please select" : field.value}
+                      <div className="flex justify-between text-sm text-gray-400 mt-2">
+                        <div className="flex flex-col items-center">
+                          <span>0</span>
+                          <span>Low</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>1</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>2</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>3</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>4</span>
+                          <span>High</span>
+                        </div>
                       </div>
                     </div>
                   </FormControl>
-                  <FormDescription className="text-gray-500 text-xs">
-                    Move the slider to select a value from 1 to 10
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -371,30 +380,39 @@ export default function MorningControlDiaryForm() {
               control={form.control}
               name="recoveryLevel"
               render={({ field }) => (
-                <FormItem className="mb-4">
-                  <FormLabel className="text-white">How recovered do you feel today? (1-10)</FormLabel>
+                <FormItem className="mb-6 pb-6 border-b border-zinc-800">
+                  <FormLabel className="text-white text-lg mb-4">How recovered do you feel today?</FormLabel>
                   <FormControl>
                     <div className="space-y-1">
                       <Slider
                         min={0}
-                        max={10}
+                        max={4}
                         step={1}
                         value={[field.value]}
                         onValueChange={(vals) => field.onChange(vals[0])}
                         className="w-full"
                       />
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>Not Recovered (1)</span>
-                        <span>Fully Recovered (10)</span>
-                      </div>
-                      <div className="text-center text-white font-medium mt-2">
-                        {field.value === 0 ? "Please select" : field.value}
+                      <div className="flex justify-between text-sm text-gray-400 mt-2">
+                        <div className="flex flex-col items-center">
+                          <span>0</span>
+                          <span>Poor</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>1</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>2</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>3</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>4</span>
+                          <span>Great</span>
+                        </div>
                       </div>
                     </div>
                   </FormControl>
-                  <FormDescription className="text-gray-500 text-xs">
-                    Move the slider to select a value from 1 to 10
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -484,29 +502,38 @@ export default function MorningControlDiaryForm() {
                 name="sorenessIntensity"
                 render={({ field }) => (
                   <FormItem className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
-                    <FormLabel className="text-white">How intense is the soreness? (1-10)</FormLabel>
+                    <FormLabel className="text-white">How intense is the soreness?</FormLabel>
                     <FormControl>
                       <div className="space-y-1">
                         <Slider
                           min={0}
-                          max={10}
+                          max={4}
                           step={1}
                           value={[field.value ?? 0]}
                           onValueChange={(vals) => field.onChange(vals[0])}
                           className="w-full"
                         />
-                        <div className="flex justify-between text-xs text-gray-400">
-                          <span>Minimal (1)</span>
-                          <span>Severe (10)</span>
-                        </div>
-                        <div className="text-center text-white font-medium mt-2">
-                          {field.value === 0 ? "Please select" : field.value}
+                        <div className="flex justify-between text-sm text-gray-400 mt-2">
+                          <div className="flex flex-col items-center">
+                            <span>0</span>
+                            <span>Minimal</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span>1</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span>2</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span>3</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span>4</span>
+                            <span>Severe</span>
+                          </div>
                         </div>
                       </div>
                     </FormControl>
-                    <FormDescription className="text-gray-500 text-xs">
-                      Move the slider to select a value from 1 to 10
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
