@@ -24,7 +24,6 @@ import {
   RadioGroupItem
 } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import {
@@ -34,16 +33,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import * as SliderPrimitive from "@radix-ui/react-slider";
+import { cn } from "@/lib/utils";
+
+// Create a custom slider component with lime green styling
+const CustomSlider = ({ value, onChange, min = 0, max = 4, step = 1, className }) => {
+  return (
+    <div className={className}>
+      <SliderPrimitive.Root
+        className="relative flex w-full touch-none select-none items-center"
+        value={value}
+        onValueChange={onChange}
+        min={min}
+        max={max}
+        step={step}
+      >
+        <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-zinc-700">
+          <SliderPrimitive.Range className="absolute h-full bg-[#CBFF00]" />
+        </SliderPrimitive.Track>
+        <SliderPrimitive.Thumb className="block h-8 w-8 rounded-full ring-2 ring-[#CBFF00] bg-[#CBFF00] ring-offset-background shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" />
+      </SliderPrimitive.Root>
+    </div>
+  );
+};
 
 // Define Zod schema for the form
 const morningDiarySchema = insertMorningDiarySchema.extend({
   sleepHours: z.string(),
   sleepQuality: z.enum(["poor", "average", "good"]),
-  motivationEnergy: z.number().min(0).max(4), // Change to 0-4 scale
-  recoveryLevel: z.number().min(0).max(4), // Change to 0-4 scale
+  motivationEnergy: z.number().min(0).max(4), // 0-4 scale
+  recoveryLevel: z.number().min(0).max(4), // 0-4 scale
   healthSymptoms: z.array(z.string()).default([]),
   muscleSoreness: z.enum(["yes", "no"]),
-  sorenessIntensity: z.number().min(0).max(4).optional(), // Change to 0-4 scale
+  sorenessIntensity: z.number().min(0).max(4).optional(), // 0-4 scale
   hasInjury: z.enum(["yes", "no"]),
   injuryDetails: z.string().optional(),
   additionalNotes: z.string().optional()
@@ -52,7 +74,7 @@ const morningDiarySchema = insertMorningDiarySchema.extend({
 // Type for form values derived from the schema
 type MorningDiaryFormValues = z.infer<typeof morningDiarySchema>;
 
-export default function MorningControlDiaryForm() {
+export default function SimplifiedMorningDiaryForm() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -331,50 +353,40 @@ export default function MorningControlDiaryForm() {
             <FormField
               control={form.control}
               name="motivationEnergy"
-              render={({ field }) => {
-                // Force the initial value to be 0
-                useEffect(() => {
-                  field.onChange(0);
-                }, []);
-                
-                return (
-                  <FormItem className="mb-6 pb-6 border-b border-zinc-800">
-                    <FormLabel className="text-white text-lg mb-4">How motivated and energetic do you feel today?</FormLabel>
-                    <FormControl>
-                      <div className="space-y-1">
-                        <Slider
-                          min={0}
-                          max={4}
-                          step={1}
-                          value={[field.value]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-sm text-gray-400 mt-2">
-                          <div className="flex flex-col items-center">
-                            <span>0</span>
-                            <span>Low</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>1</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>2</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>3</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>4</span>
-                            <span>High</span>
-                          </div>
+              render={({ field }) => (
+                <FormItem className="mb-6 pb-6 border-b border-zinc-800">
+                  <FormLabel className="text-white text-lg mb-4">How motivated and energetic do you feel today?</FormLabel>
+                  <FormControl>
+                    <div className="space-y-1">
+                      <CustomSlider 
+                        value={[field.value]} 
+                        onChange={(newValue) => field.onChange(newValue[0])}
+                        className="w-full" 
+                      />
+                      <div className="flex justify-between text-sm text-gray-400 mt-2">
+                        <div className="flex flex-col items-center">
+                          <span>0</span>
+                          <span>Low</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>1</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>2</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>3</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>4</span>
+                          <span>High</span>
                         </div>
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
           </div>
           
@@ -386,50 +398,40 @@ export default function MorningControlDiaryForm() {
             <FormField
               control={form.control}
               name="recoveryLevel"
-              render={({ field }) => {
-                // Force the initial value to be 0
-                useEffect(() => {
-                  field.onChange(0);
-                }, []);
-                
-                return (
-                  <FormItem className="mb-6 pb-6 border-b border-zinc-800">
-                    <FormLabel className="text-white text-lg mb-4">How recovered do you feel today?</FormLabel>
-                    <FormControl>
-                      <div className="space-y-1">
-                        <Slider
-                          min={0}
-                          max={4}
-                          step={1}
-                          value={[field.value]}
-                          onValueChange={(vals) => field.onChange(vals[0])}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-sm text-gray-400 mt-2">
-                          <div className="flex flex-col items-center">
-                            <span>0</span>
-                            <span>Poor</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>1</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>2</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>3</span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <span>4</span>
-                            <span>Great</span>
-                          </div>
+              render={({ field }) => (
+                <FormItem className="mb-6 pb-6 border-b border-zinc-800">
+                  <FormLabel className="text-white text-lg mb-4">How recovered do you feel today?</FormLabel>
+                  <FormControl>
+                    <div className="space-y-1">
+                      <CustomSlider 
+                        value={[field.value]} 
+                        onChange={(newValue) => field.onChange(newValue[0])}
+                        className="w-full" 
+                      />
+                      <div className="flex justify-between text-sm text-gray-400 mt-2">
+                        <div className="flex flex-col items-center">
+                          <span>0</span>
+                          <span>Poor</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>1</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>2</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>3</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <span>4</span>
+                          <span>Great</span>
                         </div>
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
             
             {/* Health Symptoms */}
@@ -514,50 +516,40 @@ export default function MorningControlDiaryForm() {
               <FormField
                 control={form.control}
                 name="sorenessIntensity"
-                render={({ field }) => {
-                  // Force the initial value to be 0
-                  useEffect(() => {
-                    field.onChange(0);
-                  }, []);
-                  
-                  return (
-                    <FormItem className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
-                      <FormLabel className="text-white">How intense is the soreness?</FormLabel>
-                      <FormControl>
-                        <div className="space-y-1">
-                          <Slider
-                            min={0}
-                            max={4}
-                            step={1}
-                            value={[field.value ?? 0]}
-                            onValueChange={(vals) => field.onChange(vals[0])}
-                            className="w-full"
-                          />
-                          <div className="flex justify-between text-sm text-gray-400 mt-2">
-                            <div className="flex flex-col items-center">
-                              <span>0</span>
-                              <span>Minimal</span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <span>1</span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <span>2</span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <span>3</span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <span>4</span>
-                              <span>Severe</span>
-                            </div>
+                render={({ field }) => (
+                  <FormItem className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
+                    <FormLabel className="text-white">How intense is the soreness?</FormLabel>
+                    <FormControl>
+                      <div className="space-y-1">
+                        <CustomSlider 
+                          value={[field.value ?? 0]} 
+                          onChange={(newValue) => field.onChange(newValue[0])}
+                          className="w-full" 
+                        />
+                        <div className="flex justify-between text-sm text-gray-400 mt-2">
+                          <div className="flex flex-col items-center">
+                            <span>0</span>
+                            <span>Minimal</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span>1</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span>2</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span>3</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <span>4</span>
+                            <span>Severe</span>
                           </div>
                         </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             )}
             

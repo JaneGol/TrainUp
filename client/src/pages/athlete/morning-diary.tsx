@@ -4,8 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Loader2, CheckCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
-import MultiStepMorningDiaryForm from "@/components/forms/multi-step-morning-diary-form"; 
+import { useToast } from "@/hooks/use-toast";
+import MorningControlDiaryForm from "@/components/forms/morning-control-diary-form"; 
 
 export default function MorningDiaryPage() {
   const [, navigate] = useLocation();
@@ -23,6 +23,8 @@ export default function MorningDiaryPage() {
   });
   
   // Mutation to delete the latest diary entry
+  const { toast } = useToast();
+  
   const deleteDiaryMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch("/api/morning-diary/latest", {
@@ -162,7 +164,7 @@ export default function MorningDiaryPage() {
       <main className="flex-1 p-4">
         <Card className="w-full">
           <CardContent className="p-0">
-            <MultiStepMorningDiaryForm />
+            <SimplifiedMorningDiaryForm />
           </CardContent>
         </Card>
       </main>
