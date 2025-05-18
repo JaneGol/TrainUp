@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface ScaleTumblerProps {
@@ -18,32 +18,16 @@ export function ScaleTumbler({
   max,
   step = 1,
   defaultValue = min,
-  value,
+  value = 0, // Force default value to 0
   onChange,
   lowLabel,
   highLabel,
   className,
 }: ScaleTumblerProps) {
-  const [internalValue, setInternalValue] = useState(defaultValue);
+  const [internalValue, setInternalValue] = useState(0); // Always start at 0
   
-  // Force the component to always display position 0 initially
-  const [initialRender, setInitialRender] = useState(true);
-  
-  useEffect(() => {
-    // After the component has mounted, set initialRender to false
-    // This will allow the actual value to be shown after the first render
-    const timer = setTimeout(() => {
-      setInitialRender(false);
-    }, 50);
-    
-    return () => clearTimeout(timer);
-  }, []);
-  
-  // If it's the initial render, always display position 0
-  // Otherwise, use the actual value from props or internal state
-  const displayValue = initialRender 
-    ? 0 
-    : (value !== undefined ? value : internalValue);
+  // Always force position 0 visually
+  const displayValue = 0;
   
   const steps = [];
   for (let i = min; i <= max; i += step) {
@@ -63,14 +47,14 @@ export function ScaleTumbler({
         <div 
           className="absolute inset-y-0 left-0 bg-[#CBFF00] rounded-full" 
           style={{ 
-            width: `${((displayValue - min) / (max - min)) * 100}%` 
+            width: `0%` // Always 0% width to show position 0
           }}
         ></div>
         <div 
           className="absolute top-1/2 transform -translate-y-1/2"
           style={{ 
-            left: `${((displayValue - min) / (max - min)) * 100}%`,
-            marginLeft: displayValue === min ? '0' : '-12px'
+            left: `0%`, // Force to position 0
+            marginLeft: '0px'
           }}
         >
           <div className="h-8 w-8 rounded-full bg-[#CBFF00] ring-2 ring-[#CBFF00] shadow-lg"></div>
