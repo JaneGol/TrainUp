@@ -44,8 +44,8 @@ const morningDiarySchema = insertMorningDiarySchema.extend({
   motivationEnergy: z.number().min(0).max(4), // Change to 0-4 scale
   recoveryLevel: z.number().min(0).max(4), // Change to 0-4 scale
   healthSymptoms: z.array(z.string()).default([]),
-  muscleSoreness: z.enum(["yes", "no"]),
-  sorenessIntensity: z.number().min(1).max(10).optional(), // Change to 1-10 scale
+  muscleSoreness: z.array(z.string()).default([]),
+  sorenessIntensity: z.number().min(1).max(10).optional(), // Scale 1-10
   hasInjury: z.enum(["yes", "no"]),
   injuryPainIntensity: z.number().min(1).max(10).optional(), // Pain intensity scale (1-10)
   injuryPainTrend: z.enum(["unchanged", "better", "worse"]).optional(), // Pain trend dropdown
@@ -95,7 +95,8 @@ export default function MorningControlDiaryForm() {
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === "muscleSoreness") {
-        setHasSoreness(value.muscleSoreness === "yes");
+        const muscleGroups = value.muscleSoreness as string[];
+        setHasSoreness(muscleGroups && muscleGroups.length > 0 && !muscleGroups.includes("none"));
       }
       if (name === "hasInjury") {
         setHasInjury(value.hasInjury === "yes");
@@ -435,26 +436,80 @@ export default function MorningControlDiaryForm() {
               name="muscleSoreness"
               render={({ field }) => (
                 <FormItem className="mb-4">
-                  <FormLabel className="text-white">Do you have any muscle soreness?</FormLabel>
+                  <FormLabel className="text-white font-medium mb-2 block">Select muscle groups where you feel soreness:</FormLabel>
                   <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="yes" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Yes</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="no" />
-                        </FormControl>
-                        <FormLabel className="font-normal">No</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
+                    <div className="space-y-3">
+                      {/* No Soreness Option */}
+                      <div className="p-4 bg-zinc-800 rounded-lg">
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id="no-soreness"
+                            className="mr-2 h-5 w-5 rounded border-gray-300 focus:ring-primary accent-[#CBFF00]"
+                            checked={field.value?.includes("none")}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                // If "No soreness" is checked, clear all other selections
+                                field.onChange(["none"]);
+                                setHasSoreness(false);
+                              } else {
+                                // If unchecked, just remove it from the array
+                                field.onChange([]);
+                                setHasSoreness(false);
+                              }
+                            }}
+                          />
+                          <label htmlFor="no-soreness" className="text-white font-medium">
+                            I have no muscle soreness today
+                          </label>
+                        </div>
+                      </div>
+                      
+                      {/* Muscle Group Grid */}
+                      <div className="grid grid-cols-2 gap-2 bg-zinc-900 rounded-lg overflow-hidden">
+                        {[
+                          "Shoulders", "Hips",
+                          "Chest", "Glutes",
+                          "Arms", "Thighs",
+                          "Back", "Hamstrings",
+                          "Neck", "Knees",
+                          "Core", "Calves"
+                        ].map((muscle, index) => (
+                          <div 
+                            key={muscle} 
+                            className={`p-4 ${index % 2 === 0 ? 'border-r border-zinc-800' : ''} ${index < 10 ? 'border-b border-zinc-800' : ''}`}
+                          >
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                id={`muscle-${muscle}`}
+                                className="mr-2 h-5 w-5 rounded border-gray-300 focus:ring-primary accent-[#CBFF00]"
+                                checked={field.value?.includes(muscle)}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  let updatedValue = [...(field.value || [])];
+                                  
+                                  // If checking a muscle group, remove "none" option if present
+                                  if (checked) {
+                                    updatedValue = updatedValue.filter(item => item !== "none");
+                                    updatedValue.push(muscle);
+                                    setHasSoreness(true);
+                                  } else {
+                                    updatedValue = updatedValue.filter(item => item !== muscle);
+                                    setHasSoreness(updatedValue.length > 0 && !updatedValue.includes("none"));
+                                  }
+                                  
+                                  field.onChange(updatedValue);
+                                }}
+                              />
+                              <label htmlFor={`muscle-${muscle}`} className="text-white">
+                                {muscle}
+                              </label>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -467,7 +522,7 @@ export default function MorningControlDiaryForm() {
                 control={form.control}
                 name="sorenessIntensity"
                 render={({ field }) => (
-                  <FormItem className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
+                  <FormItem className="mb-4 pl-4">
                     <FormLabel className="text-white">Pain intensity:</FormLabel>
                     <FormControl>
                       <div className="space-y-2">
