@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { RotateCcw } from "lucide-react";
 
 interface ScaleTumblerProps {
   min: number;
@@ -12,7 +11,6 @@ interface ScaleTumblerProps {
   lowLabel?: string;
   highLabel?: string;
   className?: string;
-  name?: string;
 }
 
 export function ScaleTumbler({
@@ -25,10 +23,8 @@ export function ScaleTumbler({
   lowLabel,
   highLabel,
   className,
-  name,
 }: ScaleTumblerProps) {
   const [internalValue, setInternalValue] = useState(defaultValue);
-  const [isResetting, setIsResetting] = useState(false);
   const [isInitialRender, setIsInitialRender] = useState(true);
   
   // The actual selected value (from controlled component or internal state)
@@ -56,46 +52,14 @@ export function ScaleTumbler({
     onChange?.(newValue);
   };
   
-  const resetValue = () => {
-    // Trigger reset animation
-    setIsResetting(true);
-    
-    // Reset value with a slight delay
-    setTimeout(() => {
-      setInternalValue(0);
-      if (onChange) {
-        onChange(0);
-      }
-      // End animation
-      setIsResetting(false);
-    }, 300);
-  };
-  
   // Calculate the width for the highlighted part of the slider
-  const trackWidth = isResetting 
-    ? "0%" // During reset animation, set to 0%
-    : `${((displayValue - min) / (max - min)) * 100}%`;
+  const trackWidth = `${((displayValue - min) / (max - min)) * 100}%`;
   
   // Calculate the left position for the thumb
-  const thumbLeft = isResetting 
-    ? "0%" // During reset animation, set to 0%
-    : `${((displayValue - min) / (max - min)) * 100}%`;
+  const thumbLeft = `${((displayValue - min) / (max - min)) * 100}%`;
   
   return (
     <div className={cn("w-full relative", className)}>
-      {/* Reset Button */}
-      <button 
-        type="button"
-        onClick={resetValue}
-        className={cn(
-          "absolute -right-7 -top-1 p-1 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-all",
-          isResetting ? "animate-spin" : ""
-        )}
-        aria-label={`Reset ${name || 'slider'} value`}
-      >
-        <RotateCcw size={16} className="text-[#CBFF00]" />
-      </button>
-      
       {/* Tumbler Track with Highlight */}
       <div className="relative h-2 mb-4">
         {/* Background track */}
@@ -115,10 +79,7 @@ export function ScaleTumbler({
             marginLeft: displayValue === min ? '0' : '-12px'
           }}
         >
-          <div className={cn(
-            "h-8 w-8 rounded-full bg-[#CBFF00] ring-2 ring-[#CBFF00] shadow-lg transition-transform",
-            isResetting ? "scale-75" : "scale-100"
-          )}></div>
+          <div className="h-8 w-8 rounded-full bg-[#CBFF00] ring-2 ring-[#CBFF00] shadow-lg"></div>
         </div>
       </div>
       

@@ -300,7 +300,7 @@ export default function TrainingEntryForm() {
                   name="emotionalLoad"
                   render={({ field: { value, onChange, ...field } }) => (
                     <FormItem className="space-y-4">
-                      <FormLabel className="text-base font-medium">Эмоциональное напряжение (1–5)</FormLabel>
+                      <FormLabel className="text-base font-medium">Emotional Load</FormLabel>
                       <FormControl>
                         <ScaleTumbler
                           min={1}
@@ -350,7 +350,7 @@ export default function TrainingEntryForm() {
                       <div className="text-xl font-semibold">{effortLevel}/10</div>
                     </div>
                     <div className="border rounded p-2 text-center">
-                      <div className="text-sm text-muted-foreground">Эмоциональное напряжение</div>
+                      <div className="text-sm text-muted-foreground">Emotional Load</div>
                       <div className="text-xl font-semibold">{emotionalLoad}/5</div>
                     </div>
                     <div className="border rounded p-2 text-center bg-primary/10">
