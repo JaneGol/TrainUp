@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface ScaleTumblerProps {
@@ -18,16 +18,27 @@ export function ScaleTumbler({
   max,
   step = 1,
   defaultValue = min,
-  value = 0, // Force default value to 0
+  value,
   onChange,
   lowLabel,
   highLabel,
   className,
 }: ScaleTumblerProps) {
-  const [internalValue, setInternalValue] = useState(0); // Always start at 0
+  const [internalValue, setInternalValue] = useState(defaultValue);
+  const componentMounted = useRef(false);
   
-  // Always force position 0 visually
-  const displayValue = 0;
+  // Force the slider to always start at position 0 visually
+  // but maintain the actual value for the form
+  const actualValue = value !== undefined ? value : internalValue;
+  const displayValue = componentMounted.current ? actualValue : 0;
+  
+  useEffect(() => {
+    // Mark the component as mounted after the first render
+    // This ensures it always displays at position 0 initially
+    if (!componentMounted.current) {
+      componentMounted.current = true;
+    }
+  }, []);
   
   const steps = [];
   for (let i = min; i <= max; i += step) {
@@ -47,14 +58,14 @@ export function ScaleTumbler({
         <div 
           className="absolute inset-y-0 left-0 bg-[#CBFF00] rounded-full" 
           style={{ 
-            width: `0%` // Always 0% width to show position 0
+            width: `${((displayValue - min) / (max - min)) * 100}%` 
           }}
         ></div>
         <div 
           className="absolute top-1/2 transform -translate-y-1/2"
           style={{ 
-            left: `0%`, // Force to position 0
-            marginLeft: '0px'
+            left: `${((displayValue - min) / (max - min)) * 100}%`,
+            marginLeft: displayValue === min ? '0' : '-12px'
           }}
         >
           <div className="h-8 w-8 rounded-full bg-[#CBFF00] ring-2 ring-[#CBFF00] shadow-lg"></div>
