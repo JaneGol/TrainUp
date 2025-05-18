@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
 interface ScaleTumblerProps {
@@ -24,71 +25,52 @@ export function ScaleTumbler({
   highLabel,
   className,
 }: ScaleTumblerProps) {
-  // Always initialize with at least 1 as default value
+  // Always initialize with min value as default value
   const [internalValue, setInternalValue] = useState(defaultValue);
   
   // Use the provided value if available, otherwise use internal state
   const actualValue = value !== undefined ? value : internalValue;
   
-  // Generate steps array for display
+  // Generate steps array for the number labels
   const steps = [];
   for (let i = min; i <= max; i += step) {
     steps.push(i);
   }
   
-  const handleClick = (newValue: number) => {
-    setInternalValue(newValue);
-    onChange?.(newValue);
+  // Handle slider value change
+  const handleValueChange = (values: number[]) => {
+    setInternalValue(values[0]);
+    onChange?.(values[0]);
   };
   
-  // Calculate the width for the highlighted part of the slider
-  const trackWidth = `${((actualValue - min) / (max - min)) * 100}%`;
-  
-  // Calculate the left position for the thumb
-  const thumbLeft = `${((actualValue - min) / (max - min)) * 100}%`;
-  
   return (
-    <div className={cn("w-full relative", className)}>
-      {/* Tumbler Track with Highlight */}
-      <div className="relative h-2 mb-4">
-        {/* Background track */}
-        <div className="absolute inset-0 bg-zinc-700 rounded-full"></div>
-        
-        {/* Highlight track */}
-        <div 
-          className="absolute inset-y-0 left-0 bg-[#CBFF00] rounded-full transition-all duration-300" 
-          style={{ width: trackWidth }} 
-        ></div>
-        
-        {/* Thumb */}
-        <div 
-          className="absolute top-1/2 transform -translate-y-1/2 transition-all duration-300 ease-out"
-          style={{ 
-            left: thumbLeft,
-            marginLeft: actualValue === min ? '0' : '-12px'
-          }}
-        >
-          <div className="h-8 w-8 rounded-full bg-[#CBFF00] ring-2 ring-[#CBFF00] shadow-lg"></div>
-        </div>
+    <div className={cn("space-y-2", className)}>
+      {/* Slider component - matching the Pain Intensity slider style */}
+      <div className="py-3">
+        <Slider
+          min={min}
+          max={max}
+          step={step}
+          value={[actualValue]}
+          onValueChange={handleValueChange}
+          className="py-3"
+        />
       </div>
       
-      {/* Scale Numbers and Labels */}
-      <div className="flex justify-between text-sm text-gray-400 mt-2">
-        {steps.map((step) => (
-          <div 
-            key={step} 
-            className={cn(
-              "flex flex-col items-center cursor-pointer transition-all", 
-              actualValue === step ? "text-[#CBFF00] font-medium" : ""
-            )}
-            onClick={() => handleClick(step)}
-          >
-            <span>{step}</span>
-            {step === min && lowLabel && <span className="text-xs">{lowLabel}</span>}
-            {step === max && highLabel && <span className="text-xs">{highLabel}</span>}
-          </div>
+      {/* Number labels */}
+      <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
+        {steps.map((stepValue) => (
+          <span key={stepValue}>{stepValue}</span>
         ))}
       </div>
+      
+      {/* Min/Max labels */}
+      {(lowLabel || highLabel) && (
+        <div className="flex justify-between text-xs text-gray-400 mt-0">
+          {lowLabel && <span>{lowLabel}</span>}
+          {highLabel && <span className="ml-auto">{highLabel}</span>}
+        </div>
+      )}
     </div>
   );
 }
