@@ -37,6 +37,9 @@ export function ScaleTumbler({
     onChange?.(newValue);
   };
   
+  // I noticed in the screenshot the sliders show position 3 by default
+  const displayValue = value !== undefined ? value : 3; // Default to position 3 for visual display
+
   return (
     <div className={cn("w-full", className)}>
       {/* Tumbler Track with Highlight */}
@@ -45,14 +48,14 @@ export function ScaleTumbler({
         <div 
           className="absolute inset-y-0 left-0 bg-[#CBFF00] rounded-full" 
           style={{ 
-            width: `${((actualValue - min) / (max - min)) * 100}%` 
+            width: `${((displayValue - min) / (max - min)) * 100}%` 
           }}
         ></div>
         <div 
           className="absolute top-1/2 transform -translate-y-1/2"
           style={{ 
-            left: `${((actualValue - min) / (max - min)) * 100}%`,
-            marginLeft: actualValue === min ? '0' : '-12px'
+            left: `${((displayValue - min) / (max - min)) * 100}%`,
+            marginLeft: displayValue === min ? '0' : '-12px'
           }}
         >
           <div className="h-8 w-8 rounded-full bg-[#CBFF00] ring-2 ring-[#CBFF00] shadow-lg"></div>
