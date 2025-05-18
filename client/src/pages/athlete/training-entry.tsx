@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
+import { ScaleTumbler } from "@/components/ui/scale-tumbler";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,12 +34,8 @@ const trainingEntryFormSchema = z.object({
     invalid_type_error: "Training type must be one of the specified options"
   }),
   effortLevel: z.number().min(1, "RPE must be at least 1").max(10, "RPE cannot exceed 10"),
-  emotionalLoad: z.number().min(1, "Emotional load must be at least 1").max(10, "Emotional load cannot exceed 10"),
+  emotionalLoad: z.number().min(1, "Emotional load must be at least 1").max(5, "Emotional load cannot exceed 5"),
   date: z.date().default(() => new Date()),
-  mood: z.enum(["happy", "neutral", "tired", "exhausted"], {
-    required_error: "Mood is required", 
-    invalid_type_error: "Mood must be one of the specified options"
-  }),
   notes: z.string().optional(),
 });
 
@@ -58,10 +54,9 @@ export default function TrainingEntryForm() {
     resolver: zodResolver(trainingEntryFormSchema),
     defaultValues: {
       trainingType: "Field Training",
-      effortLevel: 5,
-      emotionalLoad: 5,
+      effortLevel: 0,
+      emotionalLoad: 0,
       date: new Date(), // Add date with current date as default
-      mood: "neutral",
       notes: "",
     },
   });
@@ -289,26 +284,21 @@ export default function TrainingEntryForm() {
                   control={form.control}
                   name="effortLevel"
                   render={({ field: { value, onChange, ...field } }) => (
-                    <FormItem>
-                      <FormLabel>Rate of Perceived Exertion (RPE)</FormLabel>
+                    <FormItem className="space-y-4">
+                      <FormLabel className="text-base font-medium">Rate of Perceived Exertion (RPE)</FormLabel>
                       <FormControl>
-                        <div className="space-y-2">
-                          <Slider
-                            min={1}
-                            max={10}
-                            step={1}
-                            defaultValue={[value]}
-                            onValueChange={(vals) => onChange(vals[0])}
-                            {...field}
-                          />
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Easy (1)</span>
-                            <span className="text-sm font-medium">{value} - {effortDescription}</span>
-                            <span className="text-sm text-muted-foreground">Max (10)</span>
-                          </div>
-                        </div>
+                        <ScaleTumbler
+                          min={1}
+                          max={10}
+                          value={value}
+                          onChange={onChange}
+                          lowLabel="Easy"
+                          highLabel="Max effort"
+                          name="RPE"
+                          {...field}
+                        />
                       </FormControl>
-                      <FormDescription>
+                      <FormDescription className="mt-2">
                         How physically demanding was your training session?
                       </FormDescription>
                       <FormMessage />
@@ -320,26 +310,21 @@ export default function TrainingEntryForm() {
                   control={form.control}
                   name="emotionalLoad"
                   render={({ field: { value, onChange, ...field } }) => (
-                    <FormItem>
-                      <FormLabel>Emotional Load</FormLabel>
+                    <FormItem className="space-y-4">
+                      <FormLabel className="text-base font-medium">Эмоциональное напряжение (1–5)</FormLabel>
                       <FormControl>
-                        <div className="space-y-2">
-                          <Slider
-                            min={1}
-                            max={10}
-                            step={1}
-                            defaultValue={[value]}
-                            onValueChange={(vals) => onChange(vals[0])}
-                            {...field}
-                          />
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Low (1)</span>
-                            <span className="text-sm font-medium">{value} - {emotionalDescription}</span>
-                            <span className="text-sm text-muted-foreground">High (10)</span>
-                          </div>
-                        </div>
+                        <ScaleTumbler
+                          min={1}
+                          max={5}
+                          value={value > 5 ? 5 : value}
+                          onChange={onChange}
+                          lowLabel="Low"
+                          highLabel="High"
+                          name="EmotionalLoad"
+                          {...field}
+                        />
                       </FormControl>
-                      <FormDescription>
+                      <FormDescription className="mt-2">
                         Rate the emotional intensity of your training session
                       </FormDescription>
                       <FormMessage />
