@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface ScaleTumblerProps {
@@ -25,20 +25,9 @@ export function ScaleTumbler({
   className,
 }: ScaleTumblerProps) {
   const [internalValue, setInternalValue] = useState(defaultValue);
-  const componentMounted = useRef(false);
   
-  // Force the slider to always start at position 0 visually
-  // but maintain the actual value for the form
+  // The actual selected value (from controlled component or internal state)
   const actualValue = value !== undefined ? value : internalValue;
-  const displayValue = componentMounted.current ? actualValue : 0;
-  
-  useEffect(() => {
-    // Mark the component as mounted after the first render
-    // This ensures it always displays at position 0 initially
-    if (!componentMounted.current) {
-      componentMounted.current = true;
-    }
-  }, []);
   
   const steps = [];
   for (let i = min; i <= max; i += step) {
@@ -52,21 +41,20 @@ export function ScaleTumbler({
   
   return (
     <div className={cn("w-full", className)}>
-      {/* Tumbler Track with Highlight */}
+      {/* Tumbler Track with Highlight - Force position 0 */}
       <div className="relative h-2 mb-4">
+        {/* Background track */}
         <div className="absolute inset-0 bg-zinc-700 rounded-full"></div>
+        
+        {/* Highlight track - Force 0 width */}
         <div 
           className="absolute inset-y-0 left-0 bg-[#CBFF00] rounded-full" 
-          style={{ 
-            width: `${((displayValue - min) / (max - min)) * 100}%` 
-          }}
+          style={{ width: '0%' }} 
         ></div>
+        
+        {/* Thumb - Force position at far left */}
         <div 
-          className="absolute top-1/2 transform -translate-y-1/2"
-          style={{ 
-            left: `${((displayValue - min) / (max - min)) * 100}%`,
-            marginLeft: displayValue === min ? '0' : '-12px'
-          }}
+          className="absolute top-1/2 transform -translate-y-1/2 left-0"
         >
           <div className="h-8 w-8 rounded-full bg-[#CBFF00] ring-2 ring-[#CBFF00] shadow-lg"></div>
         </div>
