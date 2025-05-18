@@ -28,6 +28,7 @@ import { Slider } from "@/components/ui/slider";
 import { ScaleTumbler } from "@/components/ui/scale-tumbler";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
+import { InjurySelector } from "@/components/forms/injury-selector";
 import {
   Select,
   SelectContent,
@@ -72,8 +73,10 @@ export default function MorningControlDiaryForm() {
       recoveryLevel: 0, // Default to position 0 as requested
       healthSymptoms: [],
       muscleSoreness: "no",
-      sorenessIntensity: 0, // Default to position 0 as requested
+      sorenessIntensity: 1, // Start at 1 for Pain Intensity scale
       hasInjury: "no",
+      injuryPainIntensity: 1, // Start at 1 for Pain Intensity scale
+      injuryPainTrend: "unchanged",
       injuryDetails: "",
       additionalNotes: "",
     },
