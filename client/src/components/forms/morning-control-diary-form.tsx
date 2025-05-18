@@ -45,7 +45,7 @@ const morningDiarySchema = insertMorningDiarySchema.extend({
   recoveryLevel: z.number().min(0).max(4), // Change to 0-4 scale
   healthSymptoms: z.array(z.string()).default([]),
   muscleSoreness: z.enum(["yes", "no"]),
-  sorenessIntensity: z.number().min(0).max(4).optional(), // Change to 0-4 scale
+  sorenessIntensity: z.number().min(1).max(10).optional(), // Change to 1-10 scale
   hasInjury: z.enum(["yes", "no"]),
   injuryPainIntensity: z.number().min(1).max(10).optional(), // Pain intensity scale (1-10)
   injuryPainTrend: z.enum(["unchanged", "better", "worse"]).optional(), // Pain trend dropdown
@@ -468,17 +468,29 @@ export default function MorningControlDiaryForm() {
                 name="sorenessIntensity"
                 render={({ field }) => (
                   <FormItem className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
-                    <FormLabel className="text-white">How intense is the soreness?</FormLabel>
+                    <FormLabel className="text-white">Pain intensity:</FormLabel>
                     <FormControl>
-                      <ScaleTumbler
-                        min={0}
-                        max={4}
-                        value={field.value ?? 0}
-                        onChange={field.onChange}
-                        lowLabel="Minimal"
-                        highLabel="Severe"
-                        className="mt-4"
-                      />
+                      <div className="space-y-2">
+                        <div className="py-3">
+                          <Slider
+                            min={1}
+                            max={10}
+                            step={1}
+                            value={[field.value || 1]}
+                            onValueChange={(values) => field.onChange(values[0])}
+                            className="py-3"
+                          />
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                            <span key={num}>{num}</span>
+                          ))}
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-400 mt-0">
+                          <span>Mild</span>
+                          <span className="ml-auto">Severe</span>
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
