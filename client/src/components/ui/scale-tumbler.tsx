@@ -37,8 +37,8 @@ export function ScaleTumbler({
     onChange?.(newValue);
   };
   
-  // Display the actual value (which should be 0 by default)
-  const displayValue = value;
+  // Use the value from props, defaulting to 3 if undefined
+  const displayValue = value !== undefined ? value : 3;
 
   return (
     <div className={cn("w-full", className)}>
