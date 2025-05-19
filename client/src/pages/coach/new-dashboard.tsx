@@ -118,6 +118,17 @@ export default function NewCoachDashboard() {
   // Get athletes with health status
   const { data: athleteReadiness } = useQuery({
     queryKey: ["/api/analytics/athlete-recovery-readiness"],
+    onSuccess: (data) => {
+      // Log the data to inspect the issues array for debugging
+      console.log("Athlete readiness data:", data);
+      if (data) {
+        data.forEach((athlete: any) => {
+          if (athlete.issues && athlete.issues.length > 0) {
+            console.log(`Athlete ${athlete.name} issues:`, athlete.issues);
+          }
+        });
+      }
+    }
   });
 
   // Get team training load
@@ -131,15 +142,25 @@ export default function NewCoachDashboard() {
   // Calculate number of athletes at risk
   const athletesAtRisk = athleteReadiness?.filter((a: any) => a.riskScore > 7).length || 0;
   
-  // Calculate sick or injured athletes - enhanced to catch more symptoms
-  const sickOrInjuredAthletes = athleteReadiness?.filter((a: any) => 
-    Array.isArray(a.issues) && a.issues.some((issue: string) => {
+  // Calculate sick or injured athletes - match specific keywords for health issues
+  const sickOrInjuredAthletes = athleteReadiness?.filter((a: any) => {
+    if (!Array.isArray(a.issues)) return false;
+    
+    // Skip "No recent data" and "No data from yesterday" as these are not health issues
+    const filteredIssues = a.issues.filter((issue: string) => 
+      !issue.includes("No recent data") && 
+      !issue.includes("No data from yesterday") &&
+      issue !== ""
+    );
+    
+    if (filteredIssues.length === 0) return false;
+    
+    return filteredIssues.some((issue: string) => {
       const lowercaseIssue = issue.toLowerCase();
       return (
+        // Illness related
         lowercaseIssue.includes("sick") || 
-        lowercaseIssue.includes("injury") || 
         lowercaseIssue.includes("ill") ||
-        lowercaseIssue.includes("pain") ||
         lowercaseIssue.includes("fever") || 
         lowercaseIssue.includes("temperature") || 
         lowercaseIssue.includes("flu") ||
@@ -150,11 +171,22 @@ export default function NewCoachDashboard() {
         lowercaseIssue.includes("cough") ||
         lowercaseIssue.includes("symptom") ||
         lowercaseIssue.includes("congestion") ||
-        lowercaseIssue.includes("muscle soreness") ||
-        lowercaseIssue.includes("fatigue")
+        
+        // Injury and pain related
+        lowercaseIssue.includes("injury") ||
+        lowercaseIssue.includes("pain") ||
+        lowercaseIssue.includes("sore") || 
+        lowercaseIssue.includes("strain") ||
+        lowercaseIssue.includes("sprain") ||
+        
+        // Physical condition related
+        lowercaseIssue.includes("fatigue") ||
+        lowercaseIssue.includes("physical") ||
+        lowercaseIssue.includes("muscle") ||
+        lowercaseIssue.includes("reported")
       );
-    })
-  ).length || 0;
+    });
+  }).length || 0;
   
   // Calculate team training load (weekly total)
   const weeklyTrainingLoad = trainingLoad 
