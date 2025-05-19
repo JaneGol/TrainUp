@@ -279,8 +279,8 @@ export default function LoadInsights() {
                 </ResponsiveContainer>
               </div>
               
-              {/* Legend for risk zones - styled to match Training Load legend */}
-              <div className="mt-4 flex flex-wrap gap-4 py-1">
+              {/* Legend for risk zones - centered and styled to match Training Load legend */}
+              <div className="mt-4 flex flex-wrap justify-center gap-6 py-1">
                 <div className="flex items-center">
                   <div className="w-3 h-3 rounded-full bg-blue-400 mr-2"></div>
                   <span className="text-xs text-white">Undertraining Zone (&lt;0.8)</span>
