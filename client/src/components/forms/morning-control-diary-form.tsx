@@ -39,7 +39,7 @@ import {
 
 // Define Zod schema for the form
 const morningDiarySchema = insertMorningDiarySchema.extend({
-  sleepHours: z.string(),
+  sleepHours: z.string().transform(val => Math.round(parseFloat(val)).toString()),
   sleepQuality: z.enum(["poor", "average", "good"]),
   motivationEnergy: z.number().min(0).max(4), // Change to 0-4 scale
   recoveryLevel: z.number().min(0).max(4), // Change to 0-4 scale
