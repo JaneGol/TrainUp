@@ -339,15 +339,15 @@ export default function AthleteIconGrid() {
             <div className="flex gap-5 text-sm">
               <span className="flex items-center">
                 <span className="inline-block w-3 h-3 bg-[#CBFF00] rounded-full mr-2"></span>
-                <span className="text-[#CBFF00] font-medium">{riskCounts.low}</span> <span className="text-zinc-400">Low Risk</span>
+                <span className="text-[#CBFF00] font-medium">{riskCounts.low}</span><span className="text-zinc-400 ml-1">Low Risk</span>
               </span>
               <span className="flex items-center">
                 <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                <span className="text-blue-500 font-medium">{riskCounts.moderate}</span> <span className="text-zinc-400">Moderate</span>
+                <span className="text-blue-500 font-medium">{riskCounts.moderate}</span><span className="text-zinc-400 ml-1">Moderate</span>
               </span>
               <span className="flex items-center">
                 <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-2"></span>
-                <span className="text-red-500 font-medium">{riskCounts.high}</span> <span className="text-zinc-400">High Risk</span>
+                <span className="text-red-500 font-medium">{riskCounts.high}</span><span className="text-zinc-400 ml-1">High Risk</span>
               </span>
             </div>
           </div>
