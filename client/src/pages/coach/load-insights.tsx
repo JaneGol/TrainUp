@@ -159,9 +159,9 @@ export default function LoadInsights() {
           </div>
         </div>
         
-        {/* Training Load Chart - Full width */}
-        <div className="bg-zinc-900 rounded-lg p-6 mb-6">
-          <h3 className="text-xl font-semibold mb-4">Training Load</h3>
+        {/* Training Load Chart - More compact */}
+        <div className="bg-zinc-900 rounded-lg p-4 mb-4">
+          <h3 className="text-xl font-semibold mb-3">Training Load</h3>
           {loadLoading ? (
             <p className="py-10 text-center">Loading training load data...</p>
           ) : filteredTrainingLoad.length === 0 ? (
@@ -169,11 +169,11 @@ export default function LoadInsights() {
           ) : (
             <div>
               {/* Height reduced from h-80 to h-64 for more compact display */}
-              <div className="h-64">
+              <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={filteredTrainingLoad}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                    margin={{ top: 0, right: 20, left: 10, bottom: 25 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                     <XAxis 
@@ -229,19 +229,19 @@ export default function LoadInsights() {
         </div>
         
         {/* ACWR Chart - Compact version below training load chart */}
-        <div className="bg-zinc-900 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4 text-center">ACWR - Acute: Chronic Workload Ratio</h3>
+        <div className="bg-zinc-900 rounded-lg p-4">
+          <h3 className="text-lg font-semibold mb-3 text-center">ACWR - Acute: Chronic Workload Ratio</h3>
           {acwrLoading ? (
             <p className="py-10 text-center">Loading ACWR data...</p>
           ) : filteredAcwr.length === 0 ? (
             <p className="py-10 text-center">No ACWR data available for the selected filters.</p>
           ) : (
             <div>
-              <div className="h-64 mx-auto" style={{ maxWidth: "95%", margin: "0 auto" }}>
+              <div className="h-56 mx-auto" style={{ maxWidth: "95%", margin: "0 auto" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={filteredAcwr}
-                    margin={{ top: 5, right: 10, left: 0, bottom: 25 }}
+                    margin={{ top: 0, right: 10, left: 0, bottom: 25 }}
                   >
                     {/* Colored background zones for risk levels */}
                     <defs>
