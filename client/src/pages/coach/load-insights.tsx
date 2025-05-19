@@ -167,61 +167,62 @@ export default function LoadInsights() {
           ) : filteredTrainingLoad.length === 0 ? (
             <p className="py-10 text-center">No training load data available for the selected filters.</p>
           ) : (
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={filteredTrainingLoad}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                  <XAxis 
-                    dataKey="date" 
-                    tick={{ fontSize: 12, fill: '#9ca3af' }}
-                    tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                    axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-                    tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12, fill: '#9ca3af' }}
-                    axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-                    tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-                  />
-                  <Tooltip content={<CustomBarTooltip />} />
-                  <Bar 
-                    dataKey="fieldTraining" 
-                    name="Field Training" 
-                    stackId="a" 
-                    fill="#4ade80" // Green
-                  />
-                  <Bar 
-                    dataKey="gymTraining" 
-                    name="Gym Training" 
-                    stackId="a" 
-                    fill="#60a5fa" // Blue
-                  />
-                  <Bar 
-                    dataKey="matchGame" 
-                    name="Match/Game" 
-                    stackId="a" 
-                    fill="#f87171" // Red
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-              
-              {/* Legend for training types - compact one-line version */}
-              <div className="mt-4 flex flex-wrap justify-center gap-4 py-1 border-t border-zinc-800 pt-3">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-[#A3E635] mr-1"></div>
-                  <span className="text-zinc-400 text-xs">Field</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-[#60A5FA] mr-1"></div>
-                  <span className="text-zinc-400 text-xs">Gym</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-[#f87171] mr-1"></div>
-                  <span className="text-zinc-400 text-xs">Match/Game</span>
-                </div>
+            <div>
+              {/* Height reduced from h-80 to h-64 for more compact display */}
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={filteredTrainingLoad}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                    <XAxis 
+                      dataKey="date" 
+                      tick={{ fontSize: 12, fill: '#9ca3af' }}
+                      tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                      tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12, fill: '#9ca3af' }}
+                      axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                      tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                    />
+                    <Tooltip content={<CustomBarTooltip />} />
+                    <Legend 
+                      verticalAlign="bottom"
+                      height={36}
+                      iconType="circle"
+                      iconSize={8}
+                      formatter={(value: string) => {
+                        const displayNames: Record<string, string> = {
+                          "Field Training": "Field",
+                          "Gym Training": "Gym",
+                          "Match/Game": "Match/Game"
+                        };
+                        return <span style={{ color: "#9ca3af", fontSize: "12px" }}>{displayNames[value] || value}</span>;
+                      }}
+                    />
+                    <Bar 
+                      dataKey="fieldTraining" 
+                      name="Field Training" 
+                      stackId="a" 
+                      fill="#A3E635" // Bright green to match screenshot
+                    />
+                    <Bar 
+                      dataKey="gymTraining" 
+                      name="Gym Training" 
+                      stackId="a" 
+                      fill="#60A5FA" // Blue
+                    />
+                    <Bar 
+                      dataKey="matchGame" 
+                      name="Match/Game" 
+                      stackId="a" 
+                      fill="#f87171" // Red
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
           )}
@@ -240,7 +241,7 @@ export default function LoadInsights() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={filteredAcwr}
-                    margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+                    margin={{ top: 5, right: 20, left: 20, bottom: 25 }}
                   >
                     {/* Colored background zones for risk levels */}
                     <defs>
@@ -296,24 +297,22 @@ export default function LoadInsights() {
                       strokeWidth={2}
                       dot={{ r: 3 }}
                     />
+                    
+                    {/* Integrated legend in the chart */}
+                    <Legend 
+                      verticalAlign="bottom"
+                      height={36}
+                      iconType="circle"
+                      iconSize={8}
+                      payload={[
+                        { value: 'Undertraining (<0.8)', color: '#3b82f6', type: 'circle' },
+                        { value: 'Optimal (0.8-1.3)', color: '#4ade80', type: 'circle' },
+                        { value: 'Injury Risk (>1.3)', color: '#ef4444', type: 'circle' }
+                      ]}
+                      formatter={(value) => <span style={{ color: "#9ca3af", fontSize: "12px" }}>{value}</span>}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
-              </div>
-              
-              {/* Legend for risk zones - styled to match Team Members Status legend but in one line */}
-              <div className="mt-4 flex flex-wrap justify-center gap-4 py-1 border-t border-zinc-800 pt-3">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-blue-400 mr-1"></div>
-                  <span className="text-zinc-400 text-xs">Undertraining (&lt;0.8)</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-lime-400 mr-1"></div>
-                  <span className="text-zinc-400 text-xs">Optimal (0.8-1.3)</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-red-400 mr-1"></div>
-                  <span className="text-zinc-400 text-xs">Injury Risk (&gt;1.3)</span>
-                </div>
               </div>
             </div>
           )}
