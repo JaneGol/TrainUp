@@ -300,19 +300,19 @@ export default function LoadInsights() {
                 </ResponsiveContainer>
               </div>
               
-              {/* Legend for risk zones - styled to match Team Members Status legend */}
-              <div className="mt-6 flex flex-wrap justify-center gap-8 py-1 border-t border-zinc-800 pt-4">
+              {/* Legend for risk zones - styled to match Team Members Status legend but in one line */}
+              <div className="mt-4 flex flex-wrap justify-center gap-4 py-1 border-t border-zinc-800 pt-3">
                 <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-blue-400 mr-2"></div>
-                  <span className="text-zinc-400 font-medium">Undertraining Zone (&lt;0.8)</span>
+                  <div className="w-2 h-2 rounded-full bg-blue-400 mr-1"></div>
+                  <span className="text-zinc-400 text-xs">Undertraining (&lt;0.8)</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-lime-400 mr-2"></div>
-                  <span className="text-zinc-400 font-medium">Optimal Zone (0.8-1.3)</span>
+                  <div className="w-2 h-2 rounded-full bg-lime-400 mr-1"></div>
+                  <span className="text-zinc-400 text-xs">Optimal (0.8-1.3)</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-red-400 mr-2"></div>
-                  <span className="text-zinc-400 font-medium">Injury Risk Zone (&gt;1.3)</span>
+                  <div className="w-2 h-2 rounded-full bg-red-400 mr-1"></div>
+                  <span className="text-zinc-400 text-xs">Injury Risk (&gt;1.3)</span>
                 </div>
               </div>
             </div>
