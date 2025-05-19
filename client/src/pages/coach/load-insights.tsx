@@ -206,6 +206,22 @@ export default function LoadInsights() {
                   />
                 </BarChart>
               </ResponsiveContainer>
+              
+              {/* Legend for training types, styling to match Team Members Status legend */}
+              <div className="mt-6 flex flex-wrap justify-center gap-8 py-1 border-t border-zinc-800 pt-4">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-full bg-[#A3E635] mr-2"></div>
+                  <span className="text-zinc-400 font-medium">Field Training</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-full bg-[#60A5FA] mr-2"></div>
+                  <span className="text-zinc-400 font-medium">Gym Training</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-full bg-[#f87171] mr-2"></div>
+                  <span className="text-zinc-400 font-medium">Match/Game</span>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -279,19 +295,19 @@ export default function LoadInsights() {
                 </ResponsiveContainer>
               </div>
               
-              {/* Legend for risk zones - centered and styled to match Training Load legend */}
-              <div className="mt-4 flex flex-wrap justify-center gap-6 py-1">
+              {/* Legend for risk zones - styled to match Team Members Status legend */}
+              <div className="mt-6 flex flex-wrap justify-center gap-8 py-1 border-t border-zinc-800 pt-4">
                 <div className="flex items-center">
                   <div className="w-3 h-3 rounded-full bg-blue-400 mr-2"></div>
-                  <span className="text-xs text-white">Undertraining Zone (&lt;0.8)</span>
+                  <span className="text-zinc-400 font-medium">Undertraining Zone (&lt;0.8)</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-3 h-3 rounded-full bg-lime-400 mr-2"></div>
-                  <span className="text-xs text-white">Optimal Zone (0.8-1.3)</span>
+                  <span className="text-zinc-400 font-medium">Optimal Zone (0.8-1.3)</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-3 h-3 rounded-full bg-red-400 mr-2"></div>
-                  <span className="text-xs text-white">Injury Risk Zone (&gt;1.3)</span>
+                  <span className="text-zinc-400 font-medium">Injury Risk Zone (&gt;1.3)</span>
                 </div>
               </div>
             </div>
