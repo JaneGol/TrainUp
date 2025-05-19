@@ -159,115 +159,143 @@ export default function LoadInsights() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Training Load Chart - Updated to stacked bar chart */}
-          <div className="bg-zinc-900 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4">Training Load</h3>
-            {loadLoading ? (
-              <p className="py-10 text-center">Loading training load data...</p>
-            ) : filteredTrainingLoad.length === 0 ? (
-              <p className="py-10 text-center">No training load data available for the selected filters.</p>
-            ) : (
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={filteredTrainingLoad}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                    <XAxis 
-                      dataKey="date" 
-                      tick={{ fill: '#999' }}
-                      tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                    />
-                    <YAxis tick={{ fill: '#999' }} />
-                    <Tooltip content={<CustomBarTooltip />} />
-                    <Legend 
-                      formatter={(value) => <span className="text-xs">{value}</span>}
-                      iconSize={8}
-                      wrapperStyle={{ paddingTop: 8 }}
-                    />
-                    <Bar 
-                      dataKey="fieldTraining" 
-                      name="Field Training" 
-                      stackId="a" 
-                      fill="#4ade80" // Green
-                    />
-                    <Bar 
-                      dataKey="gymTraining" 
-                      name="Gym Training" 
-                      stackId="a" 
-                      fill="#60a5fa" // Blue
-                    />
-                    <Bar 
-                      dataKey="matchGame" 
-                      name="Match/Game" 
-                      stackId="a" 
-                      fill="#f87171" // Red
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </div>
-          
-          {/* ACWR Chart - Updated with risk zones */}
-          <div className="bg-zinc-900 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4">Acute:Chronic Workload Ratio</h3>
-            {acwrLoading ? (
-              <p className="py-10 text-center">Loading ACWR data...</p>
-            ) : filteredAcwr.length === 0 ? (
-              <p className="py-10 text-center">No ACWR data available for the selected filters.</p>
-            ) : (
-              <div className="h-80">
+        {/* Training Load Chart - Full width */}
+        <div className="bg-zinc-900 rounded-lg p-6 mb-6">
+          <h3 className="text-xl font-semibold mb-4">Training Load</h3>
+          {loadLoading ? (
+            <p className="py-10 text-center">Loading training load data...</p>
+          ) : filteredTrainingLoad.length === 0 ? (
+            <p className="py-10 text-center">No training load data available for the selected filters.</p>
+          ) : (
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={filteredTrainingLoad}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={{ fill: '#999' }}
+                    tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  />
+                  <YAxis tick={{ fill: '#999' }} />
+                  <Tooltip content={<CustomBarTooltip />} />
+                  <Legend 
+                    formatter={(value) => <span className="text-xs">{value}</span>}
+                    iconSize={8}
+                    wrapperStyle={{ paddingTop: 8 }}
+                  />
+                  <Bar 
+                    dataKey="fieldTraining" 
+                    name="Field Training" 
+                    stackId="a" 
+                    fill="#4ade80" // Green
+                  />
+                  <Bar 
+                    dataKey="gymTraining" 
+                    name="Gym Training" 
+                    stackId="a" 
+                    fill="#60a5fa" // Blue
+                  />
+                  <Bar 
+                    dataKey="matchGame" 
+                    name="Match/Game" 
+                    stackId="a" 
+                    fill="#f87171" // Red
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+        
+        {/* ACWR Chart - Compact version below training load chart */}
+        <div className="bg-zinc-900 rounded-lg p-6">
+          <h3 className="text-xl font-semibold mb-4">Acute:Chronic Workload Ratio</h3>
+          {acwrLoading ? (
+            <p className="py-10 text-center">Loading ACWR data...</p>
+          ) : filteredAcwr.length === 0 ? (
+            <p className="py-10 text-center">No ACWR data available for the selected filters.</p>
+          ) : (
+            <div>
+              <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={filteredAcwr}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
+                    {/* Colored background zones for risk levels */}
+                    <defs>
+                      <linearGradient id="undertrainingZone" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="optimalZone" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#4ade80" stopOpacity={0.1}/>
+                        <stop offset="100%" stopColor="#4ade80" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="injuryRiskZone" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#ef4444" stopOpacity={0.1}/>
+                        <stop offset="100%" stopColor="#ef4444" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    
+                    {/* Risk zone areas */}
                     <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                    
+                    {/* Colored background for risk zones */}
+                    <rect x="0%" y="0%" width="100%" height="40%" fill="url(#injuryRiskZone)" />
+                    <rect x="0%" y="40%" width="100%" height="40%" fill="url(#optimalZone)" />
+                    <rect x="0%" y="80%" width="100%" height="20%" fill="url(#undertrainingZone)" />
+                    
                     <XAxis 
                       dataKey="date" 
                       tick={{ fill: '#999' }}
                       tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     />
-                    <YAxis tick={{ fill: '#999' }} domain={[0, 2]} />
-                    <Tooltip content={<CustomACWRTooltip />} />
-                    <Legend 
-                      formatter={(value) => <span className="text-xs">{value}</span>}
-                      iconSize={8}
-                      wrapperStyle={{ paddingTop: 8 }}
+                    <YAxis 
+                      tick={{ fill: '#999' }} 
+                      domain={[0, 2]} 
+                      ticks={[0, 0.8, 1.3, 2]} 
                     />
+                    <Tooltip content={<CustomACWRTooltip />} />
                     
-                    {/* Risk zone areas */}
+                    {/* Reference lines for thresholds */}
                     <ReferenceLine y={0.8} stroke="#3b82f6" strokeDasharray="3 3" />
                     <ReferenceLine y={1.3} stroke="#ef4444" strokeDasharray="3 3" />
                     
-                    {/* Data lines - Colors match the design */}
-                    <Line type="monotone" dataKey="acute" name="Acute Load (7 days)" stroke="#10b981" />
-                    <Line type="monotone" dataKey="chronic" name="Chronic Load (28 days)" stroke="#3b82f6" />
-                    <Line type="monotone" dataKey="ratio" name="ACWR" stroke="#cbff00" activeDot={{ r: 8 }} strokeWidth={2} />
+                    {/* ACWR line only - removed acute and chronic for simplicity */}
+                    <Line 
+                      type="monotone" 
+                      dataKey="ratio" 
+                      name="ACWR" 
+                      stroke="#cbff00" 
+                      activeDot={{ r: 6 }} 
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
-                
-                {/* Legend for risk zones */}
-                <div className="mt-4 flex flex-wrap gap-4">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 rounded-full bg-blue-400 mr-1"></div>
-                    <span className="text-xs text-zinc-300">Undertraining Zone (&lt;0.8)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 rounded-full bg-lime-400 mr-1"></div>
-                    <span className="text-xs text-zinc-300">Optimal Zone (0.8-1.3)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 rounded-full bg-red-400 mr-1"></div>
-                    <span className="text-xs text-zinc-300">Injury Risk Zone (&gt;1.3)</span>
-                  </div>
+              </div>
+              
+              {/* Legend for risk zones */}
+              <div className="mt-4 flex flex-wrap justify-between gap-4">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 rounded-full bg-blue-400 mr-1"></div>
+                  <span className="text-xs text-zinc-300">Undertraining Zone (&lt;0.8)</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 rounded-full bg-lime-400 mr-1"></div>
+                  <span className="text-xs text-zinc-300">Optimal Zone (0.8-1.3)</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 rounded-full bg-red-400 mr-1"></div>
+                  <span className="text-xs text-zinc-300">Injury Risk Zone (&gt;1.3)</span>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
         
         {/* ACWR Table - Updated to include risk zones */}
