@@ -237,11 +237,11 @@ export default function LoadInsights() {
             <p className="py-10 text-center">No ACWR data available for the selected filters.</p>
           ) : (
             <div>
-              <div className="h-64 mx-auto" style={{ maxWidth: "90%" }}>
+              <div className="h-64 mx-auto" style={{ maxWidth: "95%", margin: "0 auto" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={filteredAcwr}
-                    margin={{ top: 5, right: 20, left: 20, bottom: 25 }}
+                    margin={{ top: 5, right: 10, left: 0, bottom: 25 }}
                   >
                     {/* Colored background zones for risk levels */}
                     <defs>
@@ -301,9 +301,12 @@ export default function LoadInsights() {
                     {/* Integrated legend in the chart */}
                     <Legend 
                       verticalAlign="bottom"
-                      height={36}
+                      align="center"
+                      layout="horizontal"
+                      height={30}
                       iconType="circle"
                       iconSize={8}
+                      wrapperStyle={{ padding: "15px 0 5px 0" }}
                       payload={[
                         { value: 'Undertraining (<0.8)', color: '#3b82f6', type: 'circle' },
                         { value: 'Optimal (0.8-1.3)', color: '#4ade80', type: 'circle' },
