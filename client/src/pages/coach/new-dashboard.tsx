@@ -131,20 +131,29 @@ export default function NewCoachDashboard() {
   // Calculate number of athletes at risk
   const athletesAtRisk = athleteReadiness?.filter((a: any) => a.riskScore > 7).length || 0;
   
-  // Calculate sick or injured athletes
+  // Calculate sick or injured athletes - enhanced to catch more symptoms
   const sickOrInjuredAthletes = athleteReadiness?.filter((a: any) => 
-    Array.isArray(a.issues) && a.issues.some((issue: string) => 
-      issue.includes("sick") || 
-      issue.includes("injury") || 
-      issue.includes("ill") ||
-      issue.includes("pain") ||
-      issue.includes("fever") || 
-      issue.includes("temperature") || 
-      issue.includes("flu") ||
-      issue.includes("cold") ||
-      issue.includes("sore throat") ||
-      issue.includes("runny nose")
-    )
+    Array.isArray(a.issues) && a.issues.some((issue: string) => {
+      const lowercaseIssue = issue.toLowerCase();
+      return (
+        lowercaseIssue.includes("sick") || 
+        lowercaseIssue.includes("injury") || 
+        lowercaseIssue.includes("ill") ||
+        lowercaseIssue.includes("pain") ||
+        lowercaseIssue.includes("fever") || 
+        lowercaseIssue.includes("temperature") || 
+        lowercaseIssue.includes("flu") ||
+        lowercaseIssue.includes("cold") ||
+        lowercaseIssue.includes("sore throat") ||
+        lowercaseIssue.includes("runny nose") ||
+        lowercaseIssue.includes("headache") ||
+        lowercaseIssue.includes("cough") ||
+        lowercaseIssue.includes("symptom") ||
+        lowercaseIssue.includes("congestion") ||
+        lowercaseIssue.includes("muscle soreness") ||
+        lowercaseIssue.includes("fatigue")
+      );
+    })
   ).length || 0;
   
   // Calculate team training load (weekly total)
