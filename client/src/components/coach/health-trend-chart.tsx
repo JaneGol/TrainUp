@@ -114,28 +114,13 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
       });
     }
   }, [wellnessTrends]);
-  
-  // Helper function to format date in a more compact format (DD.MM)
-  const formatDateShort = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    return `${day}.${month}`;
-  };
-
-  // Define colors for each category with specific requirements
-  const categoryColors = {
-    'Readiness': '#3b82f6', // consistent blue tone matching app's palette
-    'Recovery': 'rgb(200, 255, 1)', // specified yellow color with RGB value (200, 255, 1)
-    'Energy': 'rgb(239, 68, 68)', // bright red color (rgb(239,68,68)) for Energy (average of Motivation and Mood)
-  };
 
   return (
     <Card className="bg-zinc-900 border-zinc-800 text-white">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">{title || "7-Day Team Wellness Trends"}</CardTitle>
         <p className="text-xs text-zinc-400">
-          {description || "Tracking team Recovery, Readiness, and Energy metrics over the past week"}
+          {description || "Average metrics from athlete daily self-assessments"}
         </p>
       </CardHeader>
       <CardContent>
@@ -196,8 +181,6 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
                 }}
                 formatter={(value, name) => [`${value}%`, name]}
               />
-              {/* We'll use a custom legend to match Team Members Status exactly */}
-              
               
               {/* Only display the 3 specified metrics: Recovery, Readiness, and Energy */}
               {['Recovery', 'Readiness', 'Energy'].map((category) => {
@@ -229,6 +212,24 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
           </div>
         )}
       </CardContent>
+      {chartData && chartData.length > 0 && (
+        <CardFooter className="pt-0">
+          <div className="w-full mt-1 flex flex-wrap justify-center gap-8 py-1 border-t border-zinc-800 pt-4">
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full bg-[rgb(200,255,1)] mr-2"></div>
+              <span className="text-zinc-400 font-medium">Recovery</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full bg-[rgb(59,130,246)] mr-2"></div>
+              <span className="text-zinc-400 font-medium">Readiness</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full bg-[rgb(239,68,68)] mr-2"></div>
+              <span className="text-zinc-400 font-medium">Energy</span>
+            </div>
+          </div>
+        </CardFooter>
+      )}
     </Card>
   );
 }
