@@ -235,7 +235,7 @@ export default function LoadInsights() {
                     <ReferenceLine y={0.8} stroke="#3b82f6" strokeDasharray="3 3" />
                     <ReferenceLine y={1.3} stroke="#ef4444" strokeDasharray="3 3" />
                     
-                    {/* Data lines */}
+                    {/* Data lines - Fixed captions to match design */}
                     <Line type="monotone" dataKey="acute" name="Acute Load (7 days)" stroke="#10b981" />
                     <Line type="monotone" dataKey="chronic" name="Chronic Load (28 days)" stroke="#3b82f6" />
                     <Line type="monotone" dataKey="ratio" name="ACWR" stroke="#cbff00" activeDot={{ r: 8 }} strokeWidth={2} />
