@@ -229,13 +229,21 @@ export default function LoadInsights() {
                     />
                     <YAxis tick={{ fill: '#999' }} domain={[0, 2]} />
                     <Tooltip content={<CustomACWRTooltip />} />
-                    <Legend />
+                    <Legend 
+                      formatter={(value) => {
+                        // Format legend items to match design
+                        if (value === "Acute Load (7 days)") return "Acute Load (7 days)";
+                        if (value === "Chronic Load (28 days)") return "Chronic Load (28 days)";
+                        if (value === "ACWR") return "ACWR";
+                        return value;
+                      }}
+                    />
                     
                     {/* Risk zone areas */}
                     <ReferenceLine y={0.8} stroke="#3b82f6" strokeDasharray="3 3" />
                     <ReferenceLine y={1.3} stroke="#ef4444" strokeDasharray="3 3" />
                     
-                    {/* Data lines - Fixed captions to match design */}
+                    {/* Data lines - Colors match the design */}
                     <Line type="monotone" dataKey="acute" name="Acute Load (7 days)" stroke="#10b981" />
                     <Line type="monotone" dataKey="chronic" name="Chronic Load (28 days)" stroke="#3b82f6" />
                     <Line type="monotone" dataKey="ratio" name="ACWR" stroke="#cbff00" activeDot={{ r: 8 }} strokeWidth={2} />
