@@ -208,19 +208,19 @@ export default function LoadInsights() {
                 </BarChart>
               </ResponsiveContainer>
               
-              {/* Legend for training types, styling to match Team Members Status legend */}
-              <div className="mt-6 flex flex-wrap justify-center gap-8 py-1 border-t border-zinc-800 pt-4">
+              {/* Legend for training types - compact one-line version */}
+              <div className="mt-4 flex flex-wrap justify-center gap-4 py-1 border-t border-zinc-800 pt-3">
                 <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-[#A3E635] mr-2"></div>
-                  <span className="text-zinc-400 font-medium">Field Training</span>
+                  <div className="w-2 h-2 rounded-full bg-[#A3E635] mr-1"></div>
+                  <span className="text-zinc-400 text-xs">Field</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-[#60A5FA] mr-2"></div>
-                  <span className="text-zinc-400 font-medium">Gym Training</span>
+                  <div className="w-2 h-2 rounded-full bg-[#60A5FA] mr-1"></div>
+                  <span className="text-zinc-400 text-xs">Gym</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-[#f87171] mr-2"></div>
-                  <span className="text-zinc-400 font-medium">Match/Game</span>
+                  <div className="w-2 h-2 rounded-full bg-[#f87171] mr-1"></div>
+                  <span className="text-zinc-400 text-xs">Match/Game</span>
                 </div>
               </div>
             </div>
