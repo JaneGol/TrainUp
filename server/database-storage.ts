@@ -14,9 +14,8 @@ import { eq, desc } from "drizzle-orm";
 import { IStorage } from "./storage";
 
 // Helper function to generate default training load
-export function generateDefaultTrainingLoad(): { date: string; load: number; trainingType: string }[] {
-  const result: { date: string; load: number; trainingType: string }[] = [];
-  const trainingTypes = ['Strength', 'Endurance', 'Speed', 'Technical', 'Recovery'];
+export function generateDefaultTrainingLoad(): { date: string; load: number; trainingType: string; fieldTraining?: number; gymTraining?: number; matchGame?: number }[] {
+  const result: { date: string; load: number; trainingType: string; fieldTraining?: number; gymTraining?: number; matchGame?: number }[] = [];
   
   // Generate 30 days of training data
   for (let i = 29; i >= 0; i--) {
@@ -27,20 +26,21 @@ export function generateDefaultTrainingLoad(): { date: string; load: number; tra
     date.setDate(date.getDate() - i);
     const dateString = date.toISOString().split('T')[0];
     
-    // Rotate through training types
-    const trainingTypeIndex = (i % trainingTypes.length);
-    const trainingType = trainingTypes[trainingTypeIndex];
+    // Create different load values for each training type
+    const fieldLoad = (i % 3 === 0) ? 350 + Math.floor(Math.random() * 50) : 0;
+    const gymLoad = (i % 3 === 1) ? 280 + Math.floor(Math.random() * 40) : 0;
+    const matchLoad = (i % 3 === 2) ? 420 + Math.floor(Math.random() * 60) : 0;
     
-    // Create a training pattern with varying loads
-    // Higher loads every 3rd training session
-    const baseLoad = (i % 6 === 0) ? 450 : (i % 3 === 0) ? 360 : 300;
-    // Add some random variation
-    const variation = Math.floor(Math.random() * 60) - 30; // -30 to +30
+    // Total load is sum of all training types
+    const totalLoad = fieldLoad + gymLoad + matchLoad;
     
     result.push({
       date: dateString,
-      load: baseLoad + variation,
-      trainingType
+      load: totalLoad,
+      trainingType: 'Total',
+      fieldTraining: fieldLoad,
+      gymTraining: gymLoad,
+      matchGame: matchLoad
     });
   }
   
@@ -48,8 +48,8 @@ export function generateDefaultTrainingLoad(): { date: string; load: number; tra
 }
 
 // Helper function to generate default ACWR data
-export function generateDefaultACWR(): { date: string; acute: number; chronic: number; ratio: number }[] {
-  const result: { date: string; acute: number; chronic: number; ratio: number }[] = [];
+export function generateDefaultACWR(): { date: string; acute: number; chronic: number; ratio: number; riskZone: string }[] {
+  const result: { date: string; acute: number; chronic: number; ratio: number; riskZone: string }[] = [];
   
   // Generate data for the last 14 days
   for (let i = 13; i >= 0; i--) {
@@ -74,11 +74,22 @@ export function generateDefaultACWR(): { date: string; acute: number; chronic: n
     const chronic = 300 + Math.floor(Math.random() * 100);
     const acute = Math.round(chronic * ratio);
     
+    // Determine risk zone based on ACWR value
+    let riskZone = "optimal";
+    if (ratio < 0.8) {
+      riskZone = "undertraining"; // Undertraining zone
+    } else if (ratio <= 1.3) {
+      riskZone = "optimal"; // Optimal load zone
+    } else {
+      riskZone = "injury_risk"; // Injury risk zone
+    }
+    
     result.push({
       date: dateString,
       acute,
       chronic,
-      ratio
+      ratio,
+      riskZone
     });
   }
   
@@ -820,8 +831,7 @@ export class DatabaseStorage implements IStorage {
           date: trainingEntries.date,
           effortLevel: trainingEntries.effortLevel,
           emotionalLoad: trainingEntries.emotionalLoad,
-          userId: trainingEntries.userId,
-          duration: trainingEntries.duration
+          userId: trainingEntries.userId
         })
         .from(trainingEntries)
         .where(eq(trainingEntries.userId, athleteId))
@@ -833,8 +843,7 @@ export class DatabaseStorage implements IStorage {
           date: trainingEntries.date,
           effortLevel: trainingEntries.effortLevel,
           emotionalLoad: trainingEntries.emotionalLoad,
-          userId: trainingEntries.userId,
-          duration: trainingEntries.duration
+          userId: trainingEntries.userId
         })
         .from(trainingEntries)
         .orderBy(trainingEntries.date);
@@ -844,8 +853,8 @@ export class DatabaseStorage implements IStorage {
     const result = entries.map(entry => {
       const dateString = entry.date.toISOString().split('T')[0];
       // Training load = RPE (1-10) * Duration (in minutes)
-      // Use default of 70 minutes if duration is not provided
-      const duration = entry.duration || 70; // Use 70 minutes as default if not specified
+      // Using 70 minutes as default duration as specified in requirements
+      const duration = 70; // Fixed default duration of 70 minutes
       const trainingLoad = entry.effortLevel * duration;
       
       return {
@@ -899,6 +908,7 @@ export class DatabaseStorage implements IStorage {
     // Get training entries for load calculation
     const trainingLoad = await this.getTrainingLoadByRPE(athleteId);
     
+    // Return default data if no real data is available
     if (trainingLoad.length === 0) {
       return generateDefaultACWR();
     }
@@ -964,6 +974,11 @@ export class DatabaseStorage implements IStorage {
       });
     }
     
-    return result.length > 0 ? result : generateDefaultACWR();
+    // If no result was calculated (not enough data), return default data
+    if (result.length === 0) {
+      return generateDefaultACWR();
+    }
+    
+    return result;
   }
 }
