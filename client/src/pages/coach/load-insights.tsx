@@ -182,7 +182,11 @@ export default function LoadInsights() {
                     />
                     <YAxis tick={{ fill: '#999' }} />
                     <Tooltip content={<CustomBarTooltip />} />
-                    <Legend />
+                    <Legend 
+                      formatter={(value) => <span className="text-xs">{value}</span>}
+                      iconSize={8}
+                      wrapperStyle={{ paddingTop: 8 }}
+                    />
                     <Bar 
                       dataKey="fieldTraining" 
                       name="Field Training" 
@@ -230,13 +234,9 @@ export default function LoadInsights() {
                     <YAxis tick={{ fill: '#999' }} domain={[0, 2]} />
                     <Tooltip content={<CustomACWRTooltip />} />
                     <Legend 
-                      formatter={(value) => {
-                        // Format legend items to match design
-                        if (value === "Acute Load (7 days)") return "Acute Load (7 days)";
-                        if (value === "Chronic Load (28 days)") return "Chronic Load (28 days)";
-                        if (value === "ACWR") return "ACWR";
-                        return value;
-                      }}
+                      formatter={(value) => <span className="text-xs">{value}</span>}
+                      iconSize={8}
+                      wrapperStyle={{ paddingTop: 8 }}
                     />
                     
                     {/* Risk zone areas */}
@@ -253,16 +253,16 @@ export default function LoadInsights() {
                 {/* Legend for risk zones */}
                 <div className="mt-4 flex flex-wrap gap-4">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-blue-400 mr-2"></div>
-                    <span className="text-sm text-zinc-300">Undertraining Zone (&lt;0.8)</span>
+                    <div className="w-2 h-2 rounded-full bg-blue-400 mr-1"></div>
+                    <span className="text-xs text-zinc-300">Undertraining Zone (&lt;0.8)</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-lime-400 mr-2"></div>
-                    <span className="text-sm text-zinc-300">Optimal Zone (0.8-1.3)</span>
+                    <div className="w-2 h-2 rounded-full bg-lime-400 mr-1"></div>
+                    <span className="text-xs text-zinc-300">Optimal Zone (0.8-1.3)</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-red-400 mr-2"></div>
-                    <span className="text-sm text-zinc-300">Injury Risk Zone (&gt;1.3)</span>
+                    <div className="w-2 h-2 rounded-full bg-red-400 mr-1"></div>
+                    <span className="text-xs text-zinc-300">Injury Risk Zone (&gt;1.3)</span>
                   </div>
                 </div>
               </div>
