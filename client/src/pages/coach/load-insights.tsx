@@ -176,16 +176,17 @@ export default function LoadInsights() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                   <XAxis 
                     dataKey="date" 
-                    tick={{ fill: '#999' }}
+                    tick={{ fontSize: 12, fill: '#9ca3af' }}
                     tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                    tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                   />
-                  <YAxis tick={{ fill: '#999' }} />
+                  <YAxis 
+                    tick={{ fontSize: 12, fill: '#9ca3af' }}
+                    axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                    tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                  />
                   <Tooltip content={<CustomBarTooltip />} />
-                  <Legend 
-                    formatter={(value) => <span className="text-xs">{value}</span>}
-                    iconSize={8}
-                    wrapperStyle={{ paddingTop: 8 }}
-                  />
                   <Bar 
                     dataKey="fieldTraining" 
                     name="Field Training" 
@@ -267,13 +268,17 @@ export default function LoadInsights() {
                     
                     <XAxis 
                       dataKey="date" 
-                      tick={{ fill: '#999' }}
+                      tick={{ fontSize: 12, fill: '#9ca3af' }}
                       tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                      tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                     />
                     <YAxis 
-                      tick={{ fill: '#999' }} 
+                      tick={{ fontSize: 12, fill: '#9ca3af' }} 
                       domain={[0, 2]} 
-                      ticks={[0, 0.8, 1.3, 2]} 
+                      ticks={[0, 0.8, 1.3, 2]}
+                      axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                      tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                     />
                     <Tooltip content={<CustomACWRTooltip />} />
                     
