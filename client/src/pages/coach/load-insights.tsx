@@ -229,18 +229,18 @@ export default function LoadInsights() {
         
         {/* ACWR Chart - Compact version below training load chart */}
         <div className="bg-zinc-900 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">ACWR - Acute: Chronic Workload Ratio</h3>
+          <h3 className="text-lg font-semibold mb-4 text-center">ACWR - Acute: Chronic Workload Ratio</h3>
           {acwrLoading ? (
             <p className="py-10 text-center">Loading ACWR data...</p>
           ) : filteredAcwr.length === 0 ? (
             <p className="py-10 text-center">No ACWR data available for the selected filters.</p>
           ) : (
             <div>
-              <div className="h-64">
+              <div className="h-64 mx-auto" style={{ maxWidth: "90%" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={filteredAcwr}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
                   >
                     {/* Colored background zones for risk levels */}
                     <defs>
