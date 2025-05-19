@@ -298,21 +298,21 @@ export default function LoadInsights() {
           )}
         </div>
         
-        {/* ACWR Table - Updated to include risk zones */}
-        <div className="bg-zinc-900 rounded-lg p-6 mt-6">
-          <h3 className="text-xl font-semibold mb-4">Current Acute:Chronic Workload Ratios</h3>
+        {/* ACWR Table - More compact version */}
+        <div className="bg-zinc-900 rounded-lg p-4 mt-4">
+          <h3 className="text-lg font-semibold mb-2">Current Acute:Chronic Workload Ratios</h3>
           {acwrLoading ? (
-            <p className="py-5 text-center">Loading data...</p>
+            <p className="py-2 text-center text-sm">Loading data...</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-zinc-700 text-left">
-                    <th className="py-3 px-4 text-zinc-400 font-medium">Athlete</th>
-                    <th className="py-3 px-4 text-zinc-400 font-medium">Acute Load (7 days)</th>
-                    <th className="py-3 px-4 text-zinc-400 font-medium">Chronic Load (28 days)</th>
-                    <th className="py-3 px-4 text-zinc-400 font-medium">ACWR</th>
-                    <th className="py-3 px-4 text-zinc-400 font-medium">Risk Zone</th>
+                    <th className="py-2 px-3 text-zinc-400 font-medium text-sm">Athlete</th>
+                    <th className="py-2 px-3 text-zinc-400 font-medium text-sm">Acute<br/>Load</th>
+                    <th className="py-2 px-3 text-zinc-400 font-medium text-sm">Chronic<br/>Load</th>
+                    <th className="py-2 px-3 text-zinc-400 font-medium text-sm">ACWR</th>
+                    <th className="py-2 px-3 text-zinc-400 font-medium text-sm">Risk Zone</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -329,7 +329,7 @@ export default function LoadInsights() {
                       
                       // Determine risk zone color
                       let riskColor = "text-lime-400"; // Default for optimal zone
-                      let riskZone = "Optimal Zone";
+                      let riskZone = "Optimal";
                       
                       if (item.ratio < 0.8) {
                         riskColor = "text-blue-400";
@@ -344,11 +344,11 @@ export default function LoadInsights() {
                       
                       return (
                         <tr key={index} className="border-b border-zinc-800">
-                          <td className="py-3 px-4">{athleteName}</td>
-                          <td className="py-3 px-4">{Math.round(item.acute)}</td>
-                          <td className="py-3 px-4">{Math.round(item.chronic)}</td>
-                          <td className="py-3 px-4">{item.ratio.toFixed(2)}</td>
-                          <td className={`py-3 px-4 ${riskColor}`}>
+                          <td className="py-2 px-3 text-sm">{athleteName}</td>
+                          <td className="py-2 px-3 text-sm">{Math.round(item.acute)}</td>
+                          <td className="py-2 px-3 text-sm">{Math.round(item.chronic)}</td>
+                          <td className="py-2 px-3 text-sm">{item.ratio.toFixed(2)}</td>
+                          <td className={`py-2 px-3 text-sm ${riskColor} font-medium`}>
                             {riskZone}
                           </td>
                         </tr>
