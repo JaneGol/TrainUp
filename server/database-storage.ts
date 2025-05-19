@@ -820,72 +820,64 @@ export class DatabaseStorage implements IStorage {
     return result.sort((a, b) => b.riskScore - a.riskScore);
   }
   
-  async getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string; effortLevel?: number; emotionalLoad?: number }[]> {
-    // Get training entries, optionally filtered by athlete
-    let entries;
+  async getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string; fieldTraining?: number; gymTraining?: number; matchGame?: number }[]> {
+    // Get all training entries from the database
+    const allEntries = await db
+      .select({
+        trainingType: trainingEntries.trainingType,
+        date: trainingEntries.date,
+        effortLevel: trainingEntries.effortLevel,
+        userId: trainingEntries.userId
+      })
+      .from(trainingEntries)
+      .orderBy(trainingEntries.date);
     
-    if (athleteId) {
-      entries = await db
-        .select({
-          trainingType: trainingEntries.trainingType,
-          date: trainingEntries.date,
-          effortLevel: trainingEntries.effortLevel,
-          emotionalLoad: trainingEntries.emotionalLoad,
-          userId: trainingEntries.userId
-        })
-        .from(trainingEntries)
-        .where(eq(trainingEntries.userId, athleteId))
-        .orderBy(trainingEntries.date);
-    } else {
-      entries = await db
-        .select({
-          trainingType: trainingEntries.trainingType,
-          date: trainingEntries.date,
-          effortLevel: trainingEntries.effortLevel,
-          emotionalLoad: trainingEntries.emotionalLoad,
-          userId: trainingEntries.userId
-        })
-        .from(trainingEntries)
-        .orderBy(trainingEntries.date);
-    }
+    // Group entries by date and training type
+    const entriesByDateAndType: Record<string, Record<string, any[]>> = {};
     
-    // Calculate load for each training session (RPE * duration)
-    const result = entries.map(entry => {
+    allEntries.forEach(entry => {
       const dateString = entry.date.toISOString().split('T')[0];
-      // Training load = RPE (1-10) * Duration (in minutes)
-      // Using 70 minutes as default duration as specified in requirements
-      const duration = 70; // Fixed default duration of 70 minutes
-      const trainingLoad = entry.effortLevel * duration;
       
-      return {
-        date: dateString,
-        load: trainingLoad,
-        trainingType: entry.trainingType,
-        effortLevel: entry.effortLevel,
-        emotionalLoad: entry.emotionalLoad
-      };
+      if (!entriesByDateAndType[dateString]) {
+        entriesByDateAndType[dateString] = {};
+      }
+      
+      if (!entriesByDateAndType[dateString][entry.trainingType]) {
+        entriesByDateAndType[dateString][entry.trainingType] = [];
+      }
+      
+      entriesByDateAndType[dateString][entry.trainingType].push(entry);
     });
     
-    // Group by date and training type
+    // Calculate load for each date and training type
     const loadByDateAndType: Record<string, Record<string, number>> = {};
     
-    result.forEach(entry => {
-      if (!loadByDateAndType[entry.date]) {
-        loadByDateAndType[entry.date] = {};
+    Object.entries(entriesByDateAndType).forEach(([dateString, trainingTypes]) => {
+      if (!loadByDateAndType[dateString]) {
+        loadByDateAndType[dateString] = {};
       }
       
-      if (!loadByDateAndType[entry.date][entry.trainingType]) {
-        loadByDateAndType[entry.date][entry.trainingType] = 0;
-      }
-      
-      loadByDateAndType[entry.date][entry.trainingType] += entry.load;
+      Object.entries(trainingTypes).forEach(([trainingType, entries]) => {
+        // Calculate average RPE for this training type on this date
+        const totalRPE = entries.reduce((sum, entry) => sum + entry.effortLevel, 0);
+        const averageRPE = totalRPE / entries.length;
+        
+        // Get duration (use default of 70 minutes if not provided)
+        // In a real implementation, this would come from coach's input
+        const duration = 70; // Default duration of 70 minutes
+        
+        // Calculate training load: Average RPE × Duration
+        const trainingLoad = Math.round(averageRPE * duration);
+        
+        loadByDateAndType[dateString][trainingType] = trainingLoad;
+      });
     });
     
     // Format the data for frontend consumption
     const formattedResult: { date: string; load: number; trainingType: string; fieldTraining?: number; gymTraining?: number; matchGame?: number }[] = [];
     
     Object.entries(loadByDateAndType).forEach(([date, typeLoads]) => {
-      // Create an entry with the total load for this date
+      // Calculate total load for this date (sum of all training types)
       const totalLoad = Object.values(typeLoads).reduce((sum, load) => sum + load, 0);
       
       formattedResult.push({
