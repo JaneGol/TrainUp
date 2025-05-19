@@ -229,7 +229,7 @@ export default function LoadInsights() {
         
         {/* ACWR Chart - Compact version below training load chart */}
         <div className="bg-zinc-900 rounded-lg p-6">
-          <h3 className="text-xl font-semibold mb-4">ACWR - Acute:Chronic Workload Ratio</h3>
+          <h3 className="text-lg font-semibold mb-4">ACWR - Acute: Chronic Workload Ratio</h3>
           {acwrLoading ? (
             <p className="py-10 text-center">Loading ACWR data...</p>
           ) : filteredAcwr.length === 0 ? (
