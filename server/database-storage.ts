@@ -820,7 +820,8 @@ export class DatabaseStorage implements IStorage {
           date: trainingEntries.date,
           effortLevel: trainingEntries.effortLevel,
           emotionalLoad: trainingEntries.emotionalLoad,
-          userId: trainingEntries.userId
+          userId: trainingEntries.userId,
+          duration: trainingEntries.duration
         })
         .from(trainingEntries)
         .where(eq(trainingEntries.userId, athleteId))
@@ -832,19 +833,20 @@ export class DatabaseStorage implements IStorage {
           date: trainingEntries.date,
           effortLevel: trainingEntries.effortLevel,
           emotionalLoad: trainingEntries.emotionalLoad,
-          userId: trainingEntries.userId
+          userId: trainingEntries.userId,
+          duration: trainingEntries.duration
         })
         .from(trainingEntries)
         .orderBy(trainingEntries.date);
     }
     
     // Calculate load for each training session (RPE * duration)
-    // As per request, we use 70 minutes as default duration for all entries
     const result = entries.map(entry => {
       const dateString = entry.date.toISOString().split('T')[0];
       // Training load = RPE (1-10) * Duration (in minutes)
-      // Using 70 minutes as standard duration as specified
-      const trainingLoad = entry.effortLevel * 70;
+      // Use default of 70 minutes if duration is not provided
+      const duration = entry.duration || 70; // Use 70 minutes as default if not specified
+      const trainingLoad = entry.effortLevel * duration;
       
       return {
         date: dateString,
@@ -855,13 +857,45 @@ export class DatabaseStorage implements IStorage {
       };
     });
     
-    // Sort by date
-    result.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    // Group by date and training type
+    const loadByDateAndType: Record<string, Record<string, number>> = {};
     
-    return result.length > 0 ? result : generateDefaultTrainingLoad();
+    result.forEach(entry => {
+      if (!loadByDateAndType[entry.date]) {
+        loadByDateAndType[entry.date] = {};
+      }
+      
+      if (!loadByDateAndType[entry.date][entry.trainingType]) {
+        loadByDateAndType[entry.date][entry.trainingType] = 0;
+      }
+      
+      loadByDateAndType[entry.date][entry.trainingType] += entry.load;
+    });
+    
+    // Format the data for frontend consumption
+    const formattedResult: { date: string; load: number; trainingType: string; fieldTraining?: number; gymTraining?: number; matchGame?: number }[] = [];
+    
+    Object.entries(loadByDateAndType).forEach(([date, typeLoads]) => {
+      // Create an entry with the total load for this date
+      const totalLoad = Object.values(typeLoads).reduce((sum, load) => sum + load, 0);
+      
+      formattedResult.push({
+        date,
+        load: totalLoad,
+        trainingType: 'Total',
+        fieldTraining: typeLoads['Field Training'] || 0,
+        gymTraining: typeLoads['Gym Training'] || 0,
+        matchGame: typeLoads['Match/Game'] || 0
+      });
+    });
+    
+    // Sort by date
+    formattedResult.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    return formattedResult.length > 0 ? formattedResult : generateDefaultTrainingLoad();
   }
   
-  async getAcuteChronicLoadRatio(athleteId?: number): Promise<{ date: string; acute: number; chronic: number; ratio: number }[]> {
+  async getAcuteChronicLoadRatio(athleteId?: number): Promise<{ date: string; acute: number; chronic: number; ratio: number; riskZone: string }[]> {
     // Get training entries for load calculation
     const trainingLoad = await this.getTrainingLoadByRPE(athleteId);
     
@@ -888,7 +922,7 @@ export class DatabaseStorage implements IStorage {
       return generateDefaultACWR();
     }
     
-    const result: { date: string; acute: number; chronic: number; ratio: number }[] = [];
+    const result: { date: string; acute: number; chronic: number; ratio: number; riskZone: string }[] = [];
     
     // Calculate for each day starting from day 28
     for (let i = 27; i < dates.length; i++) {
@@ -911,11 +945,22 @@ export class DatabaseStorage implements IStorage {
       // Calculate ACWR
       const ratio = chronicLoad === 0 ? 0 : parseFloat((acuteLoad / chronicLoad).toFixed(2));
       
+      // Determine risk zone based on ACWR value
+      let riskZone = "optimal";
+      if (ratio < 0.8) {
+        riskZone = "undertraining"; // Undertraining zone
+      } else if (ratio <= 1.3) {
+        riskZone = "optimal"; // Optimal load zone
+      } else {
+        riskZone = "injury_risk"; // Injury risk zone
+      }
+      
       result.push({
         date: currentDate,
         acute: Math.round(acuteLoad),
         chronic: Math.round(chronicLoad),
-        ratio: ratio
+        ratio: ratio,
+        riskZone: riskZone
       });
     }
     
