@@ -165,12 +165,12 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
               />
               <XAxis 
                 dataKey="formattedDate" 
-                tick={{ fontSize: 10, fill: '#9ca3af' }}
+                tick={{ fontSize: 12, fill: '#9ca3af' }}
                 axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                 tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
               />
               <YAxis 
-                tick={{ fontSize: 10, fill: '#9ca3af' }}
+                tick={{ fontSize: 12, fill: '#9ca3af' }}
                 domain={[0, 100]}
                 ticks={[0, 25, 50, 75, 100]}
                 axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
@@ -196,16 +196,8 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
                 }}
                 formatter={(value, name) => [`${value}%`, name]}
               />
-              <Legend 
-                verticalAlign="bottom" 
-                iconType="circle"
-                wrapperStyle={{
-                  paddingTop: '5px',
-                  fontSize: '10px',
-                  opacity: 0.7
-                }}
-                iconSize={8}
-              />
+              {/* We'll use a custom legend to match Team Members Status exactly */}
+              
               
               {/* Only display the 3 specified metrics: Recovery, Readiness, and Energy */}
               {['Recovery', 'Readiness', 'Energy'].map((category) => {
