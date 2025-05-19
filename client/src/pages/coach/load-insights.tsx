@@ -173,7 +173,7 @@ export default function LoadInsights() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={filteredTrainingLoad}
-                    margin={{ top: 0, right: 20, left: 10, bottom: 25 }}
+                    margin={{ top: 0, right: 20, left: 0, bottom: 20 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                     <XAxis 
@@ -196,7 +196,7 @@ export default function LoadInsights() {
                       height={25}
                       iconType="circle"
                       iconSize={8}
-                      wrapperStyle={{ padding: "5px 0 0 0" }}
+                      wrapperStyle={{ padding: "2px 0 0 0" }}
                       formatter={(value: string) => {
                         const displayNames: Record<string, string> = {
                           "Field Training": "Field",
