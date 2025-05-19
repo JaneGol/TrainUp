@@ -191,9 +191,12 @@ export default function LoadInsights() {
                     <Tooltip content={<CustomBarTooltip />} />
                     <Legend 
                       verticalAlign="bottom"
-                      height={36}
+                      align="center"
+                      layout="horizontal"
+                      height={25}
                       iconType="circle"
                       iconSize={8}
+                      wrapperStyle={{ padding: "5px 0 0 0" }}
                       formatter={(value: string) => {
                         const displayNames: Record<string, string> = {
                           "Field Training": "Field",
@@ -207,7 +210,7 @@ export default function LoadInsights() {
                       dataKey="fieldTraining" 
                       name="Field Training" 
                       stackId="a" 
-                      fill="#A3E635" // Bright green to match screenshot
+                      fill="#A3E635" // Bright green
                     />
                     <Bar 
                       dataKey="gymTraining" 
@@ -306,7 +309,7 @@ export default function LoadInsights() {
                       height={30}
                       iconType="circle"
                       iconSize={8}
-                      wrapperStyle={{ padding: "15px 0 5px 0" }}
+                      wrapperStyle={{ padding: "10px 0 0 0" }}
                       payload={[
                         { value: 'Undertraining (<0.8)', color: '#3b82f6', type: 'circle' },
                         { value: 'Optimal (0.8-1.3)', color: '#4ade80', type: 'circle' },
