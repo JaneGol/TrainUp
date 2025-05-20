@@ -898,7 +898,15 @@ export class DatabaseStorage implements IStorage {
     });
     
     // Format the data for frontend consumption
-    const formattedResult: { date: string; load: number; trainingType: string; fieldTraining?: number; gymTraining?: number; matchGame?: number }[] = [];
+    const formattedResult: { 
+      date: string; 
+      load: number; 
+      trainingType: string; 
+      fieldTraining?: number; 
+      gymTraining?: number; 
+      matchGame?: number;
+      athleteId?: number 
+    }[] = [];
     
     Object.entries(loadByDateAndType).forEach(([date, typeLoads]) => {
       // Calculate total load for this date (sum of all training types)
@@ -917,6 +925,17 @@ export class DatabaseStorage implements IStorage {
     // Sort by date
     formattedResult.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
+    // Add athleteId property to each item if it was provided (for correct filtering on client side)
+    if (athleteId !== undefined) {
+      formattedResult.forEach(item => {
+        item.athleteId = athleteId;
+      });
+      
+      // For individual athletes, return the actual data without defaults
+      return formattedResult;
+    }
+    
+    // Only use default data for team-level queries (when no athleteId is provided)
     return formattedResult.length > 0 ? formattedResult : generateDefaultTrainingLoad();
   }
   
@@ -950,10 +969,15 @@ export class DatabaseStorage implements IStorage {
     
     // Need at least 28 days of data for meaningful ACWR
     if (dates.length < 28) {
+      // For individual athletes, return empty array if not enough data
+      if (athleteId !== undefined) {
+        return [];
+      }
+      // For team view, use default data
       return generateDefaultACWR();
     }
     
-    const result: { date: string; acute: number; chronic: number; ratio: number; riskZone: string }[] = [];
+    const result: { date: string; acute: number; chronic: number; ratio: number; riskZone: string; athleteId?: number }[] = [];
     
     // Calculate for each day starting from day 28
     for (let i = 27; i < dates.length; i++) {
@@ -995,9 +1019,21 @@ export class DatabaseStorage implements IStorage {
       });
     }
     
-    // If no result was calculated (not enough data), return default data
+    // If no result was calculated (not enough data)
     if (result.length === 0) {
+      // For individual athletes, return empty array if no data is available
+      if (athleteId !== undefined) {
+        return [];
+      }
+      // Only use default data for team-level queries
       return generateDefaultACWR();
+    }
+    
+    // Add athleteId property to each result item if it was provided
+    if (athleteId !== undefined) {
+      result.forEach(item => {
+        item.athleteId = athleteId;
+      });
     }
     
     return result;

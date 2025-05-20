@@ -32,15 +32,39 @@ export default function LoadInsights() {
     refetchOnWindowFocus: false
   });
   
+  // Define interfaces for proper type checking
+  interface TrainingLoadItem {
+    date: string;
+    load: number;
+    trainingType: string;
+    fieldTraining?: number;
+    gymTraining?: number;
+    matchGame?: number;
+    athleteId?: number;
+  }
+  
+  interface AcwrItem {
+    date: string;
+    acute: number;
+    chronic: number;
+    ratio: number;
+    riskZone: string;
+    athleteId?: number;
+  }
+  
   // Filter data based on selected athlete and time range
-  const filteredTrainingLoad = trainingLoad ? trainingLoad.filter((item: any) => {
+  const filteredTrainingLoad = Array.isArray(trainingLoad) ? trainingLoad.filter((item: TrainingLoadItem) => {
+    // Only filter by date when we have data to filter
     const dateFiltered = new Date(item.date) >= new Date(Date.now() - parseInt(timeRange) * 24 * 60 * 60 * 1000);
-    return dateFiltered && (selectedAthlete === "all" || parseInt(selectedAthlete) === item.athleteId);
+    // Individual athlete or team-level data
+    return dateFiltered && (selectedAthlete === "all" || (item.athleteId !== undefined && parseInt(selectedAthlete) === item.athleteId));
   }) : [];
   
-  const filteredAcwr = acwrData ? acwrData.filter((item: any) => {
+  const filteredAcwr = Array.isArray(acwrData) ? acwrData.filter((item: AcwrItem) => {
+    // Only filter by date when we have data to filter
     const dateFiltered = new Date(item.date) >= new Date(Date.now() - parseInt(timeRange) * 24 * 60 * 60 * 1000);
-    return dateFiltered && (selectedAthlete === "all" || parseInt(selectedAthlete) === item.athleteId);
+    // Individual athlete or team-level data
+    return dateFiltered && (selectedAthlete === "all" || (item.athleteId !== undefined && parseInt(selectedAthlete) === item.athleteId));
   }) : [];
 
   // Custom tooltip for stacked bar chart
@@ -121,9 +145,9 @@ export default function LoadInsights() {
         </div>
         
         {/* Filter controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          <div>
-            <Label htmlFor="athlete-select">Athlete</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="mb-2">
+            <Label htmlFor="athlete-select" className="mb-2 block">Athlete</Label>
             <Select
               value={selectedAthlete}
               onValueChange={setSelectedAthlete}
@@ -142,8 +166,8 @@ export default function LoadInsights() {
             </Select>
           </div>
           
-          <div>
-            <Label htmlFor="time-select">Time Period</Label>
+          <div className="mb-2">
+            <Label htmlFor="time-select" className="mb-2 block">Time Period</Label>
             <Select
               value={timeRange}
               onValueChange={setTimeRange}
