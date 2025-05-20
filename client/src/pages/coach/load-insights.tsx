@@ -20,14 +20,14 @@ export default function LoadInsights() {
     queryKey: ["/api/athletes"],
   });
   
-  // Get training load data
+  // Get training load data with athlete ID when an athlete is selected
   const { data: trainingLoad, isLoading: loadLoading } = useQuery({
-    queryKey: ["/api/analytics/training-load"],
+    queryKey: ["/api/analytics/training-load", selectedAthlete !== "all" ? { athleteId: selectedAthlete } : undefined],
   });
   
-  // Get ACWR data
+  // Get ACWR data with athlete ID when an athlete is selected
   const { data: acwrData, isLoading: acwrLoading } = useQuery({
-    queryKey: ["/api/analytics/acwr"],
+    queryKey: ["/api/analytics/acwr", selectedAthlete !== "all" ? { athleteId: selectedAthlete } : undefined],
   });
   
   // Filter data based on selected athlete and time range
