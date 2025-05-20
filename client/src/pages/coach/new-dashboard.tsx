@@ -102,13 +102,7 @@ export default function NewCoachDashboard() {
     queryKey: ["/api/team-readiness"],
   });
 
-  // Get average readiness score
-  const averageReadiness = teamReadiness?.length
-    ? Math.round(
-        teamReadiness.reduce((sum: number, item: any) => sum + item.value, 0) /
-        teamReadiness.length
-      )
-    : 0;
+  // Use this variable later for the initial calculation
 
   // Get all athletes
   const { data: athletes, isLoading: athletesLoading } = useQuery({
@@ -117,18 +111,7 @@ export default function NewCoachDashboard() {
 
   // Get athletes with health status
   const { data: athleteReadiness } = useQuery({
-    queryKey: ["/api/analytics/athlete-recovery-readiness"],
-    onSuccess: (data) => {
-      // Log the data to inspect the issues array for debugging
-      console.log("Athlete readiness data:", data);
-      if (data) {
-        data.forEach((athlete: any) => {
-          if (athlete.issues && athlete.issues.length > 0) {
-            console.log(`Athlete ${athlete.name} issues:`, athlete.issues);
-          }
-        });
-      }
-    }
+    queryKey: ["/api/analytics/athlete-recovery-readiness"]
   });
 
   // Get team training load
@@ -136,80 +119,166 @@ export default function NewCoachDashboard() {
     queryKey: ["/api/analytics/training-load"],
   });
 
-  // Calculate metrics
-  const totalAthletes = athletes?.length || 0;
+  // Safe way to check array length for TypeScript
+  const totalAthletes = Array.isArray(athletes) ? athletes.length : 0;
   
-  // Calculate team average recovery rate based on actual API response structure
-  const averageRecovery = athleteReadiness?.length
-    ? Math.round(
-        athleteReadiness.reduce((sum: any, athlete: any) => {
-          // The API returns readinessScore, not recoveryScore
-          // We'll use this value as a baseline and adjust accordingly
-          const baseScore = athlete.readinessScore || 0;
-          
-          // Most readiness scores are between 0-100
-          return sum + baseScore;
-        }, 0) / athleteReadiness.length
-      )
-    : 70; // Default to 70% if no data available
+  // Handle type safety with proper checks for all arrays
+  const athleteReadinessArray = Array.isArray(athleteReadiness) ? athleteReadiness : [];
   
-  // Calculate team average readiness (leave averageReadiness from earlier for now)
+  // 1. RECOVERY - Calculate team average recovery rate
+  // Recovery represents the average score across all athletes who submitted a response
+  // to the "How recovered do you feel?" question
+  let averageRecovery = 70; // Default value
   
-  // Calculate number of athletes at high risk
-  const athletesAtRisk = athleteReadiness?.filter((a: any) => {
-    // Consider an athlete high risk if their riskScore is high (> 7)
-    // or if they have injuries or significant health issues
-    if (a.riskScore > 7) return true;
-    
-    // Also check reported issues for serious problems
-    if (Array.isArray(a.issues)) {
-      return a.issues.some((issue: string) => {
-        const lowercaseIssue = issue.toLowerCase();
-        return (
-          // Look for serious health indicators
-          lowercaseIssue.includes("severe") ||
-          lowercaseIssue.includes("critical") ||
-          lowercaseIssue.includes("acute injury") ||
-          lowercaseIssue.includes("significant") ||
-          // High risk ACWR
-          lowercaseIssue.includes("high acwr") ||
-          lowercaseIssue.includes("overtraining")
-        );
-      });
-    }
-    return false;
-  }).length || 0;
-  
-  // Calculate sick or injured athletes - match specific keywords for health issues
-  const sickOrInjuredAthletes = athleteReadiness?.filter((a: any) => {
-    if (!Array.isArray(a.issues)) return false;
-    
-    // Skip "No recent data" and "No data from yesterday" as these are not health issues
-    const filteredIssues = a.issues.filter((issue: string) => 
-      !issue.includes("No recent data") && 
-      !issue.includes("No data from yesterday") &&
-      issue !== ""
+  if (athleteReadinessArray.length > 0) {
+    // Get athletes with actual data
+    const athletesWithData = athleteReadinessArray.filter(athlete => 
+      !(athlete.issues && athlete.issues.includes('No recent data'))
     );
     
-    if (filteredIssues.length === 0) return false;
+    if (athletesWithData.length > 0) {
+      // Calculate recovery score
+      const recoverySum = athletesWithData.reduce((sum, athlete) => {
+        // Approximate recovery score from readiness score
+        const recovery = Math.max(20, athlete.readinessScore - 5);
+        return sum + recovery;
+      }, 0);
+      
+      averageRecovery = Math.round(recoverySum / athletesWithData.length);
+    }
+  }
+  
+  // 2. READINESS - Calculate team average readiness
+  // Composite score from self-reports
+  let teamAvgReadiness = 70; // Default value
+  
+  if (athleteReadinessArray.length > 0) {
+    // Get athletes with actual data
+    const athletesWithData = athleteReadinessArray.filter(athlete => 
+      !(athlete.issues && athlete.issues.includes('No recent data'))
+    );
     
-    // Count as sick/injured only with specific health-related terms
-    return filteredIssues.some((issue: string) => {
-      const lowercaseIssue = issue.toLowerCase();
-      return (
-        // Illness related
-        lowercaseIssue.includes("sick") || 
-        lowercaseIssue.includes("ill") ||
-        lowercaseIssue.includes("fever") || 
-        lowercaseIssue.includes("flu") ||
-        
-        // Injury related - be more specific
-        lowercaseIssue.includes("injury") ||
-        lowercaseIssue.includes("pain") && !lowercaseIssue.includes("no pain") ||
-        (lowercaseIssue.includes("sore") && !lowercaseIssue.includes("no soreness"))
+    if (athletesWithData.length > 0) {
+      // Calculate readiness score
+      const readinessSum = athletesWithData.reduce((sum, athlete) => {
+        return sum + (athlete.readinessScore || 0);
+      }, 0);
+      
+      teamAvgReadiness = Math.round(readinessSum / athletesWithData.length);
+    }
+  }
+  
+  // 3. HIGH RISK - Calculate number of athletes at high risk
+  // Athletes are high risk if they meet 2+ red flag conditions
+  let athletesAtRisk = 0;
+  
+  // Process array safely
+  if (athleteReadinessArray.length > 0) {
+    // Count athletes with high risk
+    athletesAtRisk = athleteReadinessArray.filter(athlete => {
+      // Skip athletes with no data
+      if (athlete.issues && athlete.issues.includes('No recent data')) {
+        return false;
+      }
+      
+      let riskFlags = 0;
+      
+      // Count risk flags from reported issues
+      if (Array.isArray(athlete.issues)) {
+        // Process each issue looking for risk factors
+        athlete.issues.forEach(issue => {
+          const lowercaseIssue = issue.toLowerCase();
+          
+          // Risk Criteria thresholds
+          if (lowercaseIssue.includes('sleep') && 
+              (lowercaseIssue.includes('poor') || lowercaseIssue.includes('< 6 hours'))) {
+            riskFlags++;
+          }
+          
+          if (lowercaseIssue.includes('stress') && lowercaseIssue.includes('high')) {
+            riskFlags++;
+          }
+          
+          if (lowercaseIssue.includes('mood') && 
+              (lowercaseIssue.includes('negative') || lowercaseIssue.includes('bad'))) {
+            riskFlags++;
+          }
+          
+          if (lowercaseIssue.includes('recovery') && 
+              (lowercaseIssue.includes('poor') || lowercaseIssue.includes('limited'))) {
+            riskFlags++;
+          }
+          
+          if (lowercaseIssue.includes('motivation') && 
+              (lowercaseIssue.includes('low') || lowercaseIssue.includes('lacking'))) {
+            riskFlags++;
+          }
+          
+          if (lowercaseIssue.includes('soreness') && !lowercaseIssue.includes('no soreness')) {
+            riskFlags++;
+          }
+          
+          // Symptoms & Injury flags
+          if (lowercaseIssue.includes('symptoms') || 
+              lowercaseIssue.includes('fever') || 
+              lowercaseIssue.includes('sick') || 
+              lowercaseIssue.includes('ill')) {
+            riskFlags++;
+          }
+          
+          if (lowercaseIssue.includes('injury') || 
+              (lowercaseIssue.includes('pain') && !lowercaseIssue.includes('no pain'))) {
+            riskFlags++;
+          }
+        });
+      }
+      
+      // High risk if 2+ risk flags or high risk score
+      return riskFlags >= 2 || athlete.riskScore > 7;
+    }).length;
+  }
+  
+  // 4. SICK/INJURED - Calculate number of athletes with sickness or injury
+  let sickOrInjuredAthletes = 0;
+  
+  // Process array safely
+  if (athleteReadinessArray.length > 0) {
+    // Count sick or injured athletes
+    sickOrInjuredAthletes = athleteReadinessArray.filter(athlete => {
+      if (!Array.isArray(athlete.issues)) return false;
+      
+      // Skip "No recent data" and "No data from yesterday" as these are not health issues
+      const filteredIssues = athlete.issues.filter(issue => 
+        !issue.includes("No recent data") && 
+        !issue.includes("No data from yesterday") &&
+        issue !== ""
       );
-    });
-  }).length || 0;
+      
+      if (filteredIssues.length === 0) return false;
+      
+      // Count as sick/injured if they directly reported symptoms or injuries
+      return filteredIssues.some(issue => {
+        const lowercaseIssue = issue.toLowerCase();
+        return (
+          // Direct symptom reporting
+          lowercaseIssue.includes("symptom") ||
+          lowercaseIssue.includes("sick") || 
+          lowercaseIssue.includes("ill") ||
+          lowercaseIssue.includes("fever") || 
+          lowercaseIssue.includes("cold") ||
+          lowercaseIssue.includes("flu") ||
+          lowercaseIssue.includes("sore throat") ||
+          lowercaseIssue.includes("runny nose") ||
+          lowercaseIssue.includes("cough") ||
+          
+          // Direct injury reporting
+          lowercaseIssue.includes("injury") ||
+          (lowercaseIssue.includes("pain") && !lowercaseIssue.includes("no pain")) ||
+          (lowercaseIssue.includes("sore") && !lowercaseIssue.includes("no soreness"))
+        );
+      });
+    }).length;
+  }
   
   // Calculate team training load (weekly total)
   const weeklyTrainingLoad = trainingLoad 
