@@ -111,7 +111,20 @@ export default function NewCoachDashboard() {
 
   // Get athletes with health status
   const { data: athleteReadiness } = useQuery({
-    queryKey: ["/api/analytics/athlete-recovery-readiness"]
+    queryKey: ["/api/analytics/athlete-recovery-readiness"],
+    onSuccess: (data) => {
+      // Debug log to inspect athlete health data
+      console.log("Athlete health data:", data);
+      
+      // Look for TOM specifically and his symptoms
+      if (Array.isArray(data)) {
+        const tom = data.find((a: any) => a.name && a.name.includes("TOM"));
+        if (tom) {
+          console.log("TOM's health data:", tom);
+          console.log("TOM's issues:", tom.issues);
+        }
+      }
+    }
   });
 
   // Get team training load
