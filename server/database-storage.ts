@@ -820,17 +820,41 @@ export class DatabaseStorage implements IStorage {
     return result.sort((a, b) => b.riskScore - a.riskScore);
   }
   
-  async getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string; fieldTraining?: number; gymTraining?: number; matchGame?: number }[]> {
-    // Get all training entries from the database
-    const allEntries = await db
-      .select({
-        trainingType: trainingEntries.trainingType,
-        date: trainingEntries.date,
-        effortLevel: trainingEntries.effortLevel,
-        userId: trainingEntries.userId
-      })
-      .from(trainingEntries)
-      .orderBy(trainingEntries.date);
+  async getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string; fieldTraining?: number; gymTraining?: number; matchGame?: number; athleteId?: number }[]> {
+    // Get training entries from the database, filtered by athlete ID if provided
+    let query;
+    
+    if (athleteId !== undefined) {
+      // Query with athlete ID filter
+      query = db
+        .select({
+          trainingType: trainingEntries.trainingType,
+          date: trainingEntries.date,
+          effortLevel: trainingEntries.effortLevel,
+          userId: trainingEntries.userId
+        })
+        .from(trainingEntries)
+        .where(eq(trainingEntries.userId, athleteId))
+        .orderBy(trainingEntries.date);
+    } else {
+      // Query without filter
+      query = db
+        .select({
+          trainingType: trainingEntries.trainingType,
+          date: trainingEntries.date,
+          effortLevel: trainingEntries.effortLevel,
+          userId: trainingEntries.userId
+        })
+        .from(trainingEntries)
+        .orderBy(trainingEntries.date);
+    }
+    
+    const allEntries = await query;
+    
+    // If no entries found and athleteId is provided, return empty array
+    if (allEntries.length === 0 && athleteId !== undefined) {
+      return [];
+    }
     
     // Group entries by date and training type
     const entriesByDateAndType: Record<string, Record<string, any[]>> = {};
@@ -896,13 +920,18 @@ export class DatabaseStorage implements IStorage {
     return formattedResult.length > 0 ? formattedResult : generateDefaultTrainingLoad();
   }
   
-  async getAcuteChronicLoadRatio(athleteId?: number): Promise<{ date: string; acute: number; chronic: number; ratio: number; riskZone: string }[]> {
+  async getAcuteChronicLoadRatio(athleteId?: number): Promise<{ date: string; acute: number; chronic: number; ratio: number; riskZone: string; athleteId?: number }[]> {
     // Get training entries for load calculation
     const trainingLoad = await this.getTrainingLoadByRPE(athleteId);
     
-    // Return default data if no real data is available
+    // If no data and athleteId is specified, return empty array instead of default
     if (trainingLoad.length === 0) {
-      return generateDefaultACWR();
+      // Only return default data for team level (when no athleteId provided)
+      if (athleteId === undefined) {
+        return generateDefaultACWR();
+      }
+      // Return empty array for specific athlete with no data
+      return [];
     }
     
     // Group loads by date for efficiency

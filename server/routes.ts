@@ -472,8 +472,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(401);
     }
     
-    const athleteId = req.query.athleteId ? parseInt(req.query.athleteId as string) : undefined;
+    // Parse athleteId from query parameter
+    let athleteId: number | undefined = undefined;
+    if (req.query.athleteId && typeof req.query.athleteId === 'string') {
+      const parsedId = parseInt(req.query.athleteId);
+      if (!isNaN(parsedId)) {
+        athleteId = parsedId;
+      }
+    }
+    
+    // Get load data for the specified athlete or all athletes
     const loadData = await storage.getTrainingLoadByRPE(athleteId);
+    
+    // Generate athlete-specific data if needed
+    if (athleteId && loadData.length === 0) {
+      // For UI consistency, return empty array for specific athlete with no data
+      return res.json([]);
+    }
+    
     res.json(loadData);
   });
   
@@ -483,8 +499,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(401);
     }
     
-    const athleteId = req.query.athleteId ? parseInt(req.query.athleteId as string) : undefined;
+    // Parse athleteId from query parameter
+    let athleteId: number | undefined = undefined;
+    if (req.query.athleteId && typeof req.query.athleteId === 'string') {
+      const parsedId = parseInt(req.query.athleteId);
+      if (!isNaN(parsedId)) {
+        athleteId = parsedId;
+      }
+    }
+    
+    // Get ACWR data for the specified athlete or all athletes
     const acwrData = await storage.getAcuteChronicLoadRatio(athleteId);
+    
+    // Generate athlete-specific data if needed
+    if (athleteId && acwrData.length === 0) {
+      // For UI consistency, return empty array for specific athlete with no data
+      return res.json([]);
+    }
+    
     res.json(acwrData);
   });
   
