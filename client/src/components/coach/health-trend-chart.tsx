@@ -214,18 +214,18 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
       </CardContent>
       {chartData && chartData.length > 0 && (
         <CardFooter className="pt-0">
-          <div className="w-full mt-1 flex flex-wrap justify-center gap-8 py-1 border-t border-zinc-800 pt-4">
+          <div className="w-full mt-1 flex flex-wrap justify-center gap-5 py-1 border-t border-zinc-800 pt-3">
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-[rgb(200,255,1)] mr-2"></div>
-              <span className="text-zinc-400 font-medium">Recovery</span>
+              <span className="inline-block w-3 h-3 rounded-full bg-[rgb(200,255,1)] mr-2"></span>
+              <span className="text-zinc-400 text-sm">Recovery</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-[rgb(59,130,246)] mr-2"></div>
-              <span className="text-zinc-400 font-medium">Readiness</span>
+              <span className="inline-block w-3 h-3 rounded-full bg-[rgb(59,130,246)] mr-2"></span>
+              <span className="text-zinc-400 text-sm">Readiness</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-[rgb(239,68,68)] mr-2"></div>
-              <span className="text-zinc-400 font-medium">Energy</span>
+              <span className="inline-block w-3 h-3 rounded-full bg-[rgb(239,68,68)] mr-2"></span>
+              <span className="text-zinc-400 text-sm">Energy</span>
             </div>
           </div>
         </CardFooter>
