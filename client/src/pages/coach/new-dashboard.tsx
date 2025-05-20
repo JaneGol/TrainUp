@@ -139,8 +139,43 @@ export default function NewCoachDashboard() {
   // Calculate metrics
   const totalAthletes = athletes?.length || 0;
   
-  // Calculate number of athletes at risk
-  const athletesAtRisk = athleteReadiness?.filter((a: any) => a.riskScore > 7).length || 0;
+  // Calculate team average recovery rate
+  const averageRecovery = athleteReadiness?.length
+    ? Math.round(
+        athleteReadiness.reduce((sum: any, athlete: any) => {
+          // Recover score is approximated from 'recoveryLevel' in the morningDiary
+          // Assuming we store this in the athleteReadiness object
+          return sum + (athlete.recoveryScore || 0);
+        }, 0) / athleteReadiness.length
+      )
+    : 0;
+  
+  // Calculate team average readiness (leave averageReadiness from earlier for now)
+  
+  // Calculate number of athletes at high risk
+  const athletesAtRisk = athleteReadiness?.filter((a: any) => {
+    // Consider an athlete high risk if their riskScore is high (> 7)
+    // or if they have injuries or significant health issues
+    if (a.riskScore > 7) return true;
+    
+    // Also check reported issues for serious problems
+    if (Array.isArray(a.issues)) {
+      return a.issues.some((issue: string) => {
+        const lowercaseIssue = issue.toLowerCase();
+        return (
+          // Look for serious health indicators
+          lowercaseIssue.includes("severe") ||
+          lowercaseIssue.includes("critical") ||
+          lowercaseIssue.includes("acute injury") ||
+          lowercaseIssue.includes("significant") ||
+          // High risk ACWR
+          lowercaseIssue.includes("high acwr") ||
+          lowercaseIssue.includes("overtraining")
+        );
+      });
+    }
+    return false;
+  }).length || 0;
   
   // Calculate sick or injured athletes - match specific keywords for health issues
   const sickOrInjuredAthletes = athleteReadiness?.filter((a: any) => {
@@ -155,6 +190,7 @@ export default function NewCoachDashboard() {
     
     if (filteredIssues.length === 0) return false;
     
+    // Count as sick/injured only with specific health-related terms
     return filteredIssues.some((issue: string) => {
       const lowercaseIssue = issue.toLowerCase();
       return (
@@ -162,28 +198,12 @@ export default function NewCoachDashboard() {
         lowercaseIssue.includes("sick") || 
         lowercaseIssue.includes("ill") ||
         lowercaseIssue.includes("fever") || 
-        lowercaseIssue.includes("temperature") || 
         lowercaseIssue.includes("flu") ||
-        lowercaseIssue.includes("cold") ||
-        lowercaseIssue.includes("sore throat") ||
-        lowercaseIssue.includes("runny nose") ||
-        lowercaseIssue.includes("headache") ||
-        lowercaseIssue.includes("cough") ||
-        lowercaseIssue.includes("symptom") ||
-        lowercaseIssue.includes("congestion") ||
         
-        // Injury and pain related
+        // Injury related - be more specific
         lowercaseIssue.includes("injury") ||
-        lowercaseIssue.includes("pain") ||
-        lowercaseIssue.includes("sore") || 
-        lowercaseIssue.includes("strain") ||
-        lowercaseIssue.includes("sprain") ||
-        
-        // Physical condition related
-        lowercaseIssue.includes("fatigue") ||
-        lowercaseIssue.includes("physical") ||
-        lowercaseIssue.includes("muscle") ||
-        lowercaseIssue.includes("reported")
+        lowercaseIssue.includes("pain") && !lowercaseIssue.includes("no pain") ||
+        (lowercaseIssue.includes("sore") && !lowercaseIssue.includes("no soreness"))
       );
     });
   }).length || 0;
@@ -257,9 +277,9 @@ export default function NewCoachDashboard() {
         <div className="bg-zinc-900 rounded-full py-1.5 px-3 mb-6 flex justify-between items-center gap-2 shadow-md mx-auto max-w-2xl">
           {/* Recovery Metric */}
           <div className="flex items-center gap-1 px-1.5">
-            <BatteryFull className={`h-4 w-4 ${averageReadiness >= 70 ? 'text-green-500' : 'text-amber-500'}`} />
+            <BatteryFull className={`h-4 w-4 ${averageRecovery >= 70 ? 'text-green-500' : 'text-amber-500'}`} />
             <div>
-              <div className="text-xs font-bold">{readinessLoading ? "..." : `${averageReadiness}%`}</div>
+              <div className="text-xs font-bold">{readinessLoading ? "..." : `${averageRecovery}%`}</div>
               <div className="text-[9px] text-zinc-400 -mt-0.5">Recovery</div>
             </div>
           </div>
