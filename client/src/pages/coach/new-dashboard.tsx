@@ -423,11 +423,11 @@ export default function NewCoachDashboard() {
         <div className="bg-zinc-900 rounded-full py-1.5 px-3 mb-6 flex justify-between items-center gap-2 shadow-md mx-auto max-w-2xl">
           {/* Recovery Metric */}
           <div className="flex items-center gap-1 px-1.5">
-            <BatteryFull className={`h-4 w-4 ${typeof averageRecovery === 'number' && averageRecovery >= 70 ? 'text-green-500' : typeof averageRecovery === 'number' && averageRecovery >= 50 ? 'text-amber-500' : 'text-gray-400'}`} />
+            <BatteryFull className={`h-4 w-4 ${isNumber(averageRecovery) && averageRecovery >= 70 ? 'text-green-500' : isNumber(averageRecovery) && averageRecovery >= 50 ? 'text-amber-500' : 'text-gray-400'}`} />
             <div>
               <div className="text-sm font-bold">
                 {readinessLoading ? "..." : 
-                 typeof averageRecovery === 'number' ? `${averageRecovery}%` : 
+                 isNumber(averageRecovery) ? `${averageRecovery}%` : 
                  <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
               </div>
               <div className="text-[9px] text-zinc-400 -mt-0.5">Recovery</div>
@@ -438,11 +438,11 @@ export default function NewCoachDashboard() {
 
           {/* Readiness Metric */}
           <div className="flex items-center gap-1 px-1.5">
-            <Zap className={`h-4 w-4 ${typeof teamAvgReadiness === 'number' && teamAvgReadiness >= 70 ? 'text-green-500' : typeof teamAvgReadiness === 'number' && teamAvgReadiness >= 50 ? 'text-amber-500' : 'text-gray-400'}`} />
+            <Zap className={`h-4 w-4 ${isNumber(teamAvgReadiness) && teamAvgReadiness >= 70 ? 'text-green-500' : isNumber(teamAvgReadiness) && teamAvgReadiness >= 50 ? 'text-amber-500' : 'text-gray-400'}`} />
             <div>
               <div className="text-sm font-bold">
                 {readinessLoading ? "..." : 
-                 typeof teamAvgReadiness === 'number' ? `${teamAvgReadiness}%` : 
+                 isNumber(teamAvgReadiness) ? `${teamAvgReadiness}%` : 
                  <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
               </div>
               <div className="text-[9px] text-zinc-400 -mt-0.5">Readiness</div>
@@ -463,7 +463,7 @@ export default function NewCoachDashboard() {
             <div>
               <div className="text-sm font-bold">
                 {athletesLoading ? "..." : 
-                 typeof athletesAtRisk === 'number' ? athletesAtRisk : 
+                 isNumber(athletesAtRisk) ? athletesAtRisk : 
                  <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
               </div>
               <div className="text-[9px] text-zinc-400 -mt-0.5">High Risk</div>
@@ -474,11 +474,11 @@ export default function NewCoachDashboard() {
 
           {/* Sick/Injured Metric */}
           <div className="flex items-center gap-1 px-1.5">
-            <HeartPulse className={`h-4 w-4 ${typeof sickOrInjuredAthletes === 'number' && sickOrInjuredAthletes === 0 ? 'text-green-500' : typeof sickOrInjuredAthletes === 'number' ? 'text-red-500' : 'text-gray-400'}`} />
+            <HeartPulse className={`h-4 w-4 ${isNumber(sickOrInjuredAthletes) && sickOrInjuredAthletes === 0 ? 'text-green-500' : isNumber(sickOrInjuredAthletes) ? 'text-red-500' : 'text-gray-400'}`} />
             <div>
               <div className="text-sm font-bold">
                 {athletesLoading ? "..." : 
-                 typeof sickOrInjuredAthletes === 'number' ? sickOrInjuredAthletes : 
+                 isNumber(sickOrInjuredAthletes) ? sickOrInjuredAthletes : 
                  <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
               </div>
               <div className="text-[9px] text-zinc-400 -mt-0.5">Sick/Injured</div>
