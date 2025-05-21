@@ -450,7 +450,7 @@ export default function NewCoachDashboard() {
             <div>
               <div className="text-lg font-bold">
                 {readinessLoading ? "..." : 
-                 <span className="text-zinc-500 text-sm">Awaiting data</span>}
+                 <span className="text-zinc-500 text-xs">Awaiting data</span>}
               </div>
               <div className="text-xs text-zinc-400 -mt-0.5">Recovery</div>
             </div>
@@ -464,7 +464,7 @@ export default function NewCoachDashboard() {
             <div>
               <div className="text-lg font-bold">
                 {readinessLoading ? "..." : 
-                 <span className="text-zinc-500 text-sm">Awaiting data</span>}
+                 <span className="text-zinc-500 text-xs">Awaiting data</span>}
               </div>
               <div className="text-xs text-zinc-400 -mt-0.5">Readiness</div>
             </div>
@@ -484,7 +484,7 @@ export default function NewCoachDashboard() {
             <div>
               <div className="text-lg font-bold">
                 {athletesLoading ? "..." : 
-                 <span className="text-zinc-500 text-sm">Awaiting data</span>}
+                 <span className="text-zinc-500 text-xs">Awaiting data</span>}
               </div>
               <div className="text-xs text-zinc-400 -mt-0.5">High Risk</div>
             </div>
@@ -498,7 +498,7 @@ export default function NewCoachDashboard() {
             <div>
               <div className="text-lg font-bold">
                 {athletesLoading ? "..." : 
-                 <span className="text-zinc-500 text-sm">Awaiting data</span>}
+                 <span className="text-zinc-500 text-xs">Awaiting data</span>}
               </div>
               <div className="text-xs text-zinc-400 -mt-0.5">Sick/Injured</div>
             </div>
