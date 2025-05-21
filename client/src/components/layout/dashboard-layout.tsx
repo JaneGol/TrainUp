@@ -86,7 +86,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r">
         <div className="flex flex-col h-full">
           <div className="py-6 px-4 border-b">
-            <h2 className="text-xl font-bold text-primary">SportSync</h2>
+            <h2 className="text-xl font-bold text-primary">TrainUpSOTA</h2>
           </div>
           
           <div className="flex-1 py-6 px-4 space-y-1">
@@ -129,7 +129,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="absolute left-0 top-0 bottom-0 w-64 bg-white z-50">
             <div className="flex flex-col h-full">
               <div className="py-6 px-4 border-b flex justify-between items-center">
-                <h2 className="text-xl font-bold text-primary">SportSync</h2>
+                <h2 className="text-xl font-bold text-primary">TrainUpSOTA</h2>
                 <button onClick={toggleSidebar} className="p-1">
                   <span className="sr-only">Close menu</span>
                   ✕
@@ -186,7 +186,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <span className="sr-only">Open sidebar</span>
                 </Button>
               )}
-              <h1 className="md:hidden font-bold text-xl text-primary">SportSync</h1>
+              <h1 className="md:hidden font-bold text-xl text-primary">TrainUpSOTA</h1>
             </div>
             
             <div className="flex items-center space-x-4">

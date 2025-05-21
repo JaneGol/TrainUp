@@ -154,7 +154,7 @@ export default function AuthPage() {
         <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="flex flex-col justify-center">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-primary mb-2">SportSync</h1>
+              <h1 className="text-3xl font-bold text-primary mb-2">TrainUpSOTA</h1>
               <p className="text-gray-300">Performance tracking for athletes & coaches</p>
             </div>
 
