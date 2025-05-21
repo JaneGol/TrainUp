@@ -444,7 +444,7 @@ export default function AuthPage() {
             </Tabs>
           </div>
 
-          <div className="hidden lg:flex items-center justify-center bg-primary rounded-xl p-8 text-white">
+          <div className="hidden lg:flex items-center justify-center bg-primary rounded-xl p-8 text-black">
             <div className="max-w-md">
               <h2 className="text-3xl font-bold mb-4">Track Your Athletic Journey</h2>
               <ul className="space-y-4">
@@ -454,7 +454,7 @@ export default function AuthPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg">Training Diary</h3>
-                    <p className="text-white text-opacity-80">Log your daily training sessions, mood, and energy levels.</p>
+                    <p className="text-black">Log your daily training sessions, mood, and energy levels.</p>
                   </div>
                 </li>
                 <li className="flex items-start">
@@ -463,7 +463,7 @@ export default function AuthPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg">Fitness Progress</h3>
-                    <p className="text-white text-opacity-80">Track your performance with visual charts and metrics.</p>
+                    <p className="text-black">Track your performance with visual charts and metrics.</p>
                   </div>
                 </li>
                 <li className="flex items-start">
@@ -472,7 +472,7 @@ export default function AuthPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg">Health Monitoring</h3>
-                    <p className="text-white text-opacity-80">Keep track of your health and get personalized advice.</p>
+                    <p className="text-black">Keep track of your health and get personalized advice.</p>
                   </div>
                 </li>
                 <li className="flex items-start">
@@ -481,7 +481,7 @@ export default function AuthPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg">Coach Feedback</h3>
-                    <p className="text-white text-opacity-80">Receive personalized feedback and guidance from your coach.</p>
+                    <p className="text-black">Receive personalized feedback and guidance from your coach.</p>
                   </div>
                 </li>
               </ul>
