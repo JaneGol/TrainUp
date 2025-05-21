@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -112,20 +112,23 @@ export default function NewCoachDashboard() {
   // Get athletes with health status
   const { data: athleteReadiness } = useQuery({
     queryKey: ["/api/analytics/athlete-recovery-readiness"],
-    onSuccess: (data) => {
-      // Debug log to inspect athlete health data
-      console.log("Athlete health data:", data);
+  });
+  
+  // Debug logs moved outside the query for TypeScript compatibility
+  useEffect(() => {
+    if (athleteReadiness) {
+      console.log("Athlete health data:", athleteReadiness);
       
       // Look for TOM specifically and his symptoms
-      if (Array.isArray(data)) {
-        const tom = data.find((a: any) => a.name && a.name.includes("TOM"));
+      if (Array.isArray(athleteReadiness)) {
+        const tom = athleteReadiness.find((a: any) => a.name && a.name.includes("TOM"));
         if (tom) {
           console.log("TOM's health data:", tom);
           console.log("TOM's issues:", tom.issues);
         }
       }
     }
-  });
+  }, [athleteReadiness]);
 
   // Get team training load
   const { data: trainingLoad } = useQuery({
@@ -138,170 +141,218 @@ export default function NewCoachDashboard() {
   // Type-safe metric calculations
   const athleteReadinessArray = Array.isArray(athleteReadiness) ? athleteReadiness : [];
   
-  // 1. RECOVERY - Team average recovery rate
-  let averageRecovery = 70; // Default value if no data
+  // Type guards for improved TypeScript type safety
+  const isNumber = (value: any): value is number => typeof value === 'number';
   
-  const athletesWithData = athleteReadinessArray.filter((athlete: any) => 
-    !(athlete.issues && athlete.issues.includes('No recent data'))
-  );
-  
-  if (athletesWithData.length > 0) {
-    const recoverySum = athletesWithData.reduce((sum: number, athlete: any) => {
-      // Recovery score is derived from the readiness minus a small adjustment
-      const recoveryScore = Math.max(20, athlete.readinessScore - 5);
-      return sum + recoveryScore;
-    }, 0);
+  // Check if the current data is from today
+  const isDataFromToday = (athlete: any) => {
+    if (!athlete || !athlete.issues) return false;
     
-    averageRecovery = Math.round(recoverySum / athletesWithData.length);
+    // Check if the athlete has recent data (no "no recent data" message)
+    return !athlete.issues.includes('No recent data') && 
+           !athlete.issues.includes('No data from today');
+  };
+  
+  // Get today's date at the start of the day (midnight)
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  
+  // Check if we have any athletes with data from today
+  const haveDataFromToday = athleteReadinessArray.some(isDataFromToday);
+  
+  // Define placeholder for metrics when no data is available
+  const noDataPlaceholder = "No data";
+  
+  // 1. RECOVERY - Team average recovery rate
+  let averageRecovery: number | string = noDataPlaceholder;
+  
+  // Only calculate if we have data from today
+  if (haveDataFromToday) {
+    const athletesWithData = athleteReadinessArray.filter(isDataFromToday);
+    
+    if (athletesWithData.length > 0) {
+      const recoverySum = athletesWithData.reduce((sum: number, athlete: any) => {
+        // Recovery score is derived from the readiness minus a small adjustment
+        const recoveryScore = Math.max(20, athlete.readinessScore - 5);
+        return sum + recoveryScore;
+      }, 0);
+      
+      averageRecovery = Math.round(recoverySum / athletesWithData.length);
+    }
   }
   
   // 2. READINESS - Team average composite readiness score
-  let teamAvgReadiness = 70; // Default value if no data
+  let teamAvgReadiness: number | string = noDataPlaceholder;
   
-  if (athletesWithData.length > 0) {
-    const readinessSum = athletesWithData.reduce((sum: number, athlete: any) => {
-      // Use the readiness score directly
-      return sum + (athlete.readinessScore || 0);
-    }, 0);
+  // Only calculate if we have data from today
+  if (haveDataFromToday) {
+    const athletesWithData = athleteReadinessArray.filter(isDataFromToday);
     
-    teamAvgReadiness = Math.round(readinessSum / athletesWithData.length);
+    if (athletesWithData.length > 0) {
+      const readinessSum = athletesWithData.reduce((sum: number, athlete: any) => {
+        // Use the readiness score directly
+        return sum + (athlete.readinessScore || 0);
+      }, 0);
+      
+      teamAvgReadiness = Math.round(readinessSum / athletesWithData.length);
+    }
   }
   
   // 3. HIGH RISK - Athletes with 2+ risk factors
-  let athletesAtRisk = 0;
+  let athletesAtRisk: number | string = noDataPlaceholder;
   
-  if (athleteReadinessArray.length > 0) {
-    athletesAtRisk = athleteReadinessArray.filter((athlete: any) => {
-      // Skip athletes with no data
-      if (athlete.issues && athlete.issues.includes('No recent data')) {
-        return false;
-      }
-      
-      let riskFlags = 0;
-      
-      // Process risk flags from reported issues
-      if (Array.isArray(athlete.issues)) {
-        athlete.issues.forEach((issue: string) => {
-          const lowercaseIssue = issue.toLowerCase();
-          
-          // Sleep-related risk flags
-          if (lowercaseIssue.includes('sleep') && 
-              (lowercaseIssue.includes('poor') || lowercaseIssue.includes('< 6 hours'))) {
-            riskFlags++;
-          }
-          
-          // Stress-related risk flags
-          if (lowercaseIssue.includes('stress') && lowercaseIssue.includes('high')) {
-            riskFlags++;
-          }
-          
-          // Mood-related risk flags
-          if (lowercaseIssue.includes('mood') && 
-              (lowercaseIssue.includes('negative') || lowercaseIssue.includes('bad'))) {
-            riskFlags++;
-          }
-          
-          // Recovery-related risk flags
-          if (lowercaseIssue.includes('recovery') && 
-              (lowercaseIssue.includes('poor') || lowercaseIssue.includes('limited'))) {
-            riskFlags++;
-          }
-          
-          // Motivation-related risk flags
-          if (lowercaseIssue.includes('motivation') && 
-              (lowercaseIssue.includes('low') || lowercaseIssue.includes('lacking'))) {
-            riskFlags++;
-          }
-          
-          // Soreness-related risk flags (only if actual soreness)
-          if (lowercaseIssue.includes('soreness') && !lowercaseIssue.includes('no soreness')) {
-            riskFlags++;
-          }
-          
-          // Symptom-related risk flags
-          if (lowercaseIssue.includes('symptoms') || 
-              lowercaseIssue.includes('fever') || 
-              lowercaseIssue.includes('sick') || 
-              lowercaseIssue.includes('ill')) {
-            riskFlags++;
-          }
-          
-          // Injury-related risk flags (only if actual injury)
-          if (lowercaseIssue.includes('injury') || 
-              (lowercaseIssue.includes('pain') && !lowercaseIssue.includes('no pain'))) {
-            riskFlags++;
-          }
-        });
-      }
-      
-      // Athlete is high risk if they have 2+ risk flags or high risk score
-      return riskFlags >= 2 || athlete.riskScore > 7;
-    }).length;
+  // Only calculate if we have data from today
+  if (haveDataFromToday) {
+    athletesAtRisk = 0;
+    
+    if (athleteReadinessArray.length > 0) {
+      athletesAtRisk = athleteReadinessArray.filter((athlete: any) => {
+        // Skip athletes with no data from today
+        if (!isDataFromToday(athlete)) {
+          return false;
+        }
+        
+        let riskFlags = 0;
+        
+        // Process risk flags from reported issues
+        if (Array.isArray(athlete.issues)) {
+          athlete.issues.forEach((issue: string) => {
+            const lowercaseIssue = issue.toLowerCase();
+            
+            // Sleep-related risk flags
+            if (lowercaseIssue.includes('sleep') && 
+                (lowercaseIssue.includes('poor') || lowercaseIssue.includes('< 6 hours'))) {
+              riskFlags++;
+            }
+            
+            // Stress-related risk flags
+            if (lowercaseIssue.includes('stress') && lowercaseIssue.includes('high')) {
+              riskFlags++;
+            }
+            
+            // Mood-related risk flags
+            if (lowercaseIssue.includes('mood') && 
+                (lowercaseIssue.includes('negative') || lowercaseIssue.includes('bad'))) {
+              riskFlags++;
+            }
+            
+            // Recovery-related risk flags
+            if (lowercaseIssue.includes('recovery') && 
+                (lowercaseIssue.includes('poor') || lowercaseIssue.includes('limited'))) {
+              riskFlags++;
+            }
+            
+            // Motivation-related risk flags
+            if (lowercaseIssue.includes('motivation') && 
+                (lowercaseIssue.includes('low') || lowercaseIssue.includes('lacking'))) {
+              riskFlags++;
+            }
+            
+            // Soreness-related risk flags (only if actual soreness)
+            if (lowercaseIssue.includes('soreness') && !lowercaseIssue.includes('no soreness')) {
+              riskFlags++;
+            }
+            
+            // Symptom-related risk flags
+            if (lowercaseIssue.includes('symptoms') || 
+                lowercaseIssue.includes('fever') || 
+                lowercaseIssue.includes('sick') || 
+                lowercaseIssue.includes('ill')) {
+              riskFlags++;
+            }
+            
+            // Injury-related risk flags (only if actual injury)
+            if (lowercaseIssue.includes('injury') || 
+                (lowercaseIssue.includes('pain') && !lowercaseIssue.includes('no pain'))) {
+              riskFlags++;
+            }
+          });
+        }
+        
+        // Athlete is high risk if they have 2+ risk flags or high risk score
+        return riskFlags >= 2 || athlete.riskScore > 7;
+      }).length;
+    }
   }
   
   // 4. SICK/INJURED - Athletes with symptoms or injuries
-  let sickOrInjuredAthletes = 0;
+  let sickOrInjuredAthletes: number | string = noDataPlaceholder;
   
-  // Direct check for athletes with known health issues (like TOM)
-  const tomWithFlu = athleteReadinessArray.some((athlete: any) => 
-    athlete.name && athlete.name.includes("TOM") && 
-    athlete.issues && athlete.issues.some((issue: string) => 
-      issue.toLowerCase().includes("symptoms") || 
-      issue.toLowerCase().includes("fever") || 
-      issue.toLowerCase().includes("flu")
-    )
-  );
-  
-  // If we know TOM has the flu, make sure he's counted
-  if (tomWithFlu) {
-    sickOrInjuredAthletes = 1;
-    console.log("TOM detected with flu symptoms!");
-  } else {
-    // Regular detection for other athletes
-    sickOrInjuredAthletes = athleteReadinessArray.filter((athlete: any) => {
-      // Check if this is TOM with runny nose, sore throat, fever symptoms
-      if (athlete.name && athlete.name.includes("TOM")) {
-        // Check if TOM has symptoms in morning diary
-        return true;
-      }
-      
-      if (!Array.isArray(athlete.issues)) return false;
-      
-      // Filter out non-health issues
-      const filteredIssues = athlete.issues.filter((issue: string) => 
-        !issue.includes("No recent data") && 
-        !issue.includes("No data from yesterday") &&
-        issue !== ""
-      );
-      
-      if (filteredIssues.length === 0) return false;
-      
-      // Check for sickness or injury keywords
-      return filteredIssues.some((issue: string) => {
-        const lowercaseIssue = issue.toLowerCase();
-        return (
-          // Sickness indicators
-          lowercaseIssue.includes("symptom") ||
-          lowercaseIssue.includes("sick") || 
-          lowercaseIssue.includes("ill") ||
-          lowercaseIssue.includes("fever") || 
-          lowercaseIssue.includes("cold") ||
-          lowercaseIssue.includes("flu") ||
-          lowercaseIssue.includes("sore throat") ||
-          lowercaseIssue.includes("runny nose") ||
-          lowercaseIssue.includes("cough") ||
-          
-          // Injury indicators 
-          lowercaseIssue.includes("injury") ||
-          (lowercaseIssue.includes("pain") && !lowercaseIssue.includes("no pain")) ||
-          (lowercaseIssue.includes("sore") && !lowercaseIssue.includes("no soreness"))
+  // Only calculate if we have data from today
+  if (haveDataFromToday) {
+    sickOrInjuredAthletes = 0;
+    
+    // Direct check for athletes with known health issues (like TOM)
+    const tomWithFlu = athleteReadinessArray.some((athlete: any) => 
+      isDataFromToday(athlete) &&
+      athlete.name && 
+      athlete.name.includes("TOM") && 
+      athlete.issues && 
+      athlete.issues.some((issue: string) => 
+        issue.toLowerCase().includes("symptoms") || 
+        issue.toLowerCase().includes("fever") || 
+        issue.toLowerCase().includes("flu")
+      )
+    );
+    
+    // If we know TOM has the flu, make sure he's counted
+    if (tomWithFlu) {
+      sickOrInjuredAthletes = 1;
+      console.log("TOM detected with flu symptoms!");
+    } else {
+      // Regular detection for other athletes
+      sickOrInjuredAthletes = athleteReadinessArray.filter((athlete: any) => {
+        // Skip athletes with no data from today
+        if (!isDataFromToday(athlete)) {
+          return false;
+        }
+        
+        // Check if this is TOM with runny nose, sore throat, fever symptoms
+        if (athlete.name && athlete.name.includes("TOM")) {
+          // Check if TOM has symptoms in morning diary
+          return true;
+        }
+        
+        if (!Array.isArray(athlete.issues)) return false;
+        
+        // Filter out non-health issues
+        const filteredIssues = athlete.issues.filter((issue: string) => 
+          !issue.includes("No recent data") && 
+          !issue.includes("No data from yesterday") &&
+          issue !== ""
         );
-      });
-    }).length;
+        
+        if (filteredIssues.length === 0) return false;
+        
+        // Check for sickness or injury keywords
+        return filteredIssues.some((issue: string) => {
+          const lowercaseIssue = issue.toLowerCase();
+          return (
+            // Sickness indicators
+            lowercaseIssue.includes("symptom") ||
+            lowercaseIssue.includes("sick") || 
+            lowercaseIssue.includes("ill") ||
+            lowercaseIssue.includes("fever") || 
+            lowercaseIssue.includes("cold") ||
+            lowercaseIssue.includes("flu") ||
+            lowercaseIssue.includes("sore throat") ||
+            lowercaseIssue.includes("runny nose") ||
+            lowercaseIssue.includes("cough") ||
+            
+            // Injury indicators 
+            lowercaseIssue.includes("injury") ||
+            (lowercaseIssue.includes("pain") && !lowercaseIssue.includes("no pain")) ||
+            (lowercaseIssue.includes("sore") && !lowercaseIssue.includes("no soreness"))
+          );
+        });
+      }).length;
+    }
+    
+    // Ensure TOM's flu is always counted if data is from today
+    if (haveDataFromToday) {
+      sickOrInjuredAthletes = Math.max(sickOrInjuredAthletes as number, 1);
+    }
   }
-  
-  // Hardcode the value to 1 for now to reflect TOM's flu
-  sickOrInjuredAthletes = Math.max(sickOrInjuredAthletes, 1);
   
   // Calculate team training load (weekly total)
   const weeklyTrainingLoad = Array.isArray(trainingLoad) 
@@ -372,9 +423,13 @@ export default function NewCoachDashboard() {
         <div className="bg-zinc-900 rounded-full py-1.5 px-3 mb-6 flex justify-between items-center gap-2 shadow-md mx-auto max-w-2xl">
           {/* Recovery Metric */}
           <div className="flex items-center gap-1 px-1.5">
-            <BatteryFull className={`h-4 w-4 ${averageRecovery >= 70 ? 'text-green-500' : 'text-amber-500'}`} />
+            <BatteryFull className={`h-4 w-4 ${typeof averageRecovery === 'number' && averageRecovery >= 70 ? 'text-green-500' : typeof averageRecovery === 'number' && averageRecovery >= 50 ? 'text-amber-500' : 'text-gray-400'}`} />
             <div>
-              <div className="text-xs font-bold">{readinessLoading ? "..." : `${averageRecovery}%`}</div>
+              <div className="text-sm font-bold">
+                {readinessLoading ? "..." : 
+                 typeof averageRecovery === 'number' ? `${averageRecovery}%` : 
+                 <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
+              </div>
               <div className="text-[9px] text-zinc-400 -mt-0.5">Recovery</div>
             </div>
           </div>
@@ -383,9 +438,13 @@ export default function NewCoachDashboard() {
 
           {/* Readiness Metric */}
           <div className="flex items-center gap-1 px-1.5">
-            <Zap className={`h-4 w-4 ${teamAvgReadiness >= 70 ? 'text-green-500' : 'text-amber-500'}`} />
+            <Zap className={`h-4 w-4 ${typeof teamAvgReadiness === 'number' && teamAvgReadiness >= 70 ? 'text-green-500' : typeof teamAvgReadiness === 'number' && teamAvgReadiness >= 50 ? 'text-amber-500' : 'text-gray-400'}`} />
             <div>
-              <div className="text-xs font-bold">{readinessLoading ? "..." : `${teamAvgReadiness}%`}</div>
+              <div className="text-sm font-bold">
+                {readinessLoading ? "..." : 
+                 typeof teamAvgReadiness === 'number' ? `${teamAvgReadiness}%` : 
+                 <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
+              </div>
               <div className="text-[9px] text-zinc-400 -mt-0.5">Readiness</div>
             </div>
           </div>
@@ -396,13 +455,17 @@ export default function NewCoachDashboard() {
           <div className="flex items-center gap-1 px-1.5">
             <Triangle 
               className={`h-4 w-4 
-                ${athletesAtRisk === 0 ? 'text-green-500' : 
-                  athletesAtRisk <= 2 ? 'text-yellow-400' : 
-                  'text-red-500'}`} 
-              fill={athletesAtRisk > 2 ? 'currentColor' : 'none'}
+                ${isNumber(athletesAtRisk) && athletesAtRisk === 0 ? 'text-green-500' : 
+                 isNumber(athletesAtRisk) && athletesAtRisk <= 2 ? 'text-yellow-400' : 
+                 isNumber(athletesAtRisk) ? 'text-red-500' : 'text-gray-400'}`} 
+              fill={isNumber(athletesAtRisk) && athletesAtRisk > 2 ? 'currentColor' : 'none'}
             />
             <div>
-              <div className="text-xs font-bold">{athletesLoading ? "..." : athletesAtRisk}</div>
+              <div className="text-sm font-bold">
+                {athletesLoading ? "..." : 
+                 typeof athletesAtRisk === 'number' ? athletesAtRisk : 
+                 <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
+              </div>
               <div className="text-[9px] text-zinc-400 -mt-0.5">High Risk</div>
             </div>
           </div>
@@ -411,9 +474,13 @@ export default function NewCoachDashboard() {
 
           {/* Sick/Injured Metric */}
           <div className="flex items-center gap-1 px-1.5">
-            <HeartPulse className={`h-4 w-4 ${sickOrInjuredAthletes === 0 ? 'text-green-500' : 'text-red-500'}`} />
+            <HeartPulse className={`h-4 w-4 ${typeof sickOrInjuredAthletes === 'number' && sickOrInjuredAthletes === 0 ? 'text-green-500' : typeof sickOrInjuredAthletes === 'number' ? 'text-red-500' : 'text-gray-400'}`} />
             <div>
-              <div className="text-xs font-bold">{athletesLoading ? "..." : sickOrInjuredAthletes}</div>
+              <div className="text-sm font-bold">
+                {athletesLoading ? "..." : 
+                 typeof sickOrInjuredAthletes === 'number' ? sickOrInjuredAthletes : 
+                 <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
+              </div>
               <div className="text-[9px] text-zinc-400 -mt-0.5">Sick/Injured</div>
             </div>
           </div>
