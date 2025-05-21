@@ -448,11 +448,11 @@ export default function NewCoachDashboard() {
           <div className="flex items-center gap-1 px-1.5">
             <BatteryFull className={`h-4 w-4 ${isNumber(averageRecovery) && averageRecovery >= 70 ? 'text-green-500' : isNumber(averageRecovery) && averageRecovery >= 50 ? 'text-amber-500' : 'text-gray-400'}`} />
             <div>
-              <div className="text-sm font-bold">
+              <div className="text-lg font-bold">
                 {readinessLoading ? "..." : 
-                 <span className="text-zinc-500 text-xs">Awaiting data</span>}
+                 <span className="text-zinc-500 text-sm">Awaiting data</span>}
               </div>
-              <div className="text-[9px] text-zinc-400 -mt-0.5">Recovery</div>
+              <div className="text-xs text-zinc-400 -mt-0.5">Recovery</div>
             </div>
           </div>
 
@@ -462,11 +462,11 @@ export default function NewCoachDashboard() {
           <div className="flex items-center gap-1 px-1.5">
             <Zap className={`h-4 w-4 ${isNumber(teamAvgReadiness) && teamAvgReadiness >= 70 ? 'text-green-500' : isNumber(teamAvgReadiness) && teamAvgReadiness >= 50 ? 'text-amber-500' : 'text-gray-400'}`} />
             <div>
-              <div className="text-sm font-bold">
+              <div className="text-lg font-bold">
                 {readinessLoading ? "..." : 
-                 <span className="text-zinc-500 text-xs">Awaiting data</span>}
+                 <span className="text-zinc-500 text-sm">Awaiting data</span>}
               </div>
-              <div className="text-[9px] text-zinc-400 -mt-0.5">Readiness</div>
+              <div className="text-xs text-zinc-400 -mt-0.5">Readiness</div>
             </div>
           </div>
 
@@ -482,11 +482,11 @@ export default function NewCoachDashboard() {
               fill={isNumber(athletesAtRisk) && athletesAtRisk > 2 ? 'currentColor' : 'none'}
             />
             <div>
-              <div className="text-sm font-bold">
+              <div className="text-lg font-bold">
                 {athletesLoading ? "..." : 
-                 <span className="text-zinc-500 text-xs">Awaiting data</span>}
+                 <span className="text-zinc-500 text-sm">Awaiting data</span>}
               </div>
-              <div className="text-[9px] text-zinc-400 -mt-0.5">High Risk</div>
+              <div className="text-xs text-zinc-400 -mt-0.5">High Risk</div>
             </div>
           </div>
 
@@ -496,11 +496,11 @@ export default function NewCoachDashboard() {
           <div className="flex items-center gap-1 px-1.5">
             <HeartPulse className={`h-4 w-4 ${isNumber(sickOrInjuredAthletes) && sickOrInjuredAthletes === 0 ? 'text-green-500' : isNumber(sickOrInjuredAthletes) ? 'text-red-500' : 'text-gray-400'}`} />
             <div>
-              <div className="text-sm font-bold">
+              <div className="text-lg font-bold">
                 {athletesLoading ? "..." : 
-                 <span className="text-zinc-500 text-xs">Awaiting data</span>}
+                 <span className="text-zinc-500 text-sm">Awaiting data</span>}
               </div>
-              <div className="text-[9px] text-zinc-400 -mt-0.5">Sick/Injured</div>
+              <div className="text-xs text-zinc-400 -mt-0.5">Sick/Injured</div>
             </div>
           </div>
         </div>
