@@ -47,7 +47,7 @@ export function InjurySelector({
           onCheckedChange={onHasInjuryChange}
           className="data-[state=checked]:bg-primary"
         />
-        <span className="text-sm text-gray-200">{hasInjury ? "Yes" : "No"}</span>
+        <span className="text-sm text-gray-200">Yes</span>
       </div>
       
       {/* Show additional fields only if hasInjury is true */}
