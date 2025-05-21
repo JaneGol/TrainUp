@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
@@ -21,16 +21,26 @@ export default function LoadInsights() {
   });
   
   // Get training load data with athlete ID when an athlete is selected
-  const { data: trainingLoad, isLoading: loadLoading } = useQuery({
-    queryKey: ["/api/analytics/training-load", selectedAthlete !== "all" ? { athleteId: selectedAthlete } : undefined],
+  const { data: trainingLoad, isLoading: loadLoading, refetch: refetchTrainingLoad } = useQuery({
+    queryKey: ["/api/analytics/training-load", selectedAthlete !== "all" ? { athleteId: selectedAthlete } : null],
     refetchOnWindowFocus: false
   });
   
   // Get ACWR data with athlete ID when an athlete is selected
-  const { data: acwrData, isLoading: acwrLoading } = useQuery({
-    queryKey: ["/api/analytics/acwr", selectedAthlete !== "all" ? { athleteId: selectedAthlete } : undefined],
+  const { data: acwrData, isLoading: acwrLoading, refetch: refetchAcwr } = useQuery({
+    queryKey: ["/api/analytics/acwr", selectedAthlete !== "all" ? { athleteId: selectedAthlete } : null],
     refetchOnWindowFocus: false
   });
+  
+  // Manually refetch data when athlete selection changes
+  const handleAthleteChange = (newValue: string) => {
+    setSelectedAthlete(newValue);
+    // Allow the state to update first, then refetch
+    setTimeout(() => {
+      refetchTrainingLoad();
+      refetchAcwr();
+    }, 100);
+  };
   
   // Define interfaces for proper type checking
   interface TrainingLoadItem {
@@ -150,7 +160,7 @@ export default function LoadInsights() {
             <Label htmlFor="athlete-select" className="mb-2 block">Athlete</Label>
             <Select
               value={selectedAthlete}
-              onValueChange={setSelectedAthlete}
+              onValueChange={handleAthleteChange}
             >
               <SelectTrigger id="athlete-select" className="bg-zinc-800 border-zinc-700 text-white">
                 <SelectValue placeholder="Select Athlete" />
