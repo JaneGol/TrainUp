@@ -312,10 +312,27 @@ export class DatabaseStorage implements IStorage {
     return multipliers[emotionalLoad as keyof typeof multipliers] || 1.10;
   }
 
+  // Training Type Multipliers for ACWR calculations
+  private getTrainingTypeMultiplier(trainingType: string): number {
+    const multipliers = {
+      "Field Training": 1.25,  // Higher impact field sessions
+      "Gym Training": 1.0,     // Standard gym workouts
+      "Match/Game": 1.0,       // Games treated as standard
+      "Recovery": 0.5          // Light recovery sessions
+    };
+    return multipliers[trainingType as keyof typeof multipliers] || 1.0;
+  }
+
   // Calculate Training Load: RPE × Duration × Emotional Factor
   private calculateTrainingLoad(rpe: number, duration: number, emotionalLoad: number): number {
     const emotionalFactor = this.getEmotionalMultiplier(emotionalLoad);
     return rpe * duration * emotionalFactor;
+  }
+
+  // Calculate Weighted Training Load for ACWR: Training Load × Type Multiplier
+  private calculateWeightedTrainingLoad(trainingLoad: number, trainingType: string): number {
+    const typeMultiplier = this.getTrainingTypeMultiplier(trainingType);
+    return trainingLoad * typeMultiplier;
   }
 
   // Training entry methods
@@ -955,10 +972,13 @@ export class DatabaseStorage implements IStorage {
         // In a real implementation, this would come from coach's input
         const duration = 70; // Default duration of 70 minutes
         
-        // Calculate training load: Average RPE × Duration
-        const trainingLoad = Math.round(averageRPE * duration);
+        // Calculate base training load: Average RPE × Duration
+        const baseTrainingLoad = averageRPE * duration;
         
-        loadByDateAndType[dateString][trainingType] = trainingLoad;
+        // Apply training type multipliers for enhanced ACWR calculations
+        const weightedTrainingLoad = this.calculateWeightedTrainingLoad(baseTrainingLoad, trainingType);
+        
+        loadByDateAndType[dateString][trainingType] = Math.round(weightedTrainingLoad);
       });
     });
     
