@@ -35,22 +35,18 @@ export const trainingEntries = pgTable("training_entries", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Create the base schema from Drizzle  
-const baseTrainingEntrySchema = createInsertSchema(trainingEntries).omit({
-  id: true,
-  coachReviewed: true,
-  createdAt: true,
-  trainingLoad: true, // Calculated on backend, not sent from frontend
-  sessionNumber: true, // Temporarily omit until database is updated
-});
-
-// Create a custom schema that extends the base schema to handle date as string
-export const insertTrainingEntrySchema = baseTrainingEntrySchema.extend({
-  sessionNumber: z.coerce.number().min(1).max(2).default(1).optional(), // Add back for frontend
+// Create a completely custom schema for form validation (excludes calculated fields)
+export const insertTrainingEntrySchema = z.object({
+  userId: z.number().optional(), // Added by backend
+  trainingType: z.enum(["Field Training", "Gym Training", "Match/Game"]),
+  sessionNumber: z.coerce.number().min(1).max(2).default(1).optional(),
+  effortLevel: z.number().min(1).max(10),
+  emotionalLoad: z.number().min(1).max(5),
+  sessionDuration: z.number().min(15).max(240).default(60).optional(),
+  mood: z.string().default("neutral").optional(), // Make mood optional
+  notes: z.string().optional(),
   date: z.string().or(z.date()).transform((val) => {
-    // If it's already a Date object, return it
     if (val instanceof Date) return val;
-    // Otherwise try to parse the string to a Date
     return new Date(val);
   }),
 });

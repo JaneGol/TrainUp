@@ -320,21 +320,16 @@ export class DatabaseStorage implements IStorage {
 
   // Training entry methods
   async createTrainingEntry(entry: InsertTrainingEntry): Promise<TrainingEntry> {
-    // Calculate training load using the emotional multiplier
-    const sessionDuration = entry.sessionDuration || 60; // Default 60 minutes
-    const trainingLoad = this.calculateTrainingLoad(
-      entry.effortLevel, 
-      sessionDuration, 
-      entry.emotionalLoad
-    );
-
-    // Temporarily exclude sessionNumber and trainingLoad until database schema is updated
-    const { sessionNumber, trainingLoad: _, sessionDuration: __, ...entryWithoutNewFields } = entry;
-    
+    // Use only core fields that definitely exist in current database
     const [newEntry] = await db
       .insert(trainingEntries)
       .values({
-        ...entryWithoutNewFields,
+        userId: entry.userId!,
+        trainingType: entry.trainingType,
+        date: entry.date,
+        effortLevel: entry.effortLevel,
+        emotionalLoad: entry.emotionalLoad,
+        mood: entry.mood || "neutral",
         notes: entry.notes || null,
         coachReviewed: false,
       })
