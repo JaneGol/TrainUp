@@ -340,7 +340,7 @@ export class DatabaseStorage implements IStorage {
         sleepHours: diary.sleepHours,
         stressLevel: diary.stressLevel,
         recoveryLevel: diary.recoveryLevel,
-        motivationLevel: diary.motivationLevel,
+        motivationLevel: diary.motivationLevel || diary.mood,
         sorenessMap: diary.sorenessMap,
         symptoms: diary.symptoms,
         hasInjury: diary.hasInjury,
