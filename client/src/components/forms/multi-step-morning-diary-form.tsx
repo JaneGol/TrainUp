@@ -561,10 +561,8 @@ export default function MultiStepMorningDiaryForm() {
                           defaultValue={[0]}
                           onValueChange={(vals) => {
                             const val = vals[0];
-                            if (val <= 1) field.onChange("negative");
-                            else if (val === 2) field.onChange("negative");
-                            else if (val === 3) field.onChange("neutral");
-                            else if (val >= 4) field.onChange("positive");
+                            if (val <= 2) field.onChange("low");
+                            else field.onChange("high");
                           }}
                           className="py-3"
                         />
