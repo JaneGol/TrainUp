@@ -33,6 +33,9 @@ const trainingEntryFormSchema = z.object({
     required_error: "Training type is required",
     invalid_type_error: "Training type must be one of the specified options"
   }),
+  sessionNumber: z.enum(["1", "2"], {
+    required_error: "Session number is required"
+  }).default("1"),
   effortLevel: z.number().min(1, "RPE must be at least 1").max(10, "RPE cannot exceed 10"),
   emotionalLoad: z.number().min(1, "Emotional load must be at least 1").max(5, "Emotional load cannot exceed 5"),
   mood: z.string().default("neutral"), // Add the required mood field
@@ -270,8 +273,34 @@ export default function TrainingEntryForm() {
                     </FormItem>
                   )}
                 />
-                
 
+                <FormField
+                  control={form.control}
+                  name="sessionNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Session Number</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select session" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">Session 1</SelectItem>
+                          <SelectItem value="2">Session 2</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Select which training session this RPE refers to
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
                 <FormField
                   control={form.control}

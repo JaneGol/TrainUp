@@ -23,6 +23,7 @@ export const trainingEntries = pgTable("training_entries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   trainingType: text("training_type", { enum: ["Field Training", "Gym Training", "Match/Game"] }).notNull(),
+  sessionNumber: integer("session_number").notNull().default(1),
   date: timestamp("date").notNull(),
   effortLevel: integer("effort_level").notNull(),
   emotionalLoad: integer("emotional_load").notNull(),
