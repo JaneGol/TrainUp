@@ -470,7 +470,7 @@ export default function MultiStepMorningDiaryForm() {
                           onClick={() => {
                             const currentValue = parseFloat(field.value || "7");
                             const newValue = Math.max(0, currentValue - 0.5);
-                            field.onChange(newValue.toString());
+                            field.onChange(newValue);
                           }}
                         >
                           <span className="text-xl font-bold">−</span>
@@ -484,7 +484,7 @@ export default function MultiStepMorningDiaryForm() {
                           onClick={() => {
                             const currentValue = parseFloat(field.value || "7");
                             const newValue = Math.min(24, currentValue + 0.5);
-                            field.onChange(newValue.toString());
+                            field.onChange(newValue);
                           }}
                         >
                           <span className="text-xl font-bold">+</span>
