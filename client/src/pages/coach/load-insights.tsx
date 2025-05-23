@@ -77,23 +77,50 @@ export default function LoadInsights() {
     return dateFiltered && (selectedAthlete === "all" || (item.athleteId !== undefined && parseInt(selectedAthlete) === item.athleteId));
   }) : [];
 
-  // Custom tooltip for stacked bar chart
+  // Enhanced tooltip for stacked bar chart with session breakdown
   const CustomBarTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      // Get the original data point to access session breakdown
+      const dataPoint = filteredTrainingLoad.find(item => item.date === label);
+      
       return (
         <div className="bg-zinc-800 p-3 rounded border border-zinc-700 shadow-lg">
-          <p className="text-white font-medium mb-1">{new Date(label).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center justify-between gap-4">
-              <span className="text-zinc-300">{entry.name}:</span>
-              <span className="text-white font-medium">{entry.value} AU</span>
+          <p className="text-white font-medium mb-2">{new Date(label).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
+          
+          {/* Field Training with session breakdown */}
+          {dataPoint?.fieldSession1 && (
+            <div className="mb-1">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-zinc-300">Field Session 1:</span>
+                <span className="text-white font-medium">{dataPoint.fieldSession1} AU</span>
+              </div>
+              {dataPoint?.fieldSession2 && (
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-zinc-300">Field Session 2:</span>
+                  <span className="text-white font-medium">{dataPoint.fieldSession2} AU</span>
+                </div>
+              )}
             </div>
-          ))}
-          <div className="flex items-center justify-between gap-4 mt-1 pt-1 border-t border-zinc-700">
+          )}
+          
+          {/* Other training types */}
+          {dataPoint?.gymTraining && dataPoint.gymTraining > 0 && (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-zinc-300">Gym Training:</span>
+              <span className="text-white font-medium">{dataPoint.gymTraining} AU</span>
+            </div>
+          )}
+          
+          {dataPoint?.matchGame && dataPoint.matchGame > 0 && (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-zinc-300">Match/Game:</span>
+              <span className="text-white font-medium">{dataPoint.matchGame} AU</span>
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between gap-4 mt-2 pt-1 border-t border-zinc-700">
             <span className="text-zinc-300">Total:</span>
-            <span className="text-white font-medium">
-              {payload.reduce((sum: number, entry: any) => sum + entry.value, 0)} AU
-            </span>
+            <span className="text-white font-medium">{dataPoint?.load || 0} AU</span>
           </div>
         </div>
       );
@@ -242,11 +269,21 @@ export default function LoadInsights() {
                         return <span style={{ color: "#9ca3af", fontSize: "12px" }}>{displayNames[value] || value}</span>;
                       }}
                     />
+                    {/* Field Training Sessions - Separate stacked segments */}
                     <Bar 
-                      dataKey="fieldTraining" 
-                      name="Field Training" 
+                      dataKey="fieldSession1" 
+                      name="Field Session 1" 
                       stackId="a" 
                       fill="#A3E635" // Bright green
+                    />
+                    <Bar 
+                      dataKey="fieldSession2" 
+                      name="Field Session 2" 
+                      stackId="a" 
+                      fill="#84D93F" // Slightly darker green to distinguish
+                      stroke="#2D3748" // Dark border for visual separation
+                      strokeWidth={1}
+                      strokeDasharray="3,3" // Dashed pattern divider
                     />
                     <Bar 
                       dataKey="gymTraining" 
