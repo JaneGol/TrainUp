@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import CoachDashboardLayout from "@/components/layout/coach-dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AnimatedProgressRing, MiniProgressRing } from "@/components/ui/animated-progress-ring";
 import { 
   Users, Activity, AlertTriangle, HeartPulse, 
   Dumbbell, Gauge, UserCheck, ClipboardList, 

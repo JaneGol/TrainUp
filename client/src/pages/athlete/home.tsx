@@ -1,6 +1,7 @@
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { WellnessProgressRing } from "@/components/ui/animated-progress-ring";
 import {
   ClipboardCheck,
   BarChart3,
@@ -59,11 +60,21 @@ export default function AthleteHomePage() {
           {hasCompletedDiaryToday ? 'Ready for today\'s training!' : 'Complete your daily check-in'}
         </p>
         
-        {/* Today's readiness score if available */}
+        {/* Today's wellness progress ring */}
         {hasCompletedDiaryToday && latestDiary?.readinessScore && (
-          <div className="mt-3 flex items-center">
-            <Trophy className="h-5 w-5 mr-2 text-accent" />
-            <span className="font-semibold">Today's Readiness: {latestDiary.readinessScore}%</span>
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex flex-col">
+              <div className="flex items-center">
+                <Trophy className="h-5 w-5 mr-2 text-accent" />
+                <span className="font-semibold">Today's Wellness</span>
+              </div>
+              <p className="text-xs text-white/80 mt-1">Your daily readiness score</p>
+            </div>
+            <WellnessProgressRing 
+              readinessScore={latestDiary.readinessScore} 
+              size={80}
+              className="flex-shrink-0"
+            />
           </div>
         )}
       </header>
