@@ -33,9 +33,7 @@ const trainingEntryFormSchema = z.object({
     required_error: "Training type is required",
     invalid_type_error: "Training type must be one of the specified options"
   }),
-  sessionNumber: z.enum(["1", "2"], {
-    required_error: "Session number is required"
-  }).default("1"),
+  sessionNumber: z.coerce.number().min(1).max(2).default(1),
   effortLevel: z.number().min(1, "RPE must be at least 1").max(10, "RPE cannot exceed 10"),
   emotionalLoad: z.number().min(1, "Emotional load must be at least 1").max(5, "Emotional load cannot exceed 5"),
   mood: z.string().default("neutral"), // Add the required mood field

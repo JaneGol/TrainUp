@@ -10,7 +10,7 @@ import {
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, gte, sql } from "drizzle-orm";
 import { IStorage } from "./storage";
 
 // Helper function to generate default training load
