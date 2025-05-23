@@ -302,10 +302,13 @@ export class DatabaseStorage implements IStorage {
   
   // Training entry methods
   async createTrainingEntry(entry: InsertTrainingEntry): Promise<TrainingEntry> {
+    // Temporarily exclude sessionNumber until database schema is updated
+    const { sessionNumber, ...entryWithoutSession } = entry;
+    
     const [newEntry] = await db
       .insert(trainingEntries)
       .values({
-        ...entry,
+        ...entryWithoutSession,
         notes: entry.notes || null,
         coachReviewed: false,
       })
