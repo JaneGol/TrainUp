@@ -594,7 +594,7 @@ export default function MultiStepMorningDiaryForm() {
       case 2:
         return (
           <div className="space-y-6">
-            <h3 className="text-2xl font-semibold text-gray-100 mb-4">Recovery & Health</h3>
+            <h3 className="text-2xl font-semibold text-gray-100 mb-4">Recovery & Physical Status</h3>
             
             {/* Recovery Level Slider */}
             <FormField
@@ -694,52 +694,72 @@ export default function MultiStepMorningDiaryForm() {
                   Please select at least one option
                 </p>
               )}
-            </div>
             
-            {/* Motivation & Energy Slider */}
+            {/* Muscle Soreness Selection with Pain Intensity */}
             <FormField
               control={form.control}
-              name="motivationLevel"
+              name="sorenessMap"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">What is your motivation & energy level today?</FormLabel>
-                  <div className="space-y-2">
-                    <FormControl>
-                      <div className="py-3">
-                        <Slider
-                          min={0}
-                          max={5}
-                          step={1}
-                          defaultValue={[0]}
-                          onValueChange={(vals) => {
-                            const val = vals[0];
-                            if (val <= 1) field.onChange("low");
-                            else if (val === 2) field.onChange("low");
-                            else if (val === 3) field.onChange("moderate");
-                            else if (val >= 4) field.onChange("high");
-                          }}
-                          className="py-3"
-                        />
-                      </div>
-                    </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
-                      <span>0</span>
-                      <span>1</span>
-                      <span>2</span>
-                      <span>3</span>
-                      <span>4</span>
-                      <span>5</span>
-                    </div>
-                    <div className="flex justify-between text-xs text-gray-400 mt-0">
-                      <span>Low</span>
-                      <span className="ml-auto">High</span>
-                    </div>
-                  </div>
-                  <FormDescription className="text-xs text-gray-400"></FormDescription>
+                  <SorenessSelector 
+                    value={field.value as Record<string, boolean>} 
+                    onChange={(value) => form.setValue("sorenessMap", value, { shouldValidate: true })}
+                    painIntensity={form.watch("painLevel") || 0}
+                    onPainIntensityChange={
+                      (value) => {
+                        // When adjusting pain intensity from soreness selector
+                        form.setValue("painLevel", value);
+                      }
+                    }
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
+            {/* Notes about soreness (only show if not "No soreness") */}
+            {!form.watch("sorenessMap")?._no_soreness && Object.keys(form.watch("sorenessMap") || {}).length > 0 && (
+              <FormField
+                control={form.control}
+                name="sorenessNotes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-200">Additional notes about soreness</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe your muscle soreness in more detail..."
+                        className="bg-[rgb(30,30,30)] text-gray-200 border-gray-700 resize-none min-h-[80px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
+            {/* Injury Selector Component */}
+            <FormField
+              control={form.control}
+              name="hasInjury"
+              render={({ field }) => (
+                <FormItem>
+                  <InjurySelector 
+                    hasInjury={field.value}
+                    painLevel={form.watch("painLevel") || 0}
+                    injuryImproving={form.watch("injuryImproving")}
+                    injuryNotes={form.watch("injuryNotes") || ""}
+                    onHasInjuryChange={(value) => form.setValue("hasInjury", value, { shouldValidate: true })}
+                    onPainLevelChange={(value) => form.setValue("painLevel", value)}
+                    onInjuryImprovingChange={(value) => form.setValue("injuryImproving", value as "yes" | "no" | "unchanged")}
+                    onInjuryNotesChange={(value) => form.setValue("injuryNotes", value)}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            </div>
+
           </div>
         );
       
