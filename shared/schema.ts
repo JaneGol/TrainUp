@@ -57,7 +57,7 @@ export const morningDiary = pgTable("morning_diary", {
   sleepQuality: text("sleep_quality", { enum: ["good", "average", "poor"] }).notNull(),
   sleepHours: real("sleep_hours").notNull(),
   stressLevel: text("stress_level", { enum: ["low", "medium", "high"] }).notNull(),
-  mood: text("mood", { enum: ["low", "high"] }).notNull(),
+  mood: text("mood", { enum: ["positive", "neutral", "negative"] }).notNull(),
   
   // Step 2: Recovery & Health
   recoveryLevel: text("recovery_level", { enum: ["good", "moderate", "poor"] }).notNull(),
