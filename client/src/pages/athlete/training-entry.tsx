@@ -290,8 +290,8 @@ export default function TrainingEntryForm() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="1">🔘 Session 1</SelectItem>
-                            <SelectItem value="2">🔘 Session 2</SelectItem>
+                            <SelectItem value="1">Session 1</SelectItem>
+                            <SelectItem value="2">Session 2</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
