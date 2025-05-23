@@ -42,14 +42,13 @@ export const morningDiarySchema = z.object({
   sleepQuality: z.enum(["good", "average", "poor"]),
   sleepHours: z.string(),
   stressLevel: z.enum(["low", "medium", "high"]),
-  mood: z.enum(["positive", "neutral", "negative"]),
+  mood: z.enum(["low", "high"]),
   
-  // Step 2: Recovery & Health
+  // Step 2: Recovery & Physical Status
   recoveryLevel: z.enum(["good", "moderate", "poor"]),
   symptoms: z.array(z.string()),
-  motivationLevel: z.enum(["high", "moderate", "low"]),
   
-  // Step 3: Muscle Soreness & Injury
+  // Muscle Soreness & Injury (merged into step 2)
   sorenessMap: z.record(z.string(), z.boolean()).refine(
     (map) => Object.keys(map).length > 0 || map._no_soreness === true, 
     { message: "Please select at least one muscle group or confirm you have no soreness" }
@@ -89,12 +88,11 @@ export default function MultiStepMorningDiaryForm() {
     sleepQuality: "average" as "good" | "average" | "poor",
     sleepHours: "7",
     stressLevel: "medium" as "low" | "medium" | "high",
-    mood: "neutral" as "positive" | "neutral" | "negative",
+    mood: "low" as "low" | "high",
     
     // Step 2 defaults with explicit types
     recoveryLevel: "moderate" as "good" | "moderate" | "poor",
     symptoms: [] as string[],
-    motivationLevel: "moderate" as "high" | "moderate" | "low",
     
     // Step 3 defaults
     sorenessMap: { _no_soreness: true } as Record<string, boolean>,
@@ -186,7 +184,7 @@ export default function MultiStepMorningDiaryForm() {
         });
         break;
       case 2:
-        form.trigger(["recoveryLevel", "symptoms", "motivationLevel"]).then((isValid) => {
+        form.trigger(["recoveryLevel", "symptoms"]).then((isValid) => {
           if (isValid) setCurrentStep(prev => prev + 1);
         });
         break;
@@ -208,12 +206,11 @@ export default function MultiStepMorningDiaryForm() {
       sleepQuality: "average",
       sleepHours: "7",
       stressLevel: "medium",
-      mood: "neutral",
+      mood: "low",
       
       // Step 2 defaults
       recoveryLevel: "moderate",
       symptoms: [],
-      motivationLevel: "moderate",
       
       // Step 3 defaults
       sorenessMap: {},
@@ -255,9 +252,9 @@ export default function MultiStepMorningDiaryForm() {
     if (data.stressLevel === "low") score += 1;
     else if (data.stressLevel === "medium") score += 0.5;
     
-    // Mood (max 1 point)
-    if (data.mood === "positive") score += 1;
-    else if (data.mood === "neutral") score += 0.5;
+    // Motivation & Energy (max 1 point)
+    if (data.mood === "high") score += 1;
+    else if (data.mood === "low") score += 0.5;
     
     // Recovery level (max 1 point)
     if (data.recoveryLevel === "good") score += 1;
@@ -266,10 +263,6 @@ export default function MultiStepMorningDiaryForm() {
     // Symptoms (max 1 point)
     if (data.symptoms.includes("no_symptoms")) score += 1;
     else if (data.symptoms.length <= 1) score += 0.5;
-    
-    // Motivation (max 1 point)
-    if (data.motivationLevel === "high") score += 1;
-    else if (data.motivationLevel === "moderate") score += 0.5;
     
     // Soreness (max 1 point)
     const sorenessMap = data.sorenessMap as Record<string, boolean>;
@@ -557,7 +550,7 @@ export default function MultiStepMorningDiaryForm() {
               name="mood"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">What is your mood this morning?</FormLabel>
+                  <FormLabel className="text-gray-200">What is your motivation & energy level today?</FormLabel>
                   <div className="space-y-2">
                     <FormControl>
                       <div className="py-3">
@@ -586,8 +579,8 @@ export default function MultiStepMorningDiaryForm() {
                       <span>5</span>
                     </div>
                     <div className="flex justify-between text-xs text-gray-400 mt-0">
-                      <span>Negative</span>
-                      <span className="ml-auto">Positive</span>
+                      <span>Low</span>
+                      <span className="ml-auto">High</span>
                     </div>
                   </div>
                   <FormDescription className="text-xs text-gray-400"></FormDescription>
