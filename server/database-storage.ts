@@ -300,8 +300,34 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  // Emotional Load Multiplier Table
+  private getEmotionalMultiplier(emotionalLoad: number): number {
+    const multipliers = {
+      1: 1.00, // Very Low
+      2: 1.05,
+      3: 1.10, // Neutral
+      4: 1.15,
+      5: 1.20  // Very High
+    };
+    return multipliers[emotionalLoad as keyof typeof multipliers] || 1.10;
+  }
+
+  // Calculate Training Load: RPE × Duration × Emotional Factor
+  private calculateTrainingLoad(rpe: number, duration: number, emotionalLoad: number): number {
+    const emotionalFactor = this.getEmotionalMultiplier(emotionalLoad);
+    return rpe * duration * emotionalFactor;
+  }
+
   // Training entry methods
   async createTrainingEntry(entry: InsertTrainingEntry): Promise<TrainingEntry> {
+    // Calculate training load using the emotional multiplier
+    const sessionDuration = entry.sessionDuration || 60; // Default 60 minutes
+    const trainingLoad = this.calculateTrainingLoad(
+      entry.effortLevel, 
+      sessionDuration, 
+      entry.emotionalLoad
+    );
+
     // Temporarily exclude sessionNumber until database schema is updated
     const { sessionNumber, ...entryWithoutSession } = entry;
     
@@ -309,6 +335,8 @@ export class DatabaseStorage implements IStorage {
       .insert(trainingEntries)
       .values({
         ...entryWithoutSession,
+        trainingLoad,
+        sessionDuration,
         notes: entry.notes || null,
         coachReviewed: false,
       })

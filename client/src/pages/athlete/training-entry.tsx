@@ -272,33 +272,36 @@ export default function TrainingEntryForm() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="sessionNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Session Number</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select session" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">Session 1</SelectItem>
-                          <SelectItem value="2">Session 2</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Select which training session this RPE refers to
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Only show session selector for Field Training */}
+                {form.watch("trainingType") === "Field Training" && (
+                  <FormField
+                    control={form.control}
+                    name="sessionNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Session</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value?.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select session" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="1">🔘 Session 1</SelectItem>
+                            <SelectItem value="2">🔘 Session 2</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Field training can have multiple sessions per day
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 
                 <FormField
                   control={form.control}

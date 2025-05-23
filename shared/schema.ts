@@ -27,6 +27,8 @@ export const trainingEntries = pgTable("training_entries", {
   date: timestamp("date").notNull(),
   effortLevel: integer("effort_level").notNull(),
   emotionalLoad: integer("emotional_load").notNull(),
+  trainingLoad: real("training_load").notNull(), // Calculated: RPE × Duration × Emotional Factor
+  sessionDuration: integer("session_duration").default(60), // Default 60 minutes
   mood: text("mood").notNull(),
   notes: text("notes"),
   coachReviewed: boolean("coach_reviewed").default(false),
