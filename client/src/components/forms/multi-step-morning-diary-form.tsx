@@ -432,7 +432,7 @@ export default function MultiStepMorningDiaryForm() {
               name="sleepQuality"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">How was your sleep quality?</FormLabel>
+                  <FormLabel className="text-lg font-medium text-gray-200 mb-4 block">How was your sleep quality?</FormLabel>
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
@@ -460,7 +460,7 @@ export default function MultiStepMorningDiaryForm() {
               name="sleepHours"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">How many hours did you sleep?</FormLabel>
+                  <FormLabel className="text-lg font-medium text-gray-200 mb-4 block">How many hours did you sleep?</FormLabel>
                   <FormControl>
                     <div className="flex items-center space-x-3">
                       <div className="flex bg-[rgb(30,30,30)] border border-gray-700 rounded-md">
@@ -763,67 +763,7 @@ export default function MultiStepMorningDiaryForm() {
           </div>
         );
       
-      case 3:
-        return (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-semibold text-gray-100 mb-4">Muscle Soreness & Injury Check</h3>
-            
-            {/* Muscle Soreness Selection with Pain Intensity */}
-            <FormField
-              control={form.control}
-              name="sorenessMap"
-              render={({ field }) => (
-                <FormItem>
-                  <SorenessSelector 
-                    value={field.value as Record<string, boolean>} 
-                    onChange={(value) => form.setValue("sorenessMap", value, { shouldValidate: true })}
-                    painIntensity={form.watch("painLevel") || 0}
-                    onPainIntensityChange={
-                      (value) => {
-                        // When adjusting pain intensity from soreness selector
-                        form.setValue("painLevel", value);
-                      }
-                    }
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Notes about soreness (only show if not "No soreness") */}
-            {!form.watch("sorenessMap")?._no_soreness && Object.keys(form.watch("sorenessMap") || {}).length > 0 && (
-              <FormField
-                control={form.control}
-                name="sorenessNotes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-200">Additional notes about soreness</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe your muscle soreness in more detail..."
-                        className="bg-[rgb(30,30,30)] text-gray-200 border-gray-700 resize-none min-h-[80px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            
-            {/* Injury Selector Component */}
-            <InjurySelector
-              hasInjury={form.watch("hasInjury")}
-              onHasInjuryChange={(value) => form.setValue("hasInjury", value)}
-              painLevel={form.watch("painLevel") || 0}
-              onPainLevelChange={(value) => form.setValue("painLevel", value)}
-              injuryImproving={form.watch("injuryImproving") || "unchanged"}
-              onInjuryImprovingChange={(value) => form.setValue("injuryImproving", value)}
-              injuryNotes={form.watch("injuryNotes") || ""}
-              onInjuryNotesChange={(value) => form.setValue("injuryNotes", value)}
-            />
-          </div>
-        );
+
       
       default:
         return null;
@@ -845,7 +785,7 @@ export default function MultiStepMorningDiaryForm() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Progress Steps */}
           <div className="flex items-center justify-between mb-8">
-            {[1, 2, 3].map((step) => (
+            {[1, 2].map((step) => (
               <div
                 key={step}
                 className={`flex-1 h-2 ${
