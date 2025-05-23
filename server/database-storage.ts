@@ -954,7 +954,7 @@ export class DatabaseStorage implements IStorage {
     // Group entries by date and training type
     const entriesByDateAndType: Record<string, Record<string, any[]>> = {};
     
-    allEntries.forEach(entry => {
+    filteredEntries.forEach(entry => {
       const dateString = entry.date.toISOString().split('T')[0];
       
       if (!entriesByDateAndType[dateString]) {
