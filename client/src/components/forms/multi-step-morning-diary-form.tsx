@@ -40,7 +40,7 @@ export const morningDiarySchema = z.object({
   
   // Step 1: Sleep & Emotional State
   sleepQuality: z.enum(["good", "average", "poor"]),
-  sleepHours: z.string(),
+  sleepHours: z.number(),
   stressLevel: z.enum(["low", "medium", "high"]),
   mood: z.enum(["low", "high"]),
   
