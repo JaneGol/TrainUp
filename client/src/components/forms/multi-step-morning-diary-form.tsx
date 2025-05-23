@@ -792,9 +792,9 @@ export default function MultiStepMorningDiaryForm() {
                   <Button 
                     type="submit" 
                     className="bg-primary hover:bg-primary/90 text-black font-medium px-6"
-                    disabled={isSubmitting}
+                    disabled={submitMutation.isPending}
                   >
-                    {isSubmitting ? "Submitting..." : "Submit"}
+                    {submitMutation.isPending ? "Submitting..." : "Submit"}
                   </Button>
                 </div>
               </div>
@@ -836,9 +836,9 @@ export default function MultiStepMorningDiaryForm() {
           {/* Dynamic Step Content */}
           {renderStepContent()}
           
-          {/* Navigation Buttons */}
-          <div className="flex justify-between pt-4 mt-8 border-t border-gray-700">
-            {currentStep === 1 ? (
+          {/* Navigation Buttons - Only for Step 1 */}
+          {currentStep === 1 && (
+            <div className="flex justify-between pt-4 mt-8 border-t border-gray-700">
               <div className="flex space-x-3">
                 <Button
                   type="button"
@@ -857,56 +857,12 @@ export default function MultiStepMorningDiaryForm() {
                   Clear Responses
                 </Button>
               </div>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={prevStep}
-                className="flex items-center"
-              >
-                <ArrowLeft className="mr-3 h-5 w-5" /> Previous
-              </Button>
-            )}
-            
-            {currentStep < 3 ? (
+              
               <Button type="button" onClick={nextStep} className="flex items-center">
                 Next <Activity className="ml-3 h-5 w-5" />
               </Button>
-            ) : (
-              <div className="flex space-x-3">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setLocation('/athlete')}
-                  className="flex items-center text-gray-400 hover:text-white"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={resetForm}
-                  className="flex items-center text-gray-200"
-                >
-                  Clear All
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={submitMutation.isPending}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  {submitMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    <>Submit</>
-                  )}
-                </Button>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </form>
       </Form>
     </div>
