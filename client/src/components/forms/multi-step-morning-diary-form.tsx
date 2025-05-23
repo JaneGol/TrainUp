@@ -42,13 +42,14 @@ export const morningDiarySchema = z.object({
   sleepQuality: z.enum(["good", "average", "poor"]),
   sleepHours: z.string(),
   stressLevel: z.enum(["low", "medium", "high"]),
-  mood: z.enum(["low", "high"]),
+  mood: z.enum(["positive", "neutral", "negative"]),
   
-  // Step 2: Recovery & Physical Status (merged sections)
+  // Step 2: Recovery & Health
   recoveryLevel: z.enum(["good", "moderate", "poor"]),
   symptoms: z.array(z.string()),
+  motivationLevel: z.enum(["high", "moderate", "low"]),
   
-  // Muscle Soreness & Injury (now part of step 2)
+  // Step 3: Muscle Soreness & Injury
   sorenessMap: z.record(z.string(), z.boolean()).refine(
     (map) => Object.keys(map).length > 0 || map._no_soreness === true, 
     { message: "Please select at least one muscle group or confirm you have no soreness" }
