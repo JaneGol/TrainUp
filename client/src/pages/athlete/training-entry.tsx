@@ -383,11 +383,21 @@ export default function TrainingEntryForm() {
                     </div>
                     <div className="border rounded p-2 text-center">
                       <div className="text-sm text-muted-foreground">Emotional Load</div>
-                      <div className="text-xl font-semibold">{emotionalLoad}/5</div>
+                      <div className="text-xl font-semibold">
+                        {emotionalLoad === 1 ? "1.00" : 
+                         emotionalLoad === 2 ? "1.05" :
+                         emotionalLoad === 3 ? "1.10" :
+                         emotionalLoad === 4 ? "1.15" : "1.20"}
+                      </div>
                     </div>
                     <div className="border rounded p-2 text-center bg-primary/10">
-                      <div className="text-sm text-muted-foreground">Average Load</div>
-                      <div className="text-xl font-semibold">{((effortLevel * 2 + emotionalLoad) / 3).toFixed(1)}</div>
+                      <div className="text-sm text-muted-foreground">Session Load</div>
+                      <div className="text-xl font-semibold">
+                        {(effortLevel * 60 * (emotionalLoad === 1 ? 1.00 : 
+                                              emotionalLoad === 2 ? 1.05 :
+                                              emotionalLoad === 3 ? 1.10 :
+                                              emotionalLoad === 4 ? 1.15 : 1.20)).toFixed(0)}
+                      </div>
                     </div>
                   </div>
                 </div>
