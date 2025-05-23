@@ -86,7 +86,7 @@ export default function MultiStepMorningDiaryForm() {
     
     // Step 1 defaults with explicit types
     sleepQuality: "average" as "good" | "average" | "poor",
-    sleepHours: "7",
+    sleepHours: 7,
     stressLevel: "medium" as "low" | "medium" | "high",
     mood: "low" as "low" | "high",
     
@@ -204,7 +204,7 @@ export default function MultiStepMorningDiaryForm() {
       
       // Step 1 defaults
       sleepQuality: "average",
-      sleepHours: "7",
+      sleepHours: 7,
       stressLevel: "medium",
       mood: "low",
       

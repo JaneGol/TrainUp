@@ -243,7 +243,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Validating morning diary data:", dataToValidate);
       
-      const validatedData = insertMorningDiarySchema.parse(dataToValidate);
+      // Custom validation schema to match the updated form structure
+      const morningDiaryValidationSchema = z.object({
+        userId: z.number(),
+        sleepQuality: z.enum(["good", "average", "poor"]),
+        sleepHours: z.number(),
+        stressLevel: z.enum(["low", "medium", "high"]),
+        mood: z.enum(["low", "high"]),
+        recoveryLevel: z.enum(["good", "moderate", "poor"]),
+        symptoms: z.array(z.string()),
+        sorenessMap: z.any(),
+        sorenessNotes: z.string().optional(),
+        hasInjury: z.boolean(),
+        painLevel: z.number().optional(),
+        injuryImproving: z.enum(["yes", "no", "unchanged"]).optional(),
+        injuryNotes: z.string().optional(),
+        readinessScore: z.number()
+      });
+
+      const validatedData = morningDiaryValidationSchema.parse(dataToValidate);
       
       // Use the readiness score from the frontend if provided
       let readinessScore = req.body.readinessScore;
