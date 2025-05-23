@@ -1021,8 +1021,8 @@ export class DatabaseStorage implements IStorage {
       return formattedResult;
     }
     
-    // Only use default data for team-level queries (when no athleteId is provided)
-    return formattedResult.length > 0 ? formattedResult : generateDefaultTrainingLoad();
+    // Return actual data for team-level queries  
+    return formattedResult;
   }
   
   async getAcuteChronicLoadRatio(athleteId?: number): Promise<{ date: string; acute: number; chronic: number; ratio: number; riskZone: string; athleteId?: number }[]> {
