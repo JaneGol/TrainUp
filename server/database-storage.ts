@@ -443,6 +443,58 @@ export class DatabaseStorage implements IStorage {
     return newFeedback;
   }
   
+  // Get detected training sessions based on RPE submissions (>50% participation)
+  async getDetectedTrainingSessions(): Promise<any[]> {
+    try {
+      // Get all training entries from the last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const entries = await db
+        .select()
+        .from(trainingEntries)
+        .where(gte(trainingEntries.date, thirtyDaysAgo))
+        .orderBy(desc(trainingEntries.date));
+      
+      // Get total number of athletes
+      const totalAthletes = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, 'athlete'));
+      const athleteCount = totalAthletes[0]?.count || 1;
+      
+      // Group entries by date, training type, and session number
+      const sessionMap = new Map<string, any>();
+      
+      entries.forEach(entry => {
+        const dateStr = new Date(entry.date).toISOString().split('T')[0];
+        const sessionKey = `${dateStr}-${entry.trainingType}-${entry.sessionNumber}`;
+        
+        if (!sessionMap.has(sessionKey)) {
+          sessionMap.set(sessionKey, {
+            date: dateStr,
+            type: entry.trainingType,
+            sessionNumber: entry.sessionNumber,
+            duration: 60, // Default duration
+            submissions: [],
+            submissionCount: 0
+          });
+        }
+        
+        const session = sessionMap.get(sessionKey);
+        session.submissions.push(entry);
+        session.submissionCount++;
+      });
+      
+      // Filter sessions where >50% of athletes participated
+      const detectedSessions = Array.from(sessionMap.values())
+        .filter(session => (session.submissionCount / athleteCount) > 0.5)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      return detectedSessions;
+    } catch (error) {
+      console.error("Error detecting training sessions:", error);
+      return [];
+    }
+  }
+
   async getCoachFeedbackByCoachId(coachId: number): Promise<CoachFeedback[]> {
     return await db
       .select()

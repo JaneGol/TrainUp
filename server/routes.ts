@@ -446,6 +446,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(reports);
   });
 
+  // Get training sessions based on RPE submissions (automated detection)
+  app.get("/api/training-sessions", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "coach") {
+      return res.sendStatus(401);
+    }
+    
+    try {
+      const sessions = await storage.getDetectedTrainingSessions();
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching training sessions:", error);
+      res.status(500).json({ error: "Failed to fetch training sessions" });
+    }
+  });
+
   app.get("/api/athletes/:id/fitness-metrics", async (req, res) => {
     if (!req.isAuthenticated() || req.user!.role !== "coach") {
       return res.sendStatus(401);

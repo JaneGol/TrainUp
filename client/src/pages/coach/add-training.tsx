@@ -36,13 +36,18 @@ const addTrainingSchema = z.object({
 
 type AddTrainingFormValues = z.infer<typeof addTrainingSchema>;
 
-export default function AddTraining() {
+export default function TrainingLog() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   
   // Get athletes
   const { data: athletes = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/athletes"],
+  });
+
+  // Get training sessions based on RPE submissions
+  const { data: trainingSessions = [], isLoading: sessionsLoading } = useQuery<any[]>({
+    queryKey: ["/api/training-sessions"],
   });
   
   // Form definition
