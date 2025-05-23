@@ -951,104 +951,60 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
     
-    // Group entries by date, training type, and session number
-    const entriesByDateAndTypeAndSession: Record<string, Record<string, Record<number, any[]>>> = {};
+    // Group entries by date and training type
+    const entriesByDateAndType: Record<string, Record<string, any[]>> = {};
     
     allEntries.forEach(entry => {
       const dateString = entry.date.toISOString().split('T')[0];
-      const sessionNumber = entry.sessionNumber || 1;
       
-      if (!entriesByDateAndTypeAndSession[dateString]) {
-        entriesByDateAndTypeAndSession[dateString] = {};
+      if (!entriesByDateAndType[dateString]) {
+        entriesByDateAndType[dateString] = {};
       }
       
-      if (!entriesByDateAndTypeAndSession[dateString][entry.trainingType]) {
-        entriesByDateAndTypeAndSession[dateString][entry.trainingType] = {};
+      if (!entriesByDateAndType[dateString][entry.trainingType]) {
+        entriesByDateAndType[dateString][entry.trainingType] = [];
       }
       
-      if (!entriesByDateAndTypeAndSession[dateString][entry.trainingType][sessionNumber]) {
-        entriesByDateAndTypeAndSession[dateString][entry.trainingType][sessionNumber] = [];
-      }
-      
-      entriesByDateAndTypeAndSession[dateString][entry.trainingType][sessionNumber].push(entry);
+      entriesByDateAndType[dateString][entry.trainingType].push(entry);
     });
     
-    // Calculate load for each date, training type, and session
-    const loadByDateAndTypeAndSession: Record<string, Record<string, Record<number, number>>> = {};
-    
-    Object.entries(entriesByDateAndTypeAndSession).forEach(([dateString, trainingTypes]) => {
-      if (!loadByDateAndTypeAndSession[dateString]) {
-        loadByDateAndTypeAndSession[dateString] = {};
-      }
-      
-      Object.entries(trainingTypes).forEach(([trainingType, sessions]) => {
-        if (!loadByDateAndTypeAndSession[dateString][trainingType]) {
-          loadByDateAndTypeAndSession[dateString][trainingType] = {};
-        }
-        
-        Object.entries(sessions).forEach(([sessionNumber, entries]) => {
-          // Calculate average training load for this session
-          const totalLoad = entries.reduce((sum, entry) => sum + (entry.trainingLoad || 0), 0);
-          const averageLoad = totalLoad / entries.length;
-          
-          loadByDateAndTypeAndSession[dateString][trainingType][parseInt(sessionNumber)] = Math.round(averageLoad);
-        });
-      });
-    });
-    
-    // Convert to simplified structure for chart display
+    // Calculate load for each date and training type with session breakdown
     const loadByDateAndType: Record<string, Record<string, number>> = {};
-    const sessionBreakdowns: Record<string, Record<string, Record<number, number>>> = {};
     
-    Object.entries(loadByDateAndTypeAndSession).forEach(([dateString, trainingTypes]) => {
+    Object.entries(entriesByDateAndType).forEach(([dateString, trainingTypes]) => {
       if (!loadByDateAndType[dateString]) {
         loadByDateAndType[dateString] = {};
       }
-      if (!sessionBreakdowns[dateString]) {
-        sessionBreakdowns[dateString] = {};
-      }
       
-      Object.entries(trainingTypes).forEach(([trainingType, sessions]) => {
-        // Sum all sessions for this training type
-        const totalLoad = Object.values(sessions).reduce((sum, load) => sum + load, 0);
-        loadByDateAndType[dateString][trainingType] = totalLoad;
-        
-        // Store session breakdown for tooltip
-        sessionBreakdowns[dateString][trainingType] = sessions;
+      Object.entries(trainingTypes).forEach(([trainingType, entries]) => {
+        // Calculate total training load for this training type on this date
+        const totalLoad = entries.reduce((sum, entry) => sum + (entry.trainingLoad || 0), 0);
+        loadByDateAndType[dateString][trainingType] = Math.round(totalLoad);
       });
     });
     
-    // Format the data for frontend consumption with session breakdowns
+    // Format the data for frontend consumption
     const formattedResult: { 
       date: string; 
       load: number; 
       trainingType: string; 
       fieldTraining?: number; 
-      fieldSession1?: number;
-      fieldSession2?: number;
       gymTraining?: number; 
       matchGame?: number;
-      athleteId?: number;
-      sessionBreakdown?: Record<string, Record<number, number>>;
+      athleteId?: number 
     }[] = [];
     
     Object.entries(loadByDateAndType).forEach(([date, typeLoads]) => {
       // Calculate total load for this date (sum of all training types)
       const totalLoad = Object.values(typeLoads).reduce((sum, load) => sum + load, 0);
       
-      // Get Field Training session breakdown
-      const fieldSessions = sessionBreakdowns[date]?.['Field Training'] || {};
-      
       formattedResult.push({
         date,
         load: totalLoad,
         trainingType: 'Total',
         fieldTraining: typeLoads['Field Training'] || 0,
-        fieldSession1: fieldSessions[1] || 0,
-        fieldSession2: fieldSessions[2] || 0,
         gymTraining: typeLoads['Gym Training'] || 0,
-        matchGame: typeLoads['Match/Game'] || 0,
-        sessionBreakdown: sessionBreakdowns[date] || {}
+        matchGame: typeLoads['Match/Game'] || 0
       });
     });
     

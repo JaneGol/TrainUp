@@ -269,21 +269,11 @@ export default function LoadInsights() {
                         return <span style={{ color: "#9ca3af", fontSize: "12px" }}>{displayNames[value] || value}</span>;
                       }}
                     />
-                    {/* Field Training Sessions - Separate stacked segments */}
                     <Bar 
-                      dataKey="fieldSession1" 
-                      name="Field Session 1" 
+                      dataKey="fieldTraining" 
+                      name="Field Training" 
                       stackId="a" 
                       fill="#A3E635" // Bright green
-                    />
-                    <Bar 
-                      dataKey="fieldSession2" 
-                      name="Field Session 2" 
-                      stackId="a" 
-                      fill="#84D93F" // Slightly darker green to distinguish
-                      stroke="#2D3748" // Dark border for visual separation
-                      strokeWidth={1}
-                      strokeDasharray="3,3" // Dashed pattern divider
                     />
                     <Bar 
                       dataKey="gymTraining" 
