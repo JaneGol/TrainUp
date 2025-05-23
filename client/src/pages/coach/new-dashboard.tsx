@@ -506,6 +506,46 @@ export default function NewCoachDashboard() {
           </div>
         </div>
         
+        {/* Team Wellness Overview with Animated Progress Rings */}
+        <div className="bg-zinc-900 rounded-xl p-6 mb-8 max-w-2xl mx-auto border border-zinc-800">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+            <Activity className="h-5 w-5 mr-2 text-accent" />
+            Team Wellness Overview
+          </h3>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="text-center">
+              <AnimatedProgressRing
+                progress={isNumber(averageRecovery) ? averageRecovery : 0}
+                size={80}
+                strokeWidth={6}
+                animationDuration={2}
+                label="Recovery"
+                className="mx-auto mb-2"
+              />
+            </div>
+            <div className="text-center">
+              <AnimatedProgressRing
+                progress={isNumber(teamAvgReadiness) ? teamAvgReadiness : 0}
+                size={80}
+                strokeWidth={6}
+                animationDuration={2.2}
+                label="Readiness"
+                className="mx-auto mb-2"
+              />
+            </div>
+            <div className="text-center">
+              <AnimatedProgressRing
+                progress={isNumber(athletesAtRisk) ? Math.max(0, 100 - (athletesAtRisk * 20)) : 85}
+                size={80}
+                strokeWidth={6}
+                animationDuration={2.4}
+                label="Team Health"
+                className="mx-auto mb-2"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Action buttons styled like athlete interface */}
         <div className="space-y-4 max-w-2xl mx-auto mb-8">
           <ActionButton
