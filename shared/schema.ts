@@ -62,6 +62,7 @@ export const morningDiary = pgTable("morning_diary", {
   // Step 2: Recovery & Health
   recoveryLevel: text("recovery_level", { enum: ["good", "moderate", "poor"] }).notNull(),
   symptoms: json("symptoms").notNull(), // Array of symptoms: ["runny_nose", "sore_throat", etc] or empty array
+  motivationLevel: text("motivation_level", { enum: ["low", "high"] }).notNull(),
 
   
   // Step 3: Muscle Soreness & Injury

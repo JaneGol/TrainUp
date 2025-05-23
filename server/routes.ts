@@ -269,6 +269,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         motivationLevel: validatedData.mood // Use mood value for motivationLevel
       };
       
+      console.log("Data being sent to database:", dataForDatabase);
+      
       // Use the readiness score from the frontend if provided
       let readinessScore = req.body.readinessScore;
       
