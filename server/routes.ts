@@ -263,17 +263,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const validatedData = morningDiaryValidationSchema.parse(dataToValidate);
       
-      // Map frontend mood values to database mood values
+      // Map frontend mood values to database mood values  
       const moodMapping = {
-        "low": "negative",
+        "low": "negative", 
         "high": "positive"
+      };
+      
+      // Map frontend mood values to motivation_level values
+      const motivationMapping = {
+        "low": "low",
+        "high": "high"
       };
       
       // Add motivationLevel for database compatibility (map from mood)
       const dataForDatabase = {
         ...validatedData,
-        mood: moodMapping[validatedData.mood] || "neutral", // Map to database values
-        motivationLevel: moodMapping[validatedData.mood] || "neutral" // Use same mapping for motivationLevel
+        mood: moodMapping[validatedData.mood] || "neutral", // Map to database mood values
+        motivationLevel: motivationMapping[validatedData.mood] || "moderate" // Use correct mapping for motivationLevel
       };
       
       console.log("Data being sent to database:", dataForDatabase);
