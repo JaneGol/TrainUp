@@ -60,21 +60,25 @@ export default function AthleteHomePage() {
           {hasCompletedDiaryToday ? 'Ready for today\'s training!' : 'Complete your daily check-in'}
         </p>
         
-        {/* Today's wellness progress ring */}
+        {/* Today's wellness status */}
         {hasCompletedDiaryToday && latestDiary?.readinessScore && (
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex flex-col">
-              <div className="flex items-center">
-                <Trophy className="h-5 w-5 mr-2 text-accent" />
-                <span className="font-semibold">Today's Wellness</span>
-              </div>
-              <p className="text-xs text-white/80 mt-1">Your daily readiness score</p>
+          <div className="mt-4">
+            <div className="flex items-center mb-2">
+              <Trophy className="h-5 w-5 mr-2 text-accent" />
+              <span className="font-semibold">Today's Wellness</span>
             </div>
-            <WellnessProgressRing 
-              readinessScore={latestDiary.readinessScore} 
-              size={80}
-              className="flex-shrink-0"
-            />
+            <div className="ml-7">
+              {(() => {
+                const score = latestDiary.readinessScore;
+                if (score >= 76) {
+                  return <span className="text-sm text-green-400 font-medium">Today: High Readiness 🟢</span>;
+                } else if (score >= 45) {
+                  return <span className="text-sm text-yellow-400 font-medium">Today: Moderate Readiness 🟡</span>;
+                } else {
+                  return <span className="text-sm text-red-400 font-medium">Today: Low Readiness 🔴</span>;
+                }
+              })()}
+            </div>
           </div>
         )}
       </header>
