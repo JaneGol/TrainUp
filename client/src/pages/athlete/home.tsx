@@ -71,11 +71,11 @@ export default function AthleteHomePage() {
               {(() => {
                 const score = latestDiary.readinessScore;
                 if (score >= 76) {
-                  return <span className="text-sm text-green-400 font-medium">Today: High Readiness 🟢</span>;
+                  return <span className="text-sm text-green-400 font-medium">High Readiness 🟢</span>;
                 } else if (score >= 45) {
-                  return <span className="text-sm text-yellow-400 font-medium">Today: Moderate Readiness 🟡</span>;
+                  return <span className="text-sm text-yellow-400 font-medium">Moderate Readiness 🟡</span>;
                 } else {
-                  return <span className="text-sm text-red-400 font-medium">Today: Low Readiness 🔴</span>;
+                  return <span className="text-sm text-red-400 font-medium">Low Readiness 🔴</span>;
                 }
               })()}
             </div>
