@@ -337,7 +337,17 @@ export class DatabaseStorage implements IStorage {
 
   // Training entry methods
   async createTrainingEntry(entry: InsertTrainingEntry): Promise<TrainingEntry> {
-    // Use only core fields that definitely exist in current database
+    // Calculate training load using the enhanced formula
+    const baseTrainingLoad = this.calculateTrainingLoad(
+      entry.effortLevel, 
+      entry.sessionDuration || 60, 
+      entry.emotionalLoad
+    );
+    const finalTrainingLoad = this.calculateWeightedTrainingLoad(
+      baseTrainingLoad, 
+      entry.trainingType
+    );
+
     const [newEntry] = await db
       .insert(trainingEntries)
       .values({
@@ -346,6 +356,9 @@ export class DatabaseStorage implements IStorage {
         date: entry.date,
         effortLevel: entry.effortLevel,
         emotionalLoad: entry.emotionalLoad,
+        trainingLoad: finalTrainingLoad, // Add the calculated training load
+        sessionDuration: entry.sessionDuration || 60,
+        sessionNumber: entry.sessionNumber || 1,
         mood: entry.mood || "neutral",
         notes: entry.notes || null,
         coachReviewed: false,
