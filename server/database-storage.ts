@@ -328,15 +328,13 @@ export class DatabaseStorage implements IStorage {
       entry.emotionalLoad
     );
 
-    // Temporarily exclude sessionNumber until database schema is updated
-    const { sessionNumber, ...entryWithoutSession } = entry;
+    // Temporarily exclude sessionNumber and trainingLoad until database schema is updated
+    const { sessionNumber, trainingLoad: _, sessionDuration: __, ...entryWithoutNewFields } = entry;
     
     const [newEntry] = await db
       .insert(trainingEntries)
       .values({
-        ...entryWithoutSession,
-        trainingLoad,
-        sessionDuration,
+        ...entryWithoutNewFields,
         notes: entry.notes || null,
         coachReviewed: false,
       })
