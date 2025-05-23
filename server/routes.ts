@@ -263,6 +263,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const validatedData = morningDiaryValidationSchema.parse(dataToValidate);
       
+      // Add motivationLevel for database compatibility (map from mood)
+      const dataForDatabase = {
+        ...validatedData,
+        motivationLevel: validatedData.mood // Use mood value for motivationLevel
+      };
+      
       // Use the readiness score from the frontend if provided
       let readinessScore = req.body.readinessScore;
       
@@ -329,7 +335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const diary = await storage.createMorningDiary(
-        validatedData, 
+        dataForDatabase, 
         req.user!.id, 
         readinessScore
       );
