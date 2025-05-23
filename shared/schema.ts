@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -55,7 +55,7 @@ export const morningDiary = pgTable("morning_diary", {
   date: timestamp("date").defaultNow().notNull(),
   // Step 1: Sleep & Emotional State
   sleepQuality: text("sleep_quality", { enum: ["good", "average", "poor"] }).notNull(),
-  sleepHours: text("sleep_hours").notNull(),
+  sleepHours: real("sleep_hours").notNull(),
   stressLevel: text("stress_level", { enum: ["low", "medium", "high"] }).notNull(),
   mood: text("mood", { enum: ["positive", "neutral", "negative"] }).notNull(),
   
