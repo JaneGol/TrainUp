@@ -760,10 +760,48 @@ export default function MultiStepMorningDiaryForm() {
             />
             </div>
 
+            {/* Submit Section at bottom of Recovery & Physical Status */}
+            <div className="mt-8 pt-6 border-t border-gray-700">
+              <div className="flex justify-between items-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={prevStep}
+                  className="flex items-center"
+                >
+                  <ArrowLeft className="mr-3 h-5 w-5" /> Previous
+                </Button>
+                
+                <div className="flex space-x-3">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setLocation('/athlete')}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={resetForm}
+                    className="text-gray-200"
+                  >
+                    Clear All
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="bg-primary hover:bg-primary/90 text-black font-medium px-6"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Submitting..." : "Submit"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
           </div>
         );
-      
-
       
       default:
         return null;
