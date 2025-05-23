@@ -88,14 +88,13 @@ export default function MultiStepMorningDiaryForm() {
     sleepQuality: "average" as "good" | "average" | "poor",
     sleepHours: "7",
     stressLevel: "medium" as "low" | "medium" | "high",
-    mood: "neutral" as "positive" | "neutral" | "negative",
+    mood: "low" as "low" | "high",
     
     // Step 2 defaults with explicit types
     recoveryLevel: "moderate" as "good" | "moderate" | "poor",
     symptoms: [] as string[],
-    motivationLevel: "moderate" as "high" | "moderate" | "low",
     
-    // Step 3 defaults
+    // Muscle soreness and injury defaults (now part of step 2)
     sorenessMap: { _no_soreness: true } as Record<string, boolean>,
     sorenessNotes: "",
     hasInjury: false,
@@ -175,17 +174,12 @@ export default function MultiStepMorningDiaryForm() {
     }
   };
   
-  // Navigation between steps
+  // Navigation between steps (now only 2 steps)
   const nextStep = () => {
     // Validate current step fields before proceeding
     switch (currentStep) {
       case 1:
         form.trigger(["sleepQuality", "sleepHours", "stressLevel", "mood"]).then((isValid) => {
-          if (isValid) setCurrentStep(prev => prev + 1);
-        });
-        break;
-      case 2:
-        form.trigger(["recoveryLevel", "symptoms", "motivationLevel"]).then((isValid) => {
           if (isValid) setCurrentStep(prev => prev + 1);
         });
         break;
@@ -207,14 +201,11 @@ export default function MultiStepMorningDiaryForm() {
       sleepQuality: "average",
       sleepHours: "7",
       stressLevel: "medium",
-      mood: "neutral",
+      mood: "low",
       
-      // Step 2 defaults
+      // Step 2 defaults (merged Recovery & Physical Status)
       recoveryLevel: "moderate",
       symptoms: [],
-      motivationLevel: "moderate",
-      
-      // Step 3 defaults
       sorenessMap: {},
       sorenessNotes: "",
       hasInjury: false,
@@ -254,9 +245,9 @@ export default function MultiStepMorningDiaryForm() {
     if (data.stressLevel === "low") score += 1;
     else if (data.stressLevel === "medium") score += 0.5;
     
-    // Mood (max 1 point)
-    if (data.mood === "positive") score += 1;
-    else if (data.mood === "neutral") score += 0.5;
+    // Motivation & Energy (max 1 point)
+    if (data.mood === "high") score += 1;
+    else if (data.mood === "low") score += 0.5;
     
     // Recovery level (max 1 point)
     if (data.recoveryLevel === "good") score += 1;
@@ -265,10 +256,6 @@ export default function MultiStepMorningDiaryForm() {
     // Symptoms (max 1 point)
     if (data.symptoms.includes("no_symptoms")) score += 1;
     else if (data.symptoms.length <= 1) score += 0.5;
-    
-    // Motivation (max 1 point)
-    if (data.motivationLevel === "high") score += 1;
-    else if (data.motivationLevel === "moderate") score += 0.5;
     
     // Soreness (max 1 point)
     const sorenessMap = data.sorenessMap as Record<string, boolean>;
@@ -702,50 +689,7 @@ export default function MultiStepMorningDiaryForm() {
               )}
             </div>
             
-            {/* Motivation & Energy Slider */}
-            <FormField
-              control={form.control}
-              name="motivationLevel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-200">What is your motivation & energy level today?</FormLabel>
-                  <div className="space-y-2">
-                    <FormControl>
-                      <div className="py-3">
-                        <Slider
-                          min={0}
-                          max={5}
-                          step={1}
-                          defaultValue={[0]}
-                          onValueChange={(vals) => {
-                            const val = vals[0];
-                            if (val <= 1) field.onChange("low");
-                            else if (val === 2) field.onChange("low");
-                            else if (val === 3) field.onChange("moderate");
-                            else if (val >= 4) field.onChange("high");
-                          }}
-                          className="py-3"
-                        />
-                      </div>
-                    </FormControl>
-                    <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
-                      <span>0</span>
-                      <span>1</span>
-                      <span>2</span>
-                      <span>3</span>
-                      <span>4</span>
-                      <span>5</span>
-                    </div>
-                    <div className="flex justify-between text-xs text-gray-400 mt-0">
-                      <span>Low</span>
-                      <span className="ml-auto">High</span>
-                    </div>
-                  </div>
-                  <FormDescription className="text-xs text-gray-400"></FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Motivation & Energy question has been moved to Step 1 as the mood question */}
           </div>
         );
       
