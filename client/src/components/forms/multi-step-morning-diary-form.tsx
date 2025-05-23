@@ -505,7 +505,7 @@ export default function MultiStepMorningDiaryForm() {
               name="stressLevel"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">What is your current stress level?</FormLabel>
+                  <FormLabel className="text-lg font-medium text-gray-200 mb-4 block">What is your current stress level?</FormLabel>
                   <div className="space-y-2">
                     <FormControl>
                       <div className="py-3">
@@ -550,7 +550,7 @@ export default function MultiStepMorningDiaryForm() {
               name="mood"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">What is your motivation & energy level today?</FormLabel>
+                  <FormLabel className="text-lg font-medium text-gray-200 mb-4 block">What is your motivation & energy level today?</FormLabel>
                   <div className="space-y-2">
                     <FormControl>
                       <div className="py-3">
@@ -602,7 +602,7 @@ export default function MultiStepMorningDiaryForm() {
               name="recoveryLevel"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-200">How recovered do you feel?</FormLabel>
+                  <FormLabel className="text-lg font-medium text-gray-200 mb-4 block">How recovered do you feel?</FormLabel>
                   <div className="space-y-2">
                     <FormControl>
                       <div className="py-3">
@@ -643,7 +643,7 @@ export default function MultiStepMorningDiaryForm() {
             
             {/* Symptoms */}
             <div className="space-y-4">
-              <FormLabel className="text-gray-200 block">Do you have any symptoms?</FormLabel>
+              <FormLabel className="text-lg font-medium text-gray-200 mb-4 block">Do you have any symptoms?</FormLabel>
               
               {/* No Symptoms option - block style without left border */}
               <div className="mb-4 p-3 bg-secondary/30 rounded-lg shadow-sm">
@@ -724,7 +724,7 @@ export default function MultiStepMorningDiaryForm() {
                 name="sorenessNotes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-200">Additional notes about soreness</FormLabel>
+                    <FormLabel className="text-lg font-medium text-gray-200 mb-4 block">Additional notes about soreness</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Describe your muscle soreness in more detail..."
