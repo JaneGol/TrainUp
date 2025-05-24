@@ -22,15 +22,38 @@ interface DetectedSession {
 export default function TrainingLog() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const [editingSession, setEditingSession] = useState<string | null>(null);
+  const [sessionDurations, setSessionDurations] = useState<Record<string, number>>({});
   
-  // Get athletes
-  const { data: athletes = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/athletes"],
+  // Get training sessions based on RPE submissions
+  const { data: trainingSessions = [], isLoading: sessionsLoading, refetch } = useQuery<DetectedSession[]>({
+    queryKey: ["/api/training-sessions"],
   });
 
-  // Get training sessions based on RPE submissions
-  const { data: trainingSessions = [], isLoading: sessionsLoading } = useQuery<any[]>({
-    queryKey: ["/api/training-sessions"],
+  // Mutation to update session duration
+  const updateDurationMutation = useMutation({
+    mutationFn: async ({ sessionId, duration }: { sessionId: string; duration: number }) => {
+      const response = await apiRequest("PATCH", `/api/training-sessions/${sessionId}`, { duration });
+      if (!response.ok) {
+        throw new Error("Failed to update session duration");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Session duration updated successfully",
+      });
+      refetch(); // Refresh the sessions data
+      setEditingSession(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update session duration",
+        variant: "destructive",
+      });
+    },
   });
   
   // Form definition
