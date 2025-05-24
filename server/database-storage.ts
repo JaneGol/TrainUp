@@ -523,22 +523,27 @@ export class DatabaseStorage implements IStorage {
         .where(gte(trainingEntries.date, thirtyDaysAgo))
         .orderBy(desc(trainingEntries.date));
       
+      console.log(`Found ${entries.length} training entries in last 30 days`);
+      
       // Get total number of athletes
       const totalAthletes = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, 'athlete'));
       const athleteCount = totalAthletes[0]?.count || 1;
+      
+      console.log(`Total athletes: ${athleteCount}`);
       
       // Group entries by date, training type, and session number
       const sessionMap = new Map<string, any>();
       
       entries.forEach(entry => {
         const dateStr = new Date(entry.date).toISOString().split('T')[0];
-        const sessionKey = `${dateStr}-${entry.trainingType}-${entry.sessionNumber}`;
+        const sessionNumber = entry.sessionNumber || 1; // Default to 1 if null/undefined
+        const sessionKey = `${dateStr}-${entry.trainingType}-${sessionNumber}`;
         
         if (!sessionMap.has(sessionKey)) {
           sessionMap.set(sessionKey, {
             date: dateStr,
             type: entry.trainingType,
-            sessionNumber: entry.sessionNumber,
+            sessionNumber: sessionNumber,
             duration: 60, // Default duration
             submissions: [],
             submissionCount: 0
@@ -585,6 +590,11 @@ export class DatabaseStorage implements IStorage {
           };
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      console.log(`Detected ${detectedSessions.length} valid sessions:`);
+      detectedSessions.forEach(session => {
+        console.log(`Session ${session.id}: ${session.participants}/${session.totalAthletes} participants, RPE: ${session.avgRPE}, AU: ${session.calculatedAU}`);
+      });
       
       return detectedSessions;
     } catch (error) {
