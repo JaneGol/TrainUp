@@ -986,15 +986,26 @@ export class DatabaseStorage implements IStorage {
           sessionGroups[key].push(entry);
         });
         
-        // Calculate average training load per unique session
-        const sessionLoads = Object.values(sessionGroups).map(sessionEntries => {
-          const avgLoad = sessionEntries.reduce((sum, entry) => sum + (entry.trainingLoad || 0), 0) / sessionEntries.length;
-          return avgLoad;
-        });
+        // Calculate session load using 50% participation rule and averaging
+        const uniqueAthletes = new Set(entries.map(entry => entry.userId)).size;
+        const totalAthletes = 8; // Adjust based on your team size
         
-        // Sum all unique sessions for this training type
-        const totalLoad = sessionLoads.reduce((sum, load) => sum + load, 0);
-        loadByDateAndType[dateString][trainingType] = Math.round(totalLoad);
+        if (uniqueAthletes >= Math.ceil(totalAthletes * 0.5)) {
+          // Valid session: 50%+ participation
+          // Calculate average RPE, emotional load for the session
+          const avgRPE = entries.reduce((sum, entry) => sum + entry.effortLevel, 0) / entries.length;
+          const avgEmotional = entries.reduce((sum, entry) => sum + entry.emotionalLoad, 0) / entries.length;
+          const duration = 60; // Default duration
+          
+          // Calculate session AU: Average RPE × Duration × Emotional Multiplier
+          const emotionalMultiplier = this.getEmotionalMultiplier(Math.round(avgEmotional));
+          const sessionLoad = avgRPE * duration * emotionalMultiplier;
+          
+          loadByDateAndType[dateString][trainingType] = Math.round(sessionLoad);
+        } else {
+          // Invalid session: less than 50% participation
+          loadByDateAndType[dateString][trainingType] = 0;
+        }
       });
     });
     
