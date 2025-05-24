@@ -498,19 +498,17 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Get detected training sessions based on RPE submissions (>50% participation)
+  // Store session duration overrides in memory (could be enhanced with a sessions table)
+  private sessionDurationOverrides = new Map<string, number>();
+
   async updateSessionDuration(sessionId: string, duration: number): Promise<void> {
-    // Since sessions are derived from training entries, we need to update the duration
-    // and recalculate the training load for all entries in that session
-    const [date, trainingType, sessionNumber] = sessionId.split('-');
-    
-    // For now, we'll store duration updates in memory or consider adding a sessions table
-    // This is a simplified implementation that could be enhanced with a dedicated sessions table
     console.log(`Updating session ${sessionId} to duration ${duration} minutes`);
     
-    // In a full implementation, you would:
-    // 1. Update the session duration in a sessions table
-    // 2. Recalculate all related training load metrics
-    // 3. Invalidate related caches
+    // Store the duration override
+    this.sessionDurationOverrides.set(sessionId, duration);
+    
+    // In a production system, you would store this in a database table
+    // For now, we're using in-memory storage which will persist during the session
   }
 
   async getDetectedTrainingSessions(): Promise<any[]> {
@@ -552,9 +550,40 @@ export class DatabaseStorage implements IStorage {
         session.submissionCount++;
       });
       
-      // Filter sessions where >50% of athletes participated
+      // Filter sessions where >50% of athletes participated and calculate metrics
       const detectedSessions = Array.from(sessionMap.values())
         .filter(session => (session.submissionCount / athleteCount) > 0.5)
+        .map(session => {
+          const sessionKey = `${session.date}-${session.type}-${session.sessionNumber || 1}`;
+          
+          // Use stored duration override if available, otherwise default
+          const sessionDuration = this.sessionDurationOverrides.get(sessionKey) || session.duration;
+          
+          // Calculate average RPE
+          const totalRPE = session.submissions.reduce((sum: number, entry: any) => sum + (entry.effortLevel || 0), 0);
+          const avgRPE = session.submissionCount > 0 ? totalRPE / session.submissionCount : 0;
+          
+          // Calculate average emotional load
+          const totalEmotional = session.submissions.reduce((sum: number, entry: any) => sum + (entry.emotionalLoad || 3), 0);
+          const avgEmotional = session.submissionCount > 0 ? totalEmotional / session.submissionCount : 3;
+          
+          // Calculate AU (RPE × Duration × Emotional Multiplier × Type Weight)
+          const emotionalMultiplier = this.getEmotionalMultiplier(avgEmotional);
+          const typeMultiplier = this.getTrainingTypeMultiplier(session.type);
+          const calculatedAU = Math.round(avgRPE * sessionDuration * emotionalMultiplier * typeMultiplier);
+          
+          return {
+            id: sessionKey,
+            date: session.date,
+            type: session.type,
+            sessionNumber: session.sessionNumber || 1,
+            avgRPE: Number(avgRPE.toFixed(1)),
+            participants: session.submissionCount,
+            totalAthletes: athleteCount,
+            duration: sessionDuration,
+            calculatedAU: calculatedAU
+          };
+        })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
       return detectedSessions;
