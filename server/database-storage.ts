@@ -1050,7 +1050,7 @@ export class DatabaseStorage implements IStorage {
           // Valid session: 50%+ participation
           // Calculate average RPE, emotional load for the session
           const avgRPE = entries.reduce((sum, entry) => sum + entry.effortLevel, 0) / entries.length;
-          const avgEmotional = entries.reduce((sum, entry) => sum + entry.emotionalLoad, 0) / entries.length;
+          const avgEmotional = entries.reduce((sum, entry) => sum + (entry.emotionalLoad || 3), 0) / entries.length;
           
           // Use same session detection logic as Training Log for consistency
           const sessionNumber = entries[0].sessionNumber || 1;
