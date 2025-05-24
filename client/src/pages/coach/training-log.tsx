@@ -148,7 +148,7 @@ export default function TrainingLog() {
                   {/* RPE */}
                   <div>
                     <div className="text-sm text-zinc-400 mb-1">Avg. RPE</div>
-                    <div className="font-medium text-lg">{session.avgRPE.toFixed(1)}</div>
+                    <div className="font-medium text-lg">{session.avgRPE ? session.avgRPE.toFixed(1) : 'N/A'}</div>
                   </div>
 
                   {/* Duration & Actions */}
