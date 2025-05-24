@@ -546,18 +546,18 @@ export class DatabaseStorage implements IStorage {
             sessionNumber: sessionNumber,
             duration: 60, // Default duration
             submissions: [],
-            submissionCount: 0
+            uniqueAthletes: new Set() // Track unique athlete IDs
           });
         }
         
         const session = sessionMap.get(sessionKey);
         session.submissions.push(entry);
-        session.submissionCount++;
+        session.uniqueAthletes.add(entry.userId); // Add athlete ID to set (automatically deduplicates)
       });
       
       // Filter sessions where >50% of athletes participated and calculate metrics
       const detectedSessions = Array.from(sessionMap.values())
-        .filter(session => (session.submissionCount / athleteCount) > 0.5)
+        .filter(session => (session.uniqueAthletes.size / athleteCount) > 0.5)
         .map(session => {
           const sessionKey = `${session.date}-${session.type}-${session.sessionNumber || 1}`;
           
@@ -566,11 +566,11 @@ export class DatabaseStorage implements IStorage {
           
           // Calculate average RPE
           const totalRPE = session.submissions.reduce((sum: number, entry: any) => sum + (entry.effortLevel || 0), 0);
-          const avgRPE = session.submissionCount > 0 ? totalRPE / session.submissionCount : 0;
+          const avgRPE = session.submissions.length > 0 ? totalRPE / session.submissions.length : 0;
           
           // Calculate average emotional load
           const totalEmotional = session.submissions.reduce((sum: number, entry: any) => sum + (entry.emotionalLoad || 3), 0);
-          const avgEmotional = session.submissionCount > 0 ? totalEmotional / session.submissionCount : 3;
+          const avgEmotional = session.submissions.length > 0 ? totalEmotional / session.submissions.length : 3;
           
           // Calculate AU (RPE × Duration × Emotional Multiplier × Type Weight)
           const emotionalMultiplier = this.getEmotionalMultiplier(avgEmotional);
@@ -583,7 +583,7 @@ export class DatabaseStorage implements IStorage {
             type: session.type,
             sessionNumber: session.sessionNumber || 1,
             avgRPE: Number(avgRPE.toFixed(1)),
-            participants: session.submissionCount,
+            participants: session.uniqueAthletes.size, // Use unique athlete count
             totalAthletes: athleteCount,
             duration: sessionDuration,
             calculatedAU: calculatedAU
