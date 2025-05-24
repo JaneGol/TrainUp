@@ -74,7 +74,7 @@ export default function TrainingLog() {
     if (session.type === "Field Training" && session.sessionNumber) {
       return `Field Session ${session.sessionNumber}`;
     }
-    return session.type;
+    return session.type.replace(" Training", "").replace("/", "/");
   };
 
   // Format date display
@@ -83,6 +83,32 @@ export default function TrainingLog() {
       month: 'short', 
       day: 'numeric' 
     });
+  };
+
+  // Generate session summary based on average RPE
+  const generateSessionSummary = (session: DetectedSession) => {
+    const avgRPE = session.avgRPE || 0;
+    let summary = "";
+    
+    // Base summary based on RPE range
+    if (avgRPE >= 9.0) {
+      summary = "Max intensity – high stress load";
+    } else if (avgRPE >= 8.0) {
+      summary = "High effort session with consistent intensity";
+    } else if (avgRPE >= 6.0) {
+      summary = "Solid session with sustained intensity";
+    } else if (avgRPE >= 4.0) {
+      summary = "Moderate workload, suitable for adaptation";
+    } else {
+      summary = "Light recovery session with low intensity";
+    }
+    
+    // Add duration modifier
+    if (session.duration < 45) {
+      summary = "Short session - " + summary.toLowerCase();
+    }
+    
+    return summary;
   };
 
   if (sessionsLoading) {
@@ -126,77 +152,71 @@ export default function TrainingLog() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {trainingSessions.map((session) => (
-              <div key={session.id} className="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
-                  {/* Session Info */}
-                  <div>
-                    <div className="text-sm text-zinc-400 mb-1">📅 {formatDate(session.date)}</div>
-                    <div className="font-medium text-lg">{formatSessionType(session)}</div>
-                  </div>
-
-                  {/* Participants */}
+              <div key={session.id} className="bg-zinc-800 rounded-lg p-4 border border-zinc-700">
+                {/* Header with date and session type */}
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Users size={16} className="text-zinc-400" />
-                    <div>
-                      <div className="font-medium">{session.participants} of {session.totalAthletes}</div>
-                      <div className="text-sm text-zinc-400">participants</div>
-                    </div>
+                    <span className="text-lg">📅</span>
+                    <span className="font-medium text-lg">{formatDate(session.date)} — {formatSessionType(session)}</span>
                   </div>
-
-                  {/* RPE */}
-                  <div>
-                    <div className="text-sm text-zinc-400 mb-1">Avg. RPE</div>
-                    <div className="font-medium text-lg">{session.avgRPE ? session.avgRPE.toFixed(1) : 'N/A'}</div>
+                  <div className="text-sm text-zinc-400">
+                    Participants: {session.participants}/{session.totalAthletes}
                   </div>
+                </div>
 
-                  {/* Duration & Actions */}
+                {/* Key metrics in compact format */}
+                <div className="flex items-center gap-6 mb-3 text-sm">
+                  <span>
+                    <strong>RPE:</strong> {session.avgRPE ? session.avgRPE.toFixed(1) : 'N/A'}
+                  </span>
+                  
                   <div className="flex items-center gap-2">
-                    <Clock size={16} className="text-zinc-400" />
+                    <span><strong>Duration:</strong></span>
                     {editingSession === session.id ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <Input
                           type="number"
                           min="1"
                           max="300"
                           defaultValue={session.duration}
                           onChange={(e) => handleDurationChange(session.id, parseInt(e.target.value))}
-                          className="w-20 bg-zinc-700 border-zinc-600 text-white"
+                          className="w-16 h-6 px-2 bg-zinc-700 border-zinc-600 text-white text-xs"
                         />
-                        <span className="text-sm text-zinc-400">min</span>
+                        <span className="text-xs text-zinc-400">min</span>
                         <Button
                           size="sm"
                           onClick={() => handleSaveDuration(session.id)}
                           disabled={updateDurationMutation.isPending}
-                          className="bg-lime-600 hover:bg-lime-700"
+                          className="h-6 px-2 bg-lime-600 hover:bg-lime-700 text-xs"
                         >
-                          <Save size={14} />
+                          <Save size={10} />
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{session.duration} min</span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setEditingSession(session.id);
-                            setSessionDurations(prev => ({ ...prev, [session.id]: session.duration }));
-                          }}
-                          className="border-zinc-600 text-zinc-300 hover:bg-zinc-700"
-                        >
-                          Edit
-                        </Button>
-                      </div>
+                      <button
+                        onClick={() => {
+                          setEditingSession(session.id);
+                          setSessionDurations(prev => ({ ...prev, [session.id]: session.duration }));
+                        }}
+                        className="text-zinc-300 hover:text-white underline decoration-dotted"
+                      >
+                        {session.duration} min
+                      </button>
                     )}
                   </div>
+                  
+                  <span>
+                    <strong>Load:</strong> {session.calculatedAU} AU
+                  </span>
                 </div>
 
-                {/* Calculated AU */}
-                <div className="mt-4 pt-4 border-t border-zinc-700">
-                  <div className="text-sm text-zinc-400">
-                    Session Load: <span className="text-white font-medium">{session.calculatedAU} AU</span>
+                {/* Auto-generated summary */}
+                <div className="flex items-start gap-2 bg-zinc-750 rounded p-2">
+                  <span className="text-sm">📝</span>
+                  <div className="text-sm text-zinc-300 italic">
+                    {generateSessionSummary(session)}
                   </div>
                 </div>
               </div>
