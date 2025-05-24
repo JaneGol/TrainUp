@@ -577,6 +577,8 @@ export class DatabaseStorage implements IStorage {
           const typeMultiplier = this.getTrainingTypeMultiplier(session.type);
           const calculatedAU = Math.round(avgRPE * sessionDuration * emotionalMultiplier * typeMultiplier);
           
+          console.log(`Training Log calc for ${session.type}: RPE=${avgRPE.toFixed(1)}, Duration=${sessionDuration}, AvgEmotional=${avgEmotional.toFixed(2)}, Rounded=${Math.round(avgEmotional)}, Emotional=${emotionalMultiplier}, Type=${typeMultiplier}, Total=${calculatedAU} AU`);
+          
           return {
             id: sessionKey,
             date: session.date,
