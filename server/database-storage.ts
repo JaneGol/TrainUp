@@ -1049,11 +1049,16 @@ export class DatabaseStorage implements IStorage {
           // Calculate average RPE, emotional load for the session
           const avgRPE = entries.reduce((sum, entry) => sum + entry.effortLevel, 0) / entries.length;
           const avgEmotional = entries.reduce((sum, entry) => sum + entry.emotionalLoad, 0) / entries.length;
-          const duration = 60; // Default duration
           
-          // Calculate session AU: Average RPE × Duration × Emotional Multiplier
+          // Use same session detection logic as Training Log for consistency
+          const sessionNumber = entries[0].sessionNumber || 1;
+          const sessionKey = `${dateString}-${trainingType}-${sessionNumber}`;
+          const duration = this.sessionDurationOverrides.get(sessionKey) || 60; // Use duration overrides
+          
+          // Calculate session AU: Average RPE × Duration × Emotional Multiplier × Type Weight
           const emotionalMultiplier = this.getEmotionalMultiplier(Math.round(avgEmotional));
-          const sessionLoad = avgRPE * duration * emotionalMultiplier;
+          const typeMultiplier = this.getTrainingTypeMultiplier(trainingType);
+          const sessionLoad = avgRPE * duration * emotionalMultiplier * typeMultiplier;
           
           loadByDateAndType[dateString][trainingType] = Math.round(sessionLoad);
         } else {
