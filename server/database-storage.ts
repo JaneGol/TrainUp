@@ -978,8 +978,22 @@ export class DatabaseStorage implements IStorage {
       }
       
       Object.entries(trainingTypes).forEach(([trainingType, entries]) => {
-        // Calculate total training load for this training type on this date
-        const totalLoad = entries.reduce((sum, entry) => sum + (entry.trainingLoad || 0), 0);
+        // Group by user and session to avoid double-counting
+        const sessionGroups: Record<string, any[]> = {};
+        entries.forEach(entry => {
+          const key = `${entry.userId}-${entry.sessionNumber || 1}`;
+          if (!sessionGroups[key]) sessionGroups[key] = [];
+          sessionGroups[key].push(entry);
+        });
+        
+        // Calculate average training load per unique session
+        const sessionLoads = Object.values(sessionGroups).map(sessionEntries => {
+          const avgLoad = sessionEntries.reduce((sum, entry) => sum + (entry.trainingLoad || 0), 0) / sessionEntries.length;
+          return avgLoad;
+        });
+        
+        // Sum all unique sessions for this training type
+        const totalLoad = sessionLoads.reduce((sum, load) => sum + load, 0);
         loadByDateAndType[dateString][trainingType] = Math.round(totalLoad);
       });
     });
