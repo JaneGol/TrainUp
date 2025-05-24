@@ -1042,7 +1042,7 @@ export class DatabaseStorage implements IStorage {
         
         // Calculate session load using 50% participation rule and averaging  
         const uniqueAthletes = new Set(entries.map(entry => entry.userId)).size;
-        const totalAthletes = 10; // Adjust based on your team size
+        const totalAthletes = 8; // Use same athlete count as Training Log for consistency
         
         if (uniqueAthletes >= Math.ceil(totalAthletes * 0.5)) {
           // Valid session: 50%+ participation
@@ -1059,6 +1059,8 @@ export class DatabaseStorage implements IStorage {
           const emotionalMultiplier = this.getEmotionalMultiplier(Math.round(avgEmotional));
           const typeMultiplier = this.getTrainingTypeMultiplier(trainingType);
           const sessionLoad = avgRPE * duration * emotionalMultiplier * typeMultiplier;
+          
+          console.log(`Load Insights calc for ${trainingType}: RPE=${avgRPE.toFixed(1)}, Duration=${duration}, Emotional=${emotionalMultiplier}, Type=${typeMultiplier}, Total=${Math.round(sessionLoad)} AU`);
           
           loadByDateAndType[dateString][trainingType] = Math.round(sessionLoad);
         } else {
