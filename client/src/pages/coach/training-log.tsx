@@ -44,7 +44,12 @@ export default function TrainingLog() {
         title: "Success",
         description: "Session duration updated successfully",
       });
-      refetch();
+      
+      // Invalidate all related caches to ensure sync across views
+      queryClient.invalidateQueries({ queryKey: ["/api/training-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/training-load"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/acwr"] });
+      
       setEditingSession(null);
     },
     onError: (error) => {
