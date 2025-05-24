@@ -933,6 +933,7 @@ export class DatabaseStorage implements IStorage {
         trainingType: trainingEntries.trainingType,
         date: trainingEntries.date,
         effortLevel: trainingEntries.effortLevel,
+        trainingLoad: trainingEntries.trainingLoad,
         userId: trainingEntries.userId
       })
       .from(trainingEntries)
