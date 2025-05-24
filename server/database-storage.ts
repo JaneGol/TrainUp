@@ -304,12 +304,12 @@ export class DatabaseStorage implements IStorage {
   private getEmotionalMultiplier(emotionalLoad: number): number {
     const multipliers = {
       1: 1.00, // Very Low
-      2: 1.05,
-      3: 1.10, // Neutral
-      4: 1.15,
-      5: 1.20  // Very High
+      2: 1.125,
+      3: 1.25, // Neutral
+      4: 1.375,
+      5: 1.50  // Very High
     };
-    return multipliers[emotionalLoad as keyof typeof multipliers] || 1.10;
+    return multipliers[emotionalLoad as keyof typeof multipliers] || 1.25;
   }
 
   // Training Type Multipliers for ACWR calculations
