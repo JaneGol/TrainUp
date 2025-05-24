@@ -1060,7 +1060,7 @@ export class DatabaseStorage implements IStorage {
           const typeMultiplier = this.getTrainingTypeMultiplier(trainingType);
           const sessionLoad = avgRPE * duration * emotionalMultiplier * typeMultiplier;
           
-          console.log(`Load Insights calc for ${trainingType}: RPE=${avgRPE.toFixed(1)}, Duration=${duration}, Emotional=${emotionalMultiplier}, Type=${typeMultiplier}, Total=${Math.round(sessionLoad)} AU`);
+          console.log(`Load Insights calc for ${trainingType}: RPE=${avgRPE.toFixed(1)}, Duration=${duration}, AvgEmotional=${avgEmotional.toFixed(2)}, Rounded=${Math.round(avgEmotional)}, Emotional=${emotionalMultiplier}, Type=${typeMultiplier}, Total=${Math.round(sessionLoad)} AU`);
           
           loadByDateAndType[dateString][trainingType] = Math.round(sessionLoad);
         } else {
