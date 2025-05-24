@@ -986,9 +986,9 @@ export class DatabaseStorage implements IStorage {
           sessionGroups[key].push(entry);
         });
         
-        // Calculate session load using 50% participation rule and averaging
+        // Calculate session load using 50% participation rule and averaging  
         const uniqueAthletes = new Set(entries.map(entry => entry.userId)).size;
-        const totalAthletes = 8; // Adjust based on your team size
+        const totalAthletes = 10; // Adjust based on your team size
         
         if (uniqueAthletes >= Math.ceil(totalAthletes * 0.5)) {
           // Valid session: 50%+ participation
