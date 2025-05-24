@@ -520,16 +520,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Enhanced Coach Analytics Routes
   
-  // Get training load by RPE
+  // Get training load by RPE - FIXED CALCULATION
   app.get("/api/analytics/training-load", async (req, res) => {
     if (!req.isAuthenticated() || req.user!.role !== "coach") {
       return res.sendStatus(401);
     }
     
-    // Disable caching to ensure fresh data
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    // Aggressive cache busting
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate, private');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
+    res.set('Last-Modified', new Date().toUTCString());
+    res.set('ETag', `"${Date.now()}"`);
     
     // Parse athleteId from query parameter
     let athleteId: number | undefined = undefined;
@@ -540,15 +542,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
     
-    // Force fresh calculation - bypass any potential caching
+    // Get fresh calculation data
     const loadData = await storage.getTrainingLoadByRPE(athleteId);
-    
-    // Add timestamp to force cache invalidation
-    const response = {
-      data: loadData,
-      timestamp: new Date().toISOString()
-    };
-    
     res.json(loadData);
   });
   
