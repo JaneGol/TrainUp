@@ -573,7 +573,7 @@ export class DatabaseStorage implements IStorage {
           const avgEmotional = session.submissions.length > 0 ? totalEmotional / session.submissions.length : 3;
           
           // Calculate AU (RPE × Duration × Emotional Multiplier × Type Weight)
-          const emotionalMultiplier = this.getEmotionalMultiplier(avgEmotional);
+          const emotionalMultiplier = this.getEmotionalMultiplier(Math.round(avgEmotional));
           const typeMultiplier = this.getTrainingTypeMultiplier(session.type);
           const calculatedAU = Math.round(avgRPE * sessionDuration * emotionalMultiplier * typeMultiplier);
           
