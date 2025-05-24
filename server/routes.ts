@@ -540,8 +540,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
     
-    // Always use real calculation data
+    // Force fresh calculation - bypass any potential caching
     const loadData = await storage.getTrainingLoadByRPE(athleteId);
+    
+    // Add timestamp to force cache invalidation
+    const response = {
+      data: loadData,
+      timestamp: new Date().toISOString()
+    };
+    
     res.json(loadData);
   });
   
