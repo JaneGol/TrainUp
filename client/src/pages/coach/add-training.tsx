@@ -1,40 +1,23 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Clock, Users, Save } from "lucide-react";
 import { useLocation } from "wouter";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { 
-  Form, FormControl, FormField, FormItem, 
-  FormLabel, FormMessage 
-} from "@/components/ui/form";
-import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { insertTrainingEntrySchema } from "@shared/schema";
-import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 
-// Modified training type options
-const TrainingType = {
-  FIELD: "field",
-  GYM: "gym",
-  MATCH: "match"
-} as const;
-
-// Extend the training entry schema for form validation
-const addTrainingSchema = z.object({
-  type: z.enum([TrainingType.FIELD, TrainingType.GYM, TrainingType.MATCH]),
-  duration: z.coerce.number().min(1, "Duration must be at least 1 minute"),
-  athletes: z.array(z.number()),
-  notes: z.string().optional(),
-});
-
-type AddTrainingFormValues = z.infer<typeof addTrainingSchema>;
+interface DetectedSession {
+  id: string;
+  date: string;
+  type: string;
+  sessionNumber?: number;
+  avgRPE: number;
+  participants: number;
+  totalAthletes: number;
+  duration: number;
+  calculatedAU: number;
+}
 
 export default function TrainingLog() {
   const [, navigate] = useLocation();

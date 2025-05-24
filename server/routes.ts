@@ -461,6 +461,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update session duration
+  app.patch("/api/training-sessions/:sessionId", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "coach") {
+      return res.sendStatus(401);
+    }
+    
+    const { sessionId } = req.params;
+    const { duration } = req.body;
+    
+    if (!duration || duration < 1) {
+      return res.status(400).json({ error: "Valid duration is required" });
+    }
+    
+    try {
+      await storage.updateSessionDuration(sessionId, duration);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating session duration:", error);
+      res.status(500).json({ error: "Failed to update session duration" });
+    }
+  });
+
   app.get("/api/athletes/:id/fitness-metrics", async (req, res) => {
     if (!req.isAuthenticated() || req.user!.role !== "coach") {
       return res.sendStatus(401);
