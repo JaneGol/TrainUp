@@ -526,6 +526,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(401);
     }
     
+    // Disable caching to ensure fresh data
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    
     // Parse athleteId from query parameter
     let athleteId: number | undefined = undefined;
     if (req.query.athleteId && typeof req.query.athleteId === 'string') {
@@ -535,39 +540,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
     
-    // FIXED VERSION: Always return data - if an athlete is selected, create sample entries specifically for them
-    if (athleteId) {
-      // Generate predictable sample training data for the selected athlete
-      // This approach ensures we always have something to display for any selected athlete
-      const sampleData = [];
-      
-      // Generate last 14 days of data
-      for (let i = 0; i < 14; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dateString = date.toISOString().split('T')[0];
-        
-        // Different training load patterns based on day of week
-        const fieldLoad = 200 + Math.floor(Math.random() * 100);
-        const gymLoad = 150 + Math.floor(Math.random() * 70);
-        const matchLoad = i % 7 === 0 ? 350 + Math.floor(Math.random() * 100) : 0;
-        
-        sampleData.push({
-          date: dateString,
-          load: fieldLoad + gymLoad + matchLoad,
-          trainingType: 'Total',
-          fieldTraining: fieldLoad,
-          gymTraining: gymLoad,
-          matchGame: matchLoad,
-          athleteId: athleteId
-        });
-      }
-      
-      return res.json(sampleData);
-    }
-    
-    // For team-level view, use the normal data
-    const loadData = await storage.getTrainingLoadByRPE();
+    // Always use real calculation data
+    const loadData = await storage.getTrainingLoadByRPE(athleteId);
     res.json(loadData);
   });
   
