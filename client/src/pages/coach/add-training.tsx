@@ -151,7 +151,7 @@ export default function TrainingLog() {
           >
             <ChevronLeft size={16} />
           </Button>
-          <h2 className="text-2xl font-bold">Add Training</h2>
+          <h2 className="text-2xl font-bold">Training Log</h2>
         </div>
         
         <div className="bg-zinc-900 rounded-lg">

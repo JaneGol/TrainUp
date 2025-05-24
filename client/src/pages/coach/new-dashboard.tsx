@@ -518,7 +518,7 @@ export default function NewCoachDashboard() {
           
           <ActionButton
             icon={<ClipboardList className="h-6 w-6" />}
-            label="Add Training"
+            label="Training Log"
             onClick={handleAddTrainingClick}
           />
           
