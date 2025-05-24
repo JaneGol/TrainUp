@@ -452,6 +452,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(401);
     }
     
+    // Disable caching to ensure fresh data
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    
     try {
       const sessions = await storage.getDetectedTrainingSessions();
       res.json(sessions);
