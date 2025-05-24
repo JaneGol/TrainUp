@@ -50,6 +50,10 @@ export default function TrainingLog() {
       queryClient.invalidateQueries({ queryKey: ["/api/analytics/training-load"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics/acwr"] });
       
+      // Force complete cache removal to ensure Load Insights updates
+      queryClient.removeQueries({ queryKey: ["/api/analytics/training-load"] });
+      queryClient.removeQueries({ queryKey: ["/api/analytics/acwr"] });
+      
       setEditingSession(null);
     },
     onError: (error) => {
