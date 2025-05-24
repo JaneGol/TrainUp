@@ -87,19 +87,11 @@ export default function LoadInsights() {
         <div className="bg-zinc-800 p-3 rounded border border-zinc-700 shadow-lg">
           <p className="text-white font-medium mb-2">{new Date(label).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
           
-          {/* Field Training with session breakdown */}
-          {dataPoint?.fieldSession1 && (
-            <div className="mb-1">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-zinc-300">Field Session 1:</span>
-                <span className="text-white font-medium">{dataPoint.fieldSession1} AU</span>
-              </div>
-              {dataPoint?.fieldSession2 && (
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-zinc-300">Field Session 2:</span>
-                  <span className="text-white font-medium">{dataPoint.fieldSession2} AU</span>
-                </div>
-              )}
+          {/* Field Training */}
+          {dataPoint?.fieldTraining && dataPoint.fieldTraining > 0 && (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-zinc-300">Field Training:</span>
+              <span className="text-white font-medium">{dataPoint.fieldTraining} AU</span>
             </div>
           )}
           
