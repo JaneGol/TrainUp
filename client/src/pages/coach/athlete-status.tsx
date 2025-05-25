@@ -30,6 +30,24 @@ export default function AthleteStatusPage() {
   const { data: athleteReadiness, isLoading: readinessLoading } = useQuery({
     queryKey: ["/api/analytics/athlete-recovery-readiness"],
   });
+
+  // Filter athletes based on URL parameter
+  const filteredAthletes = athleteReadiness?.filter((athlete: any) => {
+    if (filter === 'sick') {
+      const issues = athlete.issues || [];
+      return issues.some((issue: string) => 
+        issue.includes('soreness') || 
+        issue.includes('injury') || 
+        issue.includes('Sick') ||
+        issue.includes('Fever') ||
+        issue.includes('Sore Throat') ||
+        issue.includes('Runny Nose') ||
+        issue.includes('Headache') ||
+        issue.includes('Fatigue')
+      );
+    }
+    return true; // Show all athletes if no filter
+  }) || [];
   
   return (
     <CoachDashboardLayout>
@@ -48,9 +66,11 @@ export default function AthleteStatusPage() {
             <div>
               <h1 className="text-xl font-bold flex items-center">
                 <Users className="h-5 w-5 mr-2 text-primary" />
-                Athlete Status
+                {filter === 'sick' ? 'Sick / Injured Athletes' : 'Athlete Status'}
               </h1>
-              <p className="text-sm text-zinc-400">Monitor team health and performance</p>
+              <p className="text-sm text-zinc-400">
+                {filter === 'sick' ? 'Athletes with health issues requiring attention' : 'Monitor team health and performance'}
+              </p>
             </div>
           </div>
         </div>
@@ -94,7 +114,7 @@ export default function AthleteStatusPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {athleteReadiness?.map((athlete: any) => {
+                      {filteredAthletes.map((athlete: any) => {
                         const statusColor = (v: number) => 
                           v >= 80 ? "bg-green-500" : v >= 60 ? "bg-yellow-400" : "bg-red-500";
                         
