@@ -56,6 +56,7 @@ export default function TrainingEntryForm() {
     resolver: zodResolver(trainingEntryFormSchema),
     defaultValues: {
       trainingType: "Field Training",
+      sessionNumber: 1, // Default to session 1 for Field Training
       effortLevel: 1,
       emotionalLoad: 1,
       mood: "neutral", // Add default value for the required mood field
@@ -64,9 +65,20 @@ export default function TrainingEntryForm() {
     },
   });
   
-  // Watch effort level and emotional load to provide descriptions
+  // Watch form values for descriptions and auto-selection logic
   const effortLevel = form.watch("effortLevel");
   const emotionalLoad = form.watch("emotionalLoad");
+  const trainingType = form.watch("trainingType");
+
+  // Auto-select session 1 for Field Training, reset for others
+  useEffect(() => {
+    if (trainingType === "Field Training") {
+      form.setValue("sessionNumber", 1);
+    } else {
+      // For Gym and Match training, session number is not needed
+      form.setValue("sessionNumber", 1); // Keep default but it won't be shown/used
+    }
+  }, [trainingType, form]);
   
   // Update effort description when effortLevel changes
   useEffect(() => {
@@ -281,17 +293,17 @@ export default function TrainingEntryForm() {
                       <FormItem>
                         <FormLabel>Session</FormLabel>
                         <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value?.toString()}
+                          onValueChange={(value) => field.onChange(Number(value))}
+                          value={field.value?.toString() || "1"}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select session" />
+                              <SelectValue placeholder="Training 1" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="1">Session 1</SelectItem>
-                            <SelectItem value="2">Session 2</SelectItem>
+                            <SelectItem value="1">Training 1</SelectItem>
+                            <SelectItem value="2">Training 2</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
