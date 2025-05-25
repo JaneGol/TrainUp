@@ -76,8 +76,8 @@ export default function MainMetrics() {
             <Brain size={14} className="text-primary" />
             <p className="text-[14px] font-medium text-white">AI Recommendations</p>
           </div>
-          <p className="text-[28px] font-semibold text-primary">
-            Smart
+          <p className="text-lg font-semibold text-primary">
+            Assistant&nbsp;Coach
           </p>
         </button>
       </section>
