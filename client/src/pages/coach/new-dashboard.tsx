@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useKeyMetrics } from "@/hooks/use-key-metrics";
 import CoachDashboardLayout from "@/components/layout/coach-dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -92,6 +93,9 @@ export default function NewCoachDashboard() {
   const { user, logoutMutation } = useAuth();
   const [, navigate] = useLocation();
   
+  // Use the new key metrics hook
+  const keyMetrics = useKeyMetrics();
+  
   useEffect(() => {
     if (user && user.role === "athlete") {
       navigate("/");
@@ -102,8 +106,6 @@ export default function NewCoachDashboard() {
   const { data: teamReadiness, isLoading: readinessLoading } = useQuery({
     queryKey: ["/api/team-readiness"],
   });
-
-  // Use this variable later for the initial calculation
 
   // Get all athletes
   const { data: athletes, isLoading: athletesLoading } = useQuery({
