@@ -1,0 +1,102 @@
+Below is a **drop-in “Replit Agent Task List.”**
+Paste everything inside the grey block into the **Ask AI** panel of your *SportsMindTracker* Repl and press **Send**.
+The agent will arrange the three metric cards so they sit **on a single row**:
+
+* **High Risk** – fixed square
+* **Sick / Injured** – fixed square
+* **AI Recommendations** – stretches to fill the remaining width
+
+All cards keep equal horizontal gaps.
+
+---
+
+````txt
+# 🚀  Replit Agent Task – One-row metric bar: 2 squares + 1 flexible card
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+
+## 1. Locate component
+Edit **`src/pages/coach/MainMetrics.tsx`** – the block containing the
+*High Risk*, *Sick / Injured*, and *AI Recommendations* cards.
+
+## 2. Build new flex row
+
+### 2.1 Wrapper
+Replace the current wrapper (`<section …>`) with:
+
+```tsx
+<section
+  className="w-full flex gap-4 pt-2"
+>
+  {/* High-Risk card */}
+  {/* Sick/Injured card */}
+  {/* AI Recommendations card */}
+</section>
+````
+
+### 2.2 Card sizing classes
+
+Add/replace `className` props as follows:
+
+```tsx
+/* High-Risk (square) */
+<Card
+  className="flex-none aspect-square w-28 md:w-32 bg-red-600/80"
+  onClick={…}>
+  …content unchanged…
+</Card>
+
+/* Sick/Injured (square) */
+<Card
+  className="flex-none aspect-square w-28 md:w-32 bg-red-600/80"
+  onClick={…}>
+  …content unchanged…
+</Card>
+
+/* AI Recommendations (flex-fill) */
+<Card
+  className="flex-1 min-w-0 bg-lime-400/10"
+  onClick={…}>
+  …content unchanged…
+</Card>
+```
+
+> *Notes*
+>
+> * `aspect-square` is a Tailwind utility that guarantees equal height & width.
+> * `w-28 md:w-32` ≈ 112 px mobile, 128 px desktop—tweak if needed.
+> * `flex-1 min-w-0` lets the “Smart” card consume all leftover space and wrap text if the screen is very narrow.
+
+### 2.3 Remove obsolete width styles
+
+Delete any `w-full`, `grid-cols-…`, or custom width utilities previously attached to these three cards to avoid conflicts.
+
+## 3. Optional responsive fallback
+
+If you prefer the row to wrap on <360 px screens, add `flex-wrap`:
+
+```tsx
+<section className="w-full flex flex-wrap gap-4 pt-2"> … </section>
+```
+
+(Not required by spec—only if testing shows overflow.)
+
+## 4. Verify data hook unchanged
+
+Visual re-layout only; no JS logic changes. All click-throughs remain intact.
+
+## 5. Manual QA (agent does after build)
+
+1. **Desktop and tablet** – two square red cards at left, lime gradient card fills the rest; equal 16 px gaps.
+2. **Mobile ≥375 px** – same layout, no horizontal scroll.
+3. Content inside cards still vertically centred.
+
+## 6. Commit message
+
+> style(dashboard): align High-Risk, Sick/Injured (square) + Smart (flex) in single row
+
+# End of agent task
+
+```
+
+---
+```
