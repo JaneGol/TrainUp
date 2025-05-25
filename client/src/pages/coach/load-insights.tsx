@@ -150,11 +150,18 @@ export default function LoadInsights() {
     const { week, range } = isoWeekInfo(today);
     
     const totalAU = columnData.reduce((sum, item) => sum + item.total, 0);
+    const totalSessions = columnData.reduce((sum, day) => {
+      let sessions = 0;
+      if (day.Field > 0) sessions++;
+      if (day.Gym > 0) sessions++;
+      if (day.Match > 0) sessions++;
+      return sum + sessions;
+    }, 0);
     const avgAcwr = filteredAcwr.length > 0 
       ? filteredAcwr.reduce((sum, item) => sum + item.ratio, 0) / filteredAcwr.length 
       : 0;
     
-    return { week, range, totalAU, avgAcwr };
+    return { week, range, totalAU, totalSessions, avgAcwr };
   };
 
   const weeklySummary = calculateWeeklySummary();
@@ -306,7 +313,7 @@ export default function LoadInsights() {
 
             {/* --- WEEK SUMMARY --- */}
             <p className="text-sm text-zinc-400 mb-3">
-              Week {weeklySummary.week} ({weeklySummary.range}) &nbsp;|&nbsp; Total AU: {weeklySummary.totalAU} &nbsp;|&nbsp; Avg ACWR: {weeklySummary.avgAcwr.toFixed(2)}
+              Week {weeklySummary.week} ({weeklySummary.range}) &nbsp;|&nbsp; Total AU: {weeklySummary.totalAU} &nbsp;|&nbsp; Sessions: {weeklySummary.totalSessions} &nbsp;|&nbsp; Avg ACWR: {weeklySummary.avgAcwr.toFixed(2)}
             </p>
 
             {loadLoading ? (
