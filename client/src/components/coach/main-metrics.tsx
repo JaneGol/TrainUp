@@ -63,7 +63,7 @@ export default function MainMetrics() {
       </section>
 
       {/* Compact 3-button row: High Risk, Sick/Injured, AI Recommendations */}
-      <section className="flex md:grid gap-3 overflow-x-auto md:overflow-visible md:grid-cols-3 mb-6">
+      <section className="flex md:grid gap-3 overflow-x-auto md:overflow-visible md:grid-cols-3 mb-6 justify-center md:max-w-4xl md:mx-auto">
         {/* High Risk Card */}
         <button 
           className={`rounded-xl backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer h-full ${
