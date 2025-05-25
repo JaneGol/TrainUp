@@ -44,6 +44,11 @@
   
   --ring: 73 100% 50%;
   --radius: 1rem; /* More rounded corners like in the screenshot */
+  
+  /* Alert colors for Sick/Injured card */
+  --danger-bg: #9f1239;    /* rose-800 */
+  --danger-bg-0: #27272a;  /* zinc-800 - for "all clear" mode */
+  --danger-text: #fda4af;  /* rose-300 */
 }
 
 /* Since we're always using dark mode by default, keep both consistent */
