@@ -993,14 +993,16 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string; fieldTraining?: number; gymTraining?: number; matchGame?: number; athleteId?: number }[]> {
-    // Get all training entries - we'll filter in memory to make sure we have data
+    // Get all training entries with session numbers - we'll filter in memory to make sure we have data
     const allEntries = await db
       .select({
         trainingType: trainingEntries.trainingType,
         date: trainingEntries.date,
         effortLevel: trainingEntries.effortLevel,
         trainingLoad: trainingEntries.trainingLoad,
-        userId: trainingEntries.userId
+        userId: trainingEntries.userId,
+        sessionNumber: trainingEntries.sessionNumber,
+        emotionalLoad: trainingEntries.emotionalLoad
       })
       .from(trainingEntries)
       .orderBy(trainingEntries.date);
@@ -1044,41 +1046,46 @@ export class DatabaseStorage implements IStorage {
       }
       
       Object.entries(trainingTypes).forEach(([trainingType, entries]) => {
-        // Group by user and session to avoid double-counting
-        const sessionGroups: Record<string, any[]> = {};
+        // Group by session number for the same training type on the same date
+        const sessionGroups: Record<number, any[]> = {};
         entries.forEach(entry => {
-          const key = `${entry.userId}-${entry.sessionNumber || 1}`;
-          if (!sessionGroups[key]) sessionGroups[key] = [];
-          sessionGroups[key].push(entry);
+          const sessionNum = entry.sessionNumber || 1;
+          if (!sessionGroups[sessionNum]) sessionGroups[sessionNum] = [];
+          sessionGroups[sessionNum].push(entry);
         });
         
-        // Calculate session load using 50% participation rule and averaging  
-        const uniqueAthletes = new Set(entries.map(entry => entry.userId)).size;
-        const totalAthletes = 8; // Use same athlete count as Training Log for consistency
-        
-        if (uniqueAthletes >= Math.ceil(totalAthletes * 0.5)) {
-          // Valid session: 50%+ participation
-          // Calculate average RPE, emotional load for the session
-          const avgRPE = entries.reduce((sum, entry) => sum + entry.effortLevel, 0) / entries.length;
-          const avgEmotional = entries.reduce((sum, entry) => sum + (entry.emotionalLoad || 3), 0) / entries.length;
-          
-          // Use same session detection logic as Training Log for consistency
-          const sessionNumber = entries[0].sessionNumber || 1;
-          const sessionKey = `${dateString}-${trainingType}-${sessionNumber}`;
-          const duration = this.sessionDurationOverrides.get(sessionKey) || 60; // Use duration overrides
-          
-          // Calculate session AU: Average RPE × Duration × Emotional Multiplier × Type Weight
-          const emotionalMultiplier = this.getEmotionalMultiplier(Math.round(avgEmotional));
-          const typeMultiplier = this.getTrainingTypeMultiplier(trainingType);
-          const sessionLoad = avgRPE * duration * emotionalMultiplier * typeMultiplier;
-          
-          console.log(`Load Insights calc for ${trainingType}: RPE=${avgRPE.toFixed(1)}, Duration=${duration}, AvgEmotional=${avgEmotional.toFixed(2)}, Rounded=${Math.round(avgEmotional)}, Emotional=${emotionalMultiplier}, Type=${typeMultiplier}, Total=${Math.round(sessionLoad)} AU`);
-          
-          loadByDateAndType[dateString][trainingType] = Math.round(sessionLoad);
-        } else {
-          // Invalid session: less than 50% participation
+        // Initialize total load for this training type on this date
+        if (!loadByDateAndType[dateString][trainingType]) {
           loadByDateAndType[dateString][trainingType] = 0;
         }
+        
+        // Process each session separately (Session 1, Session 2, etc.)
+        Object.entries(sessionGroups).forEach(([sessionNumStr, sessionEntries]) => {
+          const sessionNumber = parseInt(sessionNumStr);
+          const uniqueAthletes = new Set(sessionEntries.map(entry => entry.userId)).size;
+          const totalAthletes = 8; // Use same athlete count as Training Log for consistency
+          
+          if (uniqueAthletes >= Math.ceil(totalAthletes * 0.5)) {
+            // Valid session: 50%+ participation
+            // Calculate average RPE, emotional load for the session
+            const avgRPE = sessionEntries.reduce((sum, entry) => sum + entry.effortLevel, 0) / sessionEntries.length;
+            const avgEmotional = sessionEntries.reduce((sum, entry) => sum + (entry.emotionalLoad || 3), 0) / sessionEntries.length;
+            
+            // Use same session detection logic as Training Log for consistency
+            const sessionKey = `${dateString}-${trainingType}-${sessionNumber}`;
+            const duration = this.sessionDurationOverrides.get(sessionKey) || 60; // Use duration overrides
+            
+            // Calculate session AU: Average RPE × Duration × Emotional Multiplier × Type Weight
+            const emotionalMultiplier = this.getEmotionalMultiplier(Math.round(avgEmotional));
+            const typeMultiplier = this.getTrainingTypeMultiplier(trainingType);
+            const sessionLoad = avgRPE * duration * emotionalMultiplier * typeMultiplier;
+            
+            console.log(`Load Insights calc for ${trainingType} (Session ${sessionNumber}): RPE=${avgRPE.toFixed(1)}, Duration=${duration}, AvgEmotional=${avgEmotional.toFixed(2)}, Rounded=${Math.round(avgEmotional)}, Emotional=${emotionalMultiplier}, Type=${typeMultiplier}, Total=${Math.round(sessionLoad)} AU`);
+            
+            // ADD session load to the total for this training type (to handle multiple sessions)
+            loadByDateAndType[dateString][trainingType] += Math.round(sessionLoad);
+          }
+        });
       });
     });
     
