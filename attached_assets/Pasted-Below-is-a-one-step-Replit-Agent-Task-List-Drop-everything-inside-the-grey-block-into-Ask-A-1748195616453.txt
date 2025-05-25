@@ -1,0 +1,91 @@
+Below is a **one-step “Replit Agent Task List.”**
+Drop everything inside the grey block into **Ask AI** and press **Send**.
+The agent will make the **Alerts** and **Assistant Coach** cards:
+
+* exactly the **same height** as the lime navigation links (≈ 56 px)
+* take one compact row (they already sit side-by-side)
+* vertically centred text and icons
+* **Assistant Coach** text left-aligned (not huge, not centred in the card)
+
+---
+
+````txt
+# ----------------------------------------------------------------
+# Replit-Agent Task · Compact Alerts + Assistant Coach card height
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+# ----------------------------------------------------------------
+
+## 0. Reference
+The lime navigation buttons are h-14 (56 px). We’ll match that.
+
+## 1. Alerts card
+### 1.1  File: src/components/AlertsCard.tsx
+- Replace outer `<Card>` classes:
+  ```diff
+- <Card className="bg-zinc-800/90 flex-1 min-w-0 px-4 py-3">
++ <Card className="bg-zinc-800/90 flex-1 min-w-0 h-14 px-4 flex items-center gap-2">
+````
+
+* Inside, keep only icon + text “Alerts”:
+
+  ```tsx
+  <Bell size={16} className="text-rose-400"/>
+  <span className="text-sm font-medium">Alerts</span>
+  ```
+* Remove list + “View details” link; onClick should still navigate to the alerts page:
+
+  ```tsx
+  onClick={()=>navigate('/athlete-status?filter=alerts')}
+  ```
+
+## 2. Assistant Coach card
+
+### 2.1  File: src/pages/coach/MainMetrics.tsx  (Smart card section)
+
+* Replace outer classes:
+
+  ```diff
+  ```
+* <Card className="flex-1 min-w-0 bg-lime-500/10 px-4 py-3">
+
+- <Card className="flex-1 min-w-0 bg-lime-500/10 h-14 px-4 flex items-center gap-2">
+  ```
+
+* Inner content becomes single row:
+
+  ```tsx
+  <Brain size={16} className="text-lime-400"/>
+  <span className="text-sm font-medium text-lime-300">Assistant Coach</span>
+  ```
+
+  (Delete big “Assistant Coach” heading and sub-copy.)
+
+## 3. Row wrapper keeps gap
+
+### 3.1  File: same page
+
+Ensure the wrapper remains:
+
+```tsx
+<section className="flex gap-4 mt-4 mb-8">
+```
+
+## 4. Touch target >= 48 px
+
+`h-14` is 56 px → meets tap guidelines on mobile.
+
+## 5. Commit message
+
+> style(dashboard): compact Alerts & Assistant Coach cards to 56 px height
+
+# End of agent task
+
+```
+
+---
+
+After the agent runs, reload the coach dashboard:
+
+* **Alerts** and **Assistant Coach** now match the lime menu-button height.  
+* Icons + labels are vertically centred; **Assistant Coach** text hugs the left, just like the Alerts label.
+```

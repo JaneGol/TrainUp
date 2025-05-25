@@ -69,16 +69,11 @@ export default function MainMetrics() {
       <section className="flex gap-4 mt-4 mb-8">
         <AlertsCard className="flex-1 min-w-0" />
         <button 
-          className="flex-1 min-w-0 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur px-4 py-3 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20"
+          className="flex-1 min-w-0 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur h-14 px-4 flex items-center gap-2 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20"
           onClick={() => navigate('/coach/training-recommendations')}
         >
-          <div className="flex items-center gap-2 mb-2">
-            <Brain size={14} className="text-primary" />
-            <p className="text-[14px] font-medium text-white">AI Recommendations</p>
-          </div>
-          <p className="text-lg font-semibold text-primary">
-            Assistant&nbsp;Coach
-          </p>
+          <Brain size={16} className="text-primary" />
+          <span className="text-sm font-medium text-primary">Assistant Coach</span>
         </button>
       </section>
       {/* ▲-------------------------------------------------------------------- */}
