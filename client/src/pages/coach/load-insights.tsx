@@ -109,6 +109,8 @@ export default function LoadInsights() {
   const processedLoadData = () => {
     if (!filteredTrainingLoad || filteredTrainingLoad.length === 0) return [];
     
+    console.log('Raw training load data:', filteredTrainingLoad);
+    
     // Group by date
     const dateGroups = filteredTrainingLoad.reduce((acc, item) => {
       const date = item.date;
@@ -116,19 +118,22 @@ export default function LoadInsights() {
         acc[date] = { date, Field: 0, Gym: 0, Match: 0, sessions: [] };
       }
       
-      // Map training types to our chart categories
-      let category = 'Gym';
-      if (item.trainingType === 'Field Training') category = 'Field';
-      else if (item.trainingType === 'Match/Game') category = 'Match';
+      // Map training types to our chart categories - check both normalized and original data
+      let category = 'Gym'; // default
+      if (item.trainingType === 'Field Training' || item.Field > 0) category = 'Field';
+      else if (item.trainingType === 'Match/Game' || item.Match > 0) category = 'Match';
+      else if (item.trainingType === 'Gym Training' || item.Gym > 0) category = 'Gym';
       
-      acc[date][category] += item.load || 0;
-      acc[date].sessions.push({ type: category, load: item.load || 0 });
+      console.log(`Processing ${date}: ${item.trainingType} -> ${category}, load: ${item.load || item.Field || item.Gym || item.Match || 0}`);
+      
+      const loadValue = item.load || item.Field || item.Gym || item.Match || 0;
+      acc[date][category] += loadValue;
+      acc[date].sessions.push({ type: category, load: loadValue });
       
       return acc;
     }, {} as Record<string, any>);
 
-    // Convert to array and detect double sessions
-    return Object.values(dateGroups).map((day: any) => ({
+    const result = Object.values(dateGroups).map((day: any) => ({
       date: day.date,
       Field: day.Field,
       Gym: day.Gym,
@@ -138,6 +143,9 @@ export default function LoadInsights() {
         day.sessions.findIndex((other: any, j: number) => other.type === s.type && i !== j) !== -1
       )
     }));
+    
+    console.log('Processed column data:', result);
+    return result;
   };
 
   const columnData = processedLoadData();
