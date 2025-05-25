@@ -449,11 +449,10 @@ export default function NewCoachDashboard() {
         <div className="bg-zinc-900 rounded-full py-1.5 px-3 mb-6 flex justify-between items-center gap-2 shadow-md mx-auto max-w-2xl">
           {/* Recovery Metric */}
           <div className="flex items-center gap-1 px-1.5">
-            <BatteryFull className={`h-4 w-4 ${isNumber(averageRecovery) && averageRecovery >= 70 ? 'text-green-500' : isNumber(averageRecovery) && averageRecovery >= 50 ? 'text-amber-500' : 'text-gray-400'}`} />
+            <BatteryFull className={`h-4 w-4 ${keyMetrics.avgRecovery >= 4 ? 'text-green-500' : keyMetrics.avgRecovery >= 3 ? 'text-amber-500' : 'text-red-500'}`} />
             <div>
               <div className="text-lg font-bold">
-                {readinessLoading ? "..." : 
-                 <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
+                {keyMetrics.isLoading ? "..." : keyMetrics.avgRecovery}
               </div>
               <div className="text-xs text-zinc-400 -mt-0.5">Recovery</div>
             </div>
@@ -463,11 +462,10 @@ export default function NewCoachDashboard() {
 
           {/* Readiness Metric */}
           <div className="flex items-center gap-1 px-1.5">
-            <Zap className={`h-4 w-4 ${isNumber(teamAvgReadiness) && teamAvgReadiness >= 70 ? 'text-green-500' : isNumber(teamAvgReadiness) && teamAvgReadiness >= 50 ? 'text-amber-500' : 'text-gray-400'}`} />
+            <Zap className={`h-4 w-4 ${keyMetrics.avgReadiness >= 70 ? 'text-green-500' : keyMetrics.avgReadiness >= 50 ? 'text-amber-500' : 'text-red-500'}`} />
             <div>
               <div className="text-lg font-bold">
-                {readinessLoading ? "..." : 
-                 <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
+                {keyMetrics.isLoading ? "..." : keyMetrics.avgReadiness + "%"}
               </div>
               <div className="text-xs text-zinc-400 -mt-0.5">Readiness</div>
             </div>
@@ -478,16 +476,12 @@ export default function NewCoachDashboard() {
           {/* High Risk Metric */}
           <div className="flex items-center gap-1 px-1.5">
             <Triangle 
-              className={`h-4 w-4 
-                ${isNumber(athletesAtRisk) && athletesAtRisk === 0 ? 'text-green-500' : 
-                 isNumber(athletesAtRisk) && athletesAtRisk <= 2 ? 'text-yellow-400' : 
-                 isNumber(athletesAtRisk) ? 'text-red-500' : 'text-gray-400'}`} 
-              fill={isNumber(athletesAtRisk) && athletesAtRisk > 2 ? 'currentColor' : 'none'}
+              className={`h-4 w-4 ${keyMetrics.highRisk === 0 ? 'text-green-500' : keyMetrics.highRisk <= 2 ? 'text-yellow-400' : 'text-red-500'}`} 
+              fill={keyMetrics.highRisk > 2 ? 'currentColor' : 'none'}
             />
             <div>
               <div className="text-lg font-bold">
-                {athletesLoading ? "..." : 
-                 <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
+                {keyMetrics.isLoading ? "..." : keyMetrics.highRisk}
               </div>
               <div className="text-xs text-zinc-400 -mt-0.5">High Risk</div>
             </div>
@@ -495,9 +489,9 @@ export default function NewCoachDashboard() {
 
           <div className="w-px h-6 bg-zinc-800"></div>
 
-          {/* Sick/Injured Metric */}
+          {/* Low Readiness Metric */}
           <div className="flex items-center gap-1 px-1.5">
-            <HeartPulse className={`h-4 w-4 ${isNumber(sickOrInjuredAthletes) && sickOrInjuredAthletes === 0 ? 'text-green-500' : isNumber(sickOrInjuredAthletes) ? 'text-red-500' : 'text-gray-400'}`} />
+            <HeartPulse className={`h-4 w-4 ${keyMetrics.lowReadiness === 0 ? 'text-green-500' : 'text-red-500'}`} />
             <div>
               <div className="text-lg font-bold">
                 {athletesLoading ? "..." : 
