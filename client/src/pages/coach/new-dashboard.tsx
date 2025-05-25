@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useKeyMetrics } from "@/hooks/use-key-metrics";
+import MainMetrics from "@/components/coach/main-metrics";
 import CoachDashboardLayout from "@/components/layout/coach-dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -445,62 +446,8 @@ export default function NewCoachDashboard() {
           </div>
         </div>
         
-        {/* Ultra-Compact Key Metrics Panel */}
-        <div className="bg-zinc-900 rounded-full py-1.5 px-3 mb-6 flex justify-between items-center gap-2 shadow-md mx-auto max-w-2xl">
-          {/* Recovery Metric */}
-          <div className="flex items-center gap-1 px-1.5">
-            <BatteryFull className={`h-4 w-4 ${keyMetrics.avgRecovery >= 4 ? 'text-green-500' : keyMetrics.avgRecovery >= 3 ? 'text-amber-500' : 'text-red-500'}`} />
-            <div>
-              <div className="text-lg font-bold">
-                {keyMetrics.isLoading ? "..." : keyMetrics.avgRecovery}
-              </div>
-              <div className="text-xs text-zinc-400 -mt-0.5">Recovery</div>
-            </div>
-          </div>
-
-          <div className="w-px h-6 bg-zinc-800"></div>
-
-          {/* Readiness Metric */}
-          <div className="flex items-center gap-1 px-1.5">
-            <Zap className={`h-4 w-4 ${keyMetrics.avgReadiness >= 70 ? 'text-green-500' : keyMetrics.avgReadiness >= 50 ? 'text-amber-500' : 'text-red-500'}`} />
-            <div>
-              <div className="text-lg font-bold">
-                {keyMetrics.isLoading ? "..." : keyMetrics.avgReadiness + "%"}
-              </div>
-              <div className="text-xs text-zinc-400 -mt-0.5">Readiness</div>
-            </div>
-          </div>
-
-          <div className="w-px h-6 bg-zinc-800"></div>
-
-          {/* High Risk Metric */}
-          <div className="flex items-center gap-1 px-1.5">
-            <Triangle 
-              className={`h-4 w-4 ${keyMetrics.highRisk === 0 ? 'text-green-500' : keyMetrics.highRisk <= 2 ? 'text-yellow-400' : 'text-red-500'}`} 
-              fill={keyMetrics.highRisk > 2 ? 'currentColor' : 'none'}
-            />
-            <div>
-              <div className="text-lg font-bold">
-                {keyMetrics.isLoading ? "..." : keyMetrics.highRisk}
-              </div>
-              <div className="text-xs text-zinc-400 -mt-0.5">High Risk</div>
-            </div>
-          </div>
-
-          <div className="w-px h-6 bg-zinc-800"></div>
-
-          {/* Low Readiness Metric */}
-          <div className="flex items-center gap-1 px-1.5">
-            <HeartPulse className={`h-4 w-4 ${keyMetrics.lowReadiness === 0 ? 'text-green-500' : 'text-red-500'}`} />
-            <div>
-              <div className="text-lg font-bold">
-                {athletesLoading ? "..." : 
-                 <span className="text-zinc-500 text-[10px]">Awaiting data</span>}
-              </div>
-              <div className="text-xs text-zinc-400 -mt-0.5">Sick/Injured</div>
-            </div>
-          </div>
-        </div>
+        {/* New Card-Based Metrics */}
+        <MainMetrics />
         
 
 

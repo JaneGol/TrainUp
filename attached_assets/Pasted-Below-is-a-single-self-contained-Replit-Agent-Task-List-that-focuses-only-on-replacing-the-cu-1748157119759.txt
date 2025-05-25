@@ -1,0 +1,213 @@
+Below is a **single, self-contained “Replit Agent Task List”** that focuses only on replacing the current black-bar of coach metrics with the clearer, action-oriented card + gauge design we discussed.
+Copy everything inside the grey block, open the **Ask AI** panel (Replit AI agent) in your *SportsMindTracker* repl, paste, and hit **Send**.
+
+---
+
+````txt
+# 🚀  Replit Agent Task – Redesign Coach Main-Metrics Strip
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+
+## Goal
+Replace the existing dark pill that shows “3.3 Recovery · 69 % Readiness …”
+with four responsive **cards** that each contain a small circular gauge (or pill),
+trend arrow, and click-through navigation.  
+Keep the current colour palette (yellow/green/red accents, dark background).
+
+## 1. Create reusable building-blocks
+### 1.1 Gauge component
+- **File:** `src/components/Gauge.tsx`
+- Pure SVG arc that accepts `value`, `max`, and optional `size=56`.
+- Compute `percent = value / max`.
+- Stroke colour via `getColor(value, max)` (helper defined below).
+- Show the numeric value centred.
+
+```tsx
+import clsx from "clsx";
+
+const getColor = (v:number, m:number) =>
+  v/m >= .8 ? "stroke-green-400"
+  : v/m >= .6 ? "stroke-yellow-300"
+  : "stroke-red-400";
+
+export default function Gauge({
+  value, max, size = 56
+}: { value:number; max:number; size?:number }) {
+  const radius = size/2 - 4, dash = 2*Math.PI*radius, pct = value/max;
+  return (
+    <svg width={size} height={size} className="rotate-90 -scale-y-100">
+      <circle cx={size/2} cy={size/2} r={radius}
+              className="stroke-gray-700" strokeWidth="4" fill="none"/>
+      <circle cx={size/2} cy={size/2} r={radius}
+              className={clsx("fill-none", getColor(value,max))}
+              strokeWidth="4" strokeDasharray={dash}
+              strokeDashoffset={dash*(1-pct)} />
+      <text x="50%" y="50%" dy=".3em"
+            className="text-xs font-bold text-white/90 text-center"
+            textAnchor="middle">
+        {value.toFixed(1)}
+      </text>
+    </svg>
+  );
+}
+````
+
+### 1.2 Card shell
+
+* **File:** `src/components/Card.tsx` (skip if already exists)
+
+```tsx
+export default function Card({children, className="", ...rest}: any) {
+  return (
+    <button {...rest}
+      className={`rounded-xl bg-white/5 backdrop-blur p-3 md:p-4 shadow
+                  hover:ring-2 hover:ring-white/10 transition ${className}`}>
+      {children}
+    </button>
+  );
+}
+```
+
+## 2. Data hook with trend
+
+* **File:** `src/hooks/useKeyMetrics.ts`  *(edit existing)*
+
+  * Extend API to return yesterday’s aggregation.
+    Endpoint example: `/coach/{teamId}/metrics?date=today&compare=1`
+  * Derive `delta = today - yesterday` for recovery & readiness.
+
+```tsx
+export const useKeyMetrics = (teamId:string) => useQuery(
+  ["keyMetrics", teamId],
+  () => api.get(`/coach/${teamId}/metrics?compare=1`).then(r=>r.data),
+  { select: d => ({
+      recovery : d.today.recovery,
+      recoveryDelta : d.today.recovery - d.yesterday.recovery,
+      readiness: d.today.readinessPct,
+      readinessDelta: d.today.readinessPct - d.yesterday.readinessPct,
+      highRisk : d.today.highRisk,
+      sick     : d.today.sick,
+    })
+  }
+);
+```
+
+## 3. MainMetrics component
+
+* **File:** `src/pages/coach/MainMetrics.tsx`
+* Uses `Card`, `Gauge`, and the hook above.
+
+```tsx
+import Gauge from "@/components/Gauge";
+import Card  from "@/components/Card";
+import { useKeyMetrics } from "@/hooks/useKeyMetrics";
+import { ArrowUp, ArrowDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+export default function MainMetrics({teamId}:{teamId:string}) {
+  const nav = useNavigate();
+  const m = useKeyMetrics(teamId);
+
+  if (m.isLoading) return null;
+
+  const trend = (d:number)=> d===0 ? null :
+      d>0 ? <ArrowUp size={12} className="inline text-green-400"/> :
+            <ArrowDown size={12} className="inline text-red-400"/>;
+
+  return (
+    <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <Card onClick={()=>nav('/wellness?metric=recovery')}>
+        <div className="flex items-center gap-2">
+          <Gauge value={m.data.recovery} max={5}/>
+          <div>
+            <p className="text-xs uppercase text-white/60">Recovery</p>
+            <p className="text-lg font-bold">
+              {m.data.recovery.toFixed(1)}
+              <span className="text-xs">/5</span>
+              {trend(m.data.recoveryDelta)}
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      <Card onClick={()=>nav('/wellness?metric=readiness')}>
+        <div className="flex items-center gap-2">
+          <Gauge value={m.data.readiness} max={100}/>
+          <div>
+            <p className="text-xs uppercase text-white/60">Readiness</p>
+            <p className="text-lg font-bold">
+              {m.data.readiness.toFixed(0)}%
+              {trend(m.data.readinessDelta)}
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="bg-red-600/20"
+            onClick={()=>nav('/athlete-status?filter=highRisk')}>
+        <p className="text-xs uppercase text-white/60">High&nbsp;Risk</p>
+        <p className="text-3xl font-extrabold text-red-400">
+          {m.data.highRisk}
+        </p>
+        <p className="text-xs">Tap to view names</p>
+      </Card>
+
+      <Card className="bg-red-600/20"
+            onClick={()=>nav('/athlete-status?filter=sick')}>
+        <p className="text-xs uppercase text-white/60">Sick / Injured</p>
+        <p className="text-3xl font-extrabold text-red-400">
+          {m.data.sick}
+        </p>
+        <p className="text-xs">Tap to view names</p>
+      </Card>
+    </section>
+  );
+}
+```
+
+## 4. Swap old strip for new cards
+
+* **File:** `src/pages/coach/Dashboard.tsx`
+
+  * Remove the existing black pill component.
+  * Import and render `<MainMetrics teamId={user.teamId} />` at the top.
+
+## 5. Styling / utilities
+
+* **Global CSS**: ensure
+
+  ```css
+  .stroke-green-400 { stroke: #59d369; }
+  .stroke-yellow-300 { stroke: #facc15; }
+  .stroke-red-400   { stroke: #f87171; }
+  ```
+
+  (Tailwind users: these classes already exist.)
+
+## 6. Quick QA checklist
+
+1. Recovery gauge shows **value / 5** and green/yellow/red arc.
+2. Readiness gauge shows **percent / 100**.
+3. High-risk & Sick cards are red and clickable.
+4. Hover/click on cards navigates to the right filtered page.
+5. All cards stack **2×2** on mobile (< 640 px), 4-in-a-row on desktop.
+
+## 7. Commit message
+
+> feat(ui): rebuild coach top-metrics as gauges & cards, with trends + navigation
+
+# End of agent task
+
+```
+
+---
+
+### What happens next?
+Once you paste & send, Replit’s AI agent will:
+
+1. Generate the `Gauge`, `Card`, `MainMetrics` components.  
+2. Update the dashboard page.  
+3. Adjust the metrics hook + API call.  
+4. Push a commit titled exactly as in **7** above.
+
+You can then preview the repl—if anything looks off, ask the agent for tweaks or revert.
+```
