@@ -22,25 +22,36 @@ export default function LoadInsights() {
   });
   
   // Get training load data with athlete ID when an athlete is selected
-  const { data: trainingLoad, isLoading: loadLoading, refetch: refetchTrainingLoad } = useQuery({
-    queryKey: ["/api/analytics/training-load", selectedAthlete !== "all" ? { athleteId: selectedAthlete } : null],
+  const { data: trainingLoad, isLoading: loadLoading } = useQuery({
+    queryKey: ["/api/analytics/training-load", selectedAthlete !== "all" ? selectedAthlete : "all"],
+    queryFn: async () => {
+      const url = selectedAthlete !== "all" 
+        ? `/api/analytics/training-load?athleteId=${selectedAthlete}`
+        : "/api/analytics/training-load";
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch training load data');
+      return response.json();
+    },
     refetchOnWindowFocus: false
   });
   
   // Get ACWR data with athlete ID when an athlete is selected
-  const { data: acwrData, isLoading: acwrLoading, refetch: refetchAcwr } = useQuery({
-    queryKey: ["/api/analytics/acwr", selectedAthlete !== "all" ? { athleteId: selectedAthlete } : null],
+  const { data: acwrData, isLoading: acwrLoading } = useQuery({
+    queryKey: ["/api/analytics/acwr", selectedAthlete !== "all" ? selectedAthlete : "all"],
+    queryFn: async () => {
+      const url = selectedAthlete !== "all" 
+        ? `/api/analytics/acwr?athleteId=${selectedAthlete}`
+        : "/api/analytics/acwr";
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch ACWR data');
+      return response.json();
+    },
     refetchOnWindowFocus: false
   });
   
-  // Manually refetch data when athlete selection changes
+  // Handle athlete selection change
   const handleAthleteChange = (newValue: string) => {
     setSelectedAthlete(newValue);
-    // Allow the state to update first, then refetch
-    setTimeout(() => {
-      refetchTrainingLoad();
-      refetchAcwr();
-    }, 100);
   };
   
   // Define interfaces for proper type checking
