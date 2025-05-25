@@ -287,12 +287,12 @@ export default function FitnessProgressPage() {
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
+                <ComposedChart
                   data={acuteLoadData}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                   <defs>
-                    <linearGradient id="colorLoad" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorSessionLoad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
                       <stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
                     </linearGradient>
@@ -304,22 +304,66 @@ export default function FitnessProgressPage() {
                       return format(new Date(value), "MM/dd");
                     }}
                   />
-                  <YAxis label={{ value: 'Load (AU)', angle: -90, position: 'insideLeft' }} />
+                  <YAxis yAxisId="left" label={{ value: 'Load (AU)', angle: -90, position: 'insideLeft' }} />
+                  <YAxis yAxisId="right" orientation="right" label={{ value: 'ACWR', angle: 90, position: 'insideRight' }} />
+                  
+                  {/* Optimal ACWR zone (0.8 - 1.3) */}
+                  <ReferenceArea yAxisId="right" y1={0.8} y2={1.3} fill="green" fillOpacity={0.05} />
+                  
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgb(38,38,38)', color: 'white', border: '1px solid #666' }}
-                    formatter={(value: any, name: any) => [value.toFixed(1), name === 'load' ? 'Training Load' : name]}
+                    formatter={(value: any, name: any) => {
+                      if (name === 'load') return [value.toFixed(1) + ' AU', 'Session Load'];
+                      if (name === 'acuteLoad') return [value.toFixed(1) + ' AU', 'Acute Load'];
+                      if (name === 'acwr') return [value.toFixed(2), 'ACWR'];
+                      return [value, name];
+                    }}
                     labelFormatter={(label) => format(new Date(label), "MMMM d, yyyy")}
                   />
+                  
                   <Area 
+                    yAxisId="left"
                     type="monotone" 
                     dataKey="load" 
                     stroke="#82ca9d" 
-                    fillOpacity={1} 
-                    fill="url(#colorLoad)" 
-                    name="Training Load"
+                    fillOpacity={0.3} 
+                    fill="url(#colorSessionLoad)" 
+                    name="load"
                   />
-                </AreaChart>
+                  
+                  <Line 
+                    yAxisId="right"
+                    type="monotone" 
+                    dataKey="acwr" 
+                    stroke="#ff6b6b" 
+                    strokeWidth={2}
+                    dot={{ fill: '#ff6b6b', strokeWidth: 2, r: 3 }}
+                    name="acwr"
+                  />
+                </ComposedChart>
               </ResponsiveContainer>
+            </div>
+            
+            {/* Plain-language ACWR messages */}
+            <div className="mt-4 p-3 rounded-lg bg-zinc-800/50">
+              {fitnessData.summary.acwr > 1.3 && (
+                <p className="text-red-400 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  ACWR {fitnessData.summary.acwr.toFixed(2)} – consider lighter sessions to reduce injury risk
+                </p>
+              )}
+              {fitnessData.summary.acwr >= 0.8 && fitnessData.summary.acwr <= 1.3 && (
+                <p className="text-green-400 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  ACWR {fitnessData.summary.acwr.toFixed(2)} – you're in the optimal training zone
+                </p>
+              )}
+              {fitnessData.summary.acwr < 0.8 && (
+                <p className="text-yellow-400 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  ACWR {fitnessData.summary.acwr.toFixed(2)} – you may safely increase training intensity
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

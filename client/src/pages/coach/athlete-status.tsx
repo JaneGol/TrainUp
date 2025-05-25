@@ -72,8 +72,70 @@ export default function AthleteStatusPage() {
               </div>
             </CardHeader>
             <CardContent>
-              {/* Athlete icon grid component with auto-filtered display */}
-              <AthleteIconGrid />
+              {/* Compact athlete status table */}
+              {readinessLoading || athletesLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="text-left py-3 px-2"></th>
+                        <th className="text-left py-3 px-2">Name</th>
+                        <th className="text-left py-3 px-2">Recovery</th>
+                        <th className="text-left py-3 px-2">Readiness</th>
+                        <th className="text-left py-3 px-2">Health</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {athleteReadiness?.map((athlete: any) => {
+                        const statusColor = (v: number) => 
+                          v >= 80 ? "bg-green-500" : v >= 60 ? "bg-yellow-400" : "bg-red-500";
+                        
+                        const recoveryScore = Math.min(100, Math.max(0, athlete.readinessScore));
+                        const readinessDisplay = Math.floor(recoveryScore / 10); // Convert to 1-10 scale
+                        
+                        return (
+                          <tr key={athlete.athleteId} className="border-b border-white/10 hover:bg-white/5">
+                            <td className="pr-2 py-3">🏃</td>
+                            <td className="py-3 px-2 font-medium">{athlete.name}</td>
+                            <td className="py-3 px-2">
+                              <span className={`px-2 py-1 rounded text-white text-xs font-medium ${statusColor(recoveryScore)}`}>
+                                {Math.floor(recoveryScore / 20)}/5
+                              </span>
+                            </td>
+                            <td className="py-3 px-2">
+                              <span className={`px-2 py-1 rounded text-white text-xs font-medium ${statusColor(recoveryScore)}`}>
+                                {readinessDisplay}/10
+                              </span>
+                            </td>
+                            <td className="py-3 px-2">
+                              <div className="flex items-center gap-2">
+                                {athlete.issues?.length > 0 ? (
+                                  <>
+                                    <span className="text-red-400">🌡️</span>
+                                    <span className="text-xs text-zinc-300">
+                                      {athlete.issues.slice(0, 2).join(", ")}
+                                      {athlete.issues.length > 2 && "..."}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="text-green-400">✅</span>
+                                    <span className="text-xs text-zinc-300">Healthy</span>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
