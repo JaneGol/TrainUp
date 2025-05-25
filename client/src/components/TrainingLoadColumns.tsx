@@ -12,9 +12,9 @@ import {
 import { format, parseISO } from 'date-fns';
 
 const colors = {
-  Field: '#b5f23d',
-  Gym: '#547aff', 
-  Match: '#ff6f6f'
+  Field: '#b5f23d',   // Bright lime green for Field Training
+  Gym: '#547aff',     // Blue-grey for Gym Training  
+  Match: '#ff6f6f'    // Coral for Match/Game
 };
 
 interface TrainingLoadColumnsProps {

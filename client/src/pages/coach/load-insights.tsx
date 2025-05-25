@@ -304,7 +304,10 @@ export default function LoadInsights() {
             ) : columnData.length === 0 ? (
               <p className="py-10 text-center text-zinc-400">No training load data available for the selected filters.</p>
             ) : (
-              <TrainingLoadColumns data={columnData} />
+              <div>
+                <h4 className="text-sm font-medium text-zinc-300 mb-3">Training Load</h4>
+                <TrainingLoadColumns data={columnData} />
+              </div>
             )}
             
             {weeklySummary.avgAcwr > 1.3 && (
