@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { setupPasswordResetRoutes } from "./password-reset-routes";
 import { setupSheetExportRoutes } from "./sheets-export-routes";
 import { HealthRecommendationService } from "./ai-health";
+import { TrainingRecommendationService } from "./training-recommendations";
 import { 
   insertTrainingEntrySchema, 
   insertHealthReportSchema, 
@@ -44,6 +45,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize health recommendation service
   const healthRecommendationService = new HealthRecommendationService(storage);
+  
+  // Initialize training recommendation service
+  const trainingRecommendationService = new TrainingRecommendationService(storage);
   
   // AI Health Recommendations API
   app.get("/api/health-recommendations/:userId", async (req, res) => {
