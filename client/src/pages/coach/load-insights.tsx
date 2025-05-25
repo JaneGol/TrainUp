@@ -291,12 +291,15 @@ export default function LoadInsights() {
         
         {/* Merged Week Summary + Training Load Chart */}
         {weeklySummary && (
-          <Card className="bg-zinc-800/90 mt-6 px-4 py-3">
-            <h3 className="font-semibold text-white">
-              Week {weeklySummary.week} <span className="text-zinc-400 text-[13px]">({weeklySummary.range})</span>
-            </h3>
-            <p className="text-[13px] text-zinc-400 mb-2">
-              Total AU: {weeklySummary.totalAU} &nbsp;|&nbsp; Avg ACWR: {weeklySummary.avgAcwr.toFixed(2)}
+          <Card className="bg-zinc-800/90 px-4 py-4 mt-6">
+            {/* --- TITLE --- */}
+            <h2 className="text-base font-semibold text-center mb-1 text-white">
+              Training Load
+            </h2>
+
+            {/* --- WEEK SUMMARY --- */}
+            <p className="text-sm text-zinc-400 mb-3">
+              Week {weeklySummary.week} ({weeklySummary.range}) &nbsp;|&nbsp; Total AU: {weeklySummary.totalAU} &nbsp;|&nbsp; Avg ACWR: {weeklySummary.avgAcwr.toFixed(2)}
             </p>
 
             {loadLoading ? (
@@ -305,8 +308,20 @@ export default function LoadInsights() {
               <p className="py-10 text-center text-zinc-400">No training load data available for the selected filters.</p>
             ) : (
               <div>
-                <h4 className="text-sm font-medium text-zinc-300 mb-3">Training Load</h4>
                 <TrainingLoadColumns data={columnData} />
+                
+                {/* --- LEGEND --- */}
+                <div className="flex justify-center gap-4 mt-2 text-[11px]">
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-2 bg-[#b5f23d] inline-block"></span> Field
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-2 bg-[#547aff] inline-block"></span> Gym
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-2 bg-[#ff6f6f] inline-block"></span> Match
+                  </span>
+                </div>
               </div>
             )}
             

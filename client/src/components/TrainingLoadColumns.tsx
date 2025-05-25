@@ -35,17 +35,6 @@ export default function TrainingLoadColumns({ data }: TrainingLoadColumnsProps) 
         data={data} 
         margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
       >
-        <defs>
-          <pattern 
-            id="dotsPattern" 
-            patternUnits="userSpaceOnUse" 
-            width="4" 
-            height="4"
-          >
-            <circle cx="2" cy="2" r="1" fill="white" fillOpacity="0.6" />
-          </pattern>
-        </defs>
-
         <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
         <XAxis 
           dataKey="date" 
@@ -70,16 +59,7 @@ export default function TrainingLoadColumns({ data }: TrainingLoadColumnsProps) 
         />
         
         {(['Field', 'Gym', 'Match'] as const).map((type) => (
-          <Bar key={type} dataKey={type} stackId="a" fill={colors[type]}>
-            {data.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`}
-                fill={entry.double ? `url(#dotsPattern)` : colors[type]}
-                stroke={entry.double ? colors[type] : 'none'}
-                strokeWidth={entry.double ? 2 : 0}
-              />
-            ))}
-          </Bar>
+          <Bar key={type} dataKey={type} stackId="a" fill={colors[type]} />
         ))}
         
         <LabelList 
