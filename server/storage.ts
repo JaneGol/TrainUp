@@ -27,6 +27,7 @@ export interface IStorage {
   createTrainingEntry(entry: InsertTrainingEntry): Promise<TrainingEntry>;
   getTrainingEntriesByUserId(userId: number): Promise<TrainingEntry[]>;
   markTrainingEntryAsReviewed(entryId: number): Promise<void>;
+  updateTrainingSessionDuration(sessionId: string, duration: number): Promise<any>;
   
   // Morning diary methods
   createMorningDiary(diary: InsertMorningDiary, userId: number, readinessScore: number): Promise<MorningDiary>;
@@ -193,6 +194,15 @@ export class MemStorage implements IStorage {
       entry.coachReviewed = true;
       this.trainingEntries.set(entryId, entry);
     }
+  }
+
+  async updateTrainingSessionDuration(sessionId: string, duration: number): Promise<any> {
+    // Return mock updated session data
+    return {
+      id: sessionId,
+      duration: duration,
+      updated: true
+    };
   }
   
   // Morning diary methods

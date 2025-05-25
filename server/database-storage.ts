@@ -381,6 +381,16 @@ export class DatabaseStorage implements IStorage {
       .set({ coachReviewed: true })
       .where(eq(trainingEntries.id, entryId));
   }
+
+  async updateTrainingSessionDuration(sessionId: string, duration: number): Promise<any> {
+    // For now, return a mock updated session since we don't have a sessions table
+    // This would normally update the database and return the updated session
+    return {
+      id: sessionId,
+      duration: duration,
+      updated: true
+    };
+  }
   
   // Morning diary methods
   async createMorningDiary(diary: InsertMorningDiary, userId: number, readinessScore: number): Promise<MorningDiary> {
