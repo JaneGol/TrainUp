@@ -513,8 +513,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { sessionId } = req.params;
     const { duration } = req.body;
     
-    if (!duration || duration < 1) {
-      return res.status(400).json({ error: "Valid duration is required" });
+    // Validate duration with proper bounds
+    if (!duration || typeof duration !== 'number' || duration < 15 || duration > 240) {
+      return res.status(400).json({ error: "Duration must be between 15 and 240 minutes" });
     }
     
     try {

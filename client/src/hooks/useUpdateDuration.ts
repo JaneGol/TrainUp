@@ -14,7 +14,7 @@ export function useUpdateDuration() {
   return useMutation({
     mutationFn: async ({ sessionId, duration }: UpdateDurationParams) => {
       const response = await apiRequest("PATCH", `/api/training-sessions/${sessionId}`, {
-        duration_minutes: duration
+        duration: duration
       });
       return response.json();
     },

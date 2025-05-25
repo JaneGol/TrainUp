@@ -36,8 +36,8 @@ export default function SessionSheet({ open, onClose, session, onSave, isLoading
 
   if (!session) return null;
 
-  const increment = () => setDuration(d => d + 5);
-  const decrement = () => setDuration(d => Math.max(10, d - 5));
+  const increment = () => setDuration(d => Math.min(240, d + 5));
+  const decrement = () => setDuration(d => Math.max(15, d - 5));
 
   // Calculate live session load
   const emotionalFactor = session.emotionalLoad || 1.25; // Default fallback
