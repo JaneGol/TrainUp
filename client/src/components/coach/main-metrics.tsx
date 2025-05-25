@@ -6,12 +6,12 @@ import { useLocation } from "wouter";
 // Utility for unified danger card styling
 const dangerClasses = (count: number) => ({
   bg: count > 0 
-    ? "bg-rose-900/55" 
+    ? "bg-rose-900/35" 
     : "bg-zinc-700",
   icon: count > 0 
     ? "text-rose-400" 
     : "text-zinc-400",
-  numColour: count > 0 
+  num: count > 0 
     ? "text-rose-400" 
     : "text-zinc-300",
   subtitle: count > 0 ? "Tap to view" : "All clear"
@@ -83,14 +83,14 @@ export default function MainMetrics() {
           className={`flex-none aspect-square w-28 md:w-32 rounded-xl backdrop-blur shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer flex flex-col items-center justify-center ${dangerClasses(keyMetrics.highRisk).bg}`}
           onClick={() => navigate('/coach/athlete-status')}
         >
-          <AlertTriangle size={18} className={dangerClasses(keyMetrics.highRisk).icon} />
-          <p className="text-[11px] font-medium uppercase text-zinc-200 mt-0.5">
+          <AlertTriangle size={16} className={dangerClasses(keyMetrics.highRisk).icon} />
+          <p className="text-[10px] uppercase text-zinc-200 mt-0.5">
             High&nbsp;Risk
           </p>
-          <p className={`text-2xl font-bold ${dangerClasses(keyMetrics.highRisk).numColour} my-0.5`}>
+          <p className={`text-xl font-medium ${dangerClasses(keyMetrics.highRisk).num} my-0.5`}>
             {keyMetrics.highRisk}
           </p>
-          <p className="text-[11px]">{dangerClasses(keyMetrics.highRisk).subtitle}</p>
+          <p className="text-[10px] text-zinc-400">{dangerClasses(keyMetrics.highRisk).subtitle}</p>
         </button>
 
         {/* Sick / Injured Card (square) */}
@@ -98,14 +98,14 @@ export default function MainMetrics() {
           className={`flex-none aspect-square w-28 md:w-32 rounded-xl backdrop-blur shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer flex flex-col items-center justify-center ${dangerClasses(keyMetrics.sickInjured).bg}`}
           onClick={() => navigate('/coach/athlete-status?filter=sick')}
         >
-          <HeartPulse size={18} className={dangerClasses(keyMetrics.sickInjured).icon} />
-          <p className="text-[11px] font-medium uppercase text-zinc-200 mt-0.5">
+          <HeartPulse size={16} className={dangerClasses(keyMetrics.sickInjured).icon} />
+          <p className="text-[10px] uppercase text-zinc-200 mt-0.5">
             Sick&nbsp;/&nbsp;Injured
           </p>
-          <p className={`text-2xl font-bold ${dangerClasses(keyMetrics.sickInjured).numColour} my-0.5`}>
+          <p className={`text-xl font-medium ${dangerClasses(keyMetrics.sickInjured).num} my-0.5`}>
             {keyMetrics.sickInjured}
           </p>
-          <p className="text-[11px]">{dangerClasses(keyMetrics.sickInjured).subtitle}</p>
+          <p className="text-[10px] text-zinc-400">{dangerClasses(keyMetrics.sickInjured).subtitle}</p>
         </button>
 
         {/* AI Recommendations Card (flexible) */}
