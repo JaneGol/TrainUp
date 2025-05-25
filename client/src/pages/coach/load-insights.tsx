@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import Card from "@/components/ui/card-improved";
 
 export default function LoadInsights() {
   const [, navigate] = useLocation();
@@ -76,6 +77,39 @@ export default function LoadInsights() {
     // Individual athlete or team-level data
     return dateFiltered && (selectedAthlete === "all" || (item.athleteId !== undefined && parseInt(selectedAthlete) === item.athleteId));
   }) : [];
+
+  // Calculate weekly summary data
+  const calculateWeeklySummary = () => {
+    if (!filteredTrainingLoad || !filteredAcwr) return null;
+    
+    // Get current week's data (last 7 days)
+    const today = new Date();
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    const weeklyLoad = filteredTrainingLoad.filter(item => {
+      const itemDate = new Date(item.date);
+      return itemDate >= weekAgo && itemDate <= today;
+    });
+    
+    const weeklyAcwr = filteredAcwr.filter(item => {
+      const itemDate = new Date(item.date);
+      return itemDate >= weekAgo && itemDate <= today;
+    });
+    
+    const totalAU = weeklyLoad.reduce((sum, item) => sum + item.load, 0);
+    const avgAcwr = weeklyAcwr.length > 0 
+      ? weeklyAcwr.reduce((sum, item) => sum + item.ratio, 0) / weeklyAcwr.length 
+      : 0;
+    
+    // Get current week number
+    const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+    const pastDaysOfYear = (today.getTime() - firstDayOfYear.getTime()) / 86400000;
+    const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    
+    return { weekNum, totalAU, avgAcwr };
+  };
+
+  const weeklySummary = calculateWeeklySummary();
 
   // Enhanced tooltip for stacked bar chart with session breakdown
   const CustomBarTooltip = ({ active, payload, label }: any) => {
