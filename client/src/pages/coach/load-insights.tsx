@@ -5,11 +5,12 @@ import { ChevronLeft } from "lucide-react";
 import { useLocation } from "wouter";
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
-  Tooltip, Legend, ResponsiveContainer, ReferenceLine
+  Tooltip, Legend, ResponsiveContainer, ReferenceLine, AreaChart, Area
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import Card from "@/components/ui/card-improved";
+import { calcAcwr } from "@/utils/acwr";
 
 export default function LoadInsights() {
   const [, navigate] = useLocation();
@@ -30,7 +31,21 @@ export default function LoadInsights() {
         : "/api/analytics/training-load";
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch training load data');
-      return response.json();
+      const data = await response.json();
+      
+      // Normalize keys to fix chart data issues
+      return data.map((row: any) => ({
+        date: row.date,
+        load: row.load,
+        trainingType: row.trainingType,
+        Field: row.field ?? row.Field ?? row.fieldTraining ?? 0,
+        Gym: row.gym ?? row.Gym ?? row.gymTraining ?? 0,
+        Match: row.match ?? row["Match/Game"] ?? row.matchGame ?? 0,
+        fieldTraining: row.field ?? row.Field ?? row.fieldTraining ?? 0,
+        gymTraining: row.gym ?? row.Gym ?? row.gymTraining ?? 0,
+        matchGame: row.match ?? row["Match/Game"] ?? row.matchGame ?? 0,
+        athleteId: row.athleteId
+      }));
     },
     refetchOnWindowFocus: false
   });
@@ -44,7 +59,13 @@ export default function LoadInsights() {
         : "/api/analytics/acwr";
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch ACWR data');
-      return response.json();
+      const data = await response.json();
+      
+      // Use shared ACWR calculation for consistency
+      return data.map((row: any) => ({
+        ...row,
+        ratio: calcAcwr(row.acute, row.chronic)
+      }));
     },
     refetchOnWindowFocus: false
   });
