@@ -696,11 +696,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 70);
       
-      const allEntries = await storage.getAllTrainingEntries();
+      const allEntries = await storage.getTrainingLoadByRPE();
       const entries = allEntries.filter((entry: any) => {
         const entryDate = new Date(entry.date);
         const matchesDateRange = entryDate >= startDate && entryDate <= endDate;
-        const matchesAthlete = !athleteId || entry.userId === parseInt(athleteId as string);
+        const matchesAthlete = !athleteId || entry.athleteId === parseInt(athleteId as string);
         return matchesDateRange && matchesAthlete;
       });
 

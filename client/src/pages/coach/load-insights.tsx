@@ -25,6 +25,11 @@ export default function LoadInsights() {
   const { data: athletes } = useQuery({
     queryKey: ["/api/athletes"],
   });
+
+  // Get weekly load data for the new chart
+  const { data: weeklyLoadData = [], isLoading: weeklyLoading } = useWeeklyLoad(
+    selectedAthlete === "all" ? undefined : parseInt(selectedAthlete)
+  );
   
   // Get training load data with athlete ID when an athlete is selected
   const { data: trainingLoad, isLoading: loadLoading } = useQuery({
@@ -430,7 +435,22 @@ export default function LoadInsights() {
           )}
         </div>
         
-        {/* ACWR Table - More compact version */}
+        {/* Weekly Work-Load Chart - Replaces ACWR Table */}
+        <div className="bg-zinc-900 rounded-lg p-4 mt-4">
+          <h3 className="text-base font-semibold text-center mb-1">Weekly Work-Load (last 10 weeks)</h3>
+          <p className="text-sm text-zinc-400 mb-4 text-center">
+            Training volume and ACWR trends over time
+          </p>
+          {weeklyLoading ? (
+            <p className="py-10 text-center text-zinc-400">Loading weekly load data...</p>
+          ) : weeklyLoadData.length === 0 ? (
+            <p className="py-10 text-center text-zinc-400">No weekly load data available for the selected filters.</p>
+          ) : (
+            <WeeklyLoadChart data={weeklyLoadData} />
+          )}
+        </div>
+
+        {/* Compact ACWR Summary Table */}
         <div className="bg-zinc-900 rounded-lg p-4 mt-4">
           <h3 className="text-lg font-semibold mb-2">Current Acute:Chronic Workload Ratios</h3>
           {acwrLoading ? (
