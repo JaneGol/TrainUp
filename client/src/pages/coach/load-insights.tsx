@@ -33,7 +33,7 @@ export default function LoadInsights() {
   
   // Get training load data with athlete ID when an athlete is selected
   const { data: trainingLoad, isLoading: loadLoading } = useQuery({
-    queryKey: ["/api/analytics/training-load", selectedAthlete !== "all" ? selectedAthlete : "all"],
+    queryKey: ["/api/analytics/training-load", selectedAthlete !== "all" ? selectedAthlete : "all", timeRange],
     queryFn: async () => {
       const url = selectedAthlete !== "all" 
         ? `/api/analytics/training-load?athleteId=${selectedAthlete}`
@@ -61,7 +61,7 @@ export default function LoadInsights() {
   
   // Get ACWR data with athlete ID when an athlete is selected
   const { data: acwrData, isLoading: acwrLoading } = useQuery({
-    queryKey: ["/api/analytics/acwr", selectedAthlete !== "all" ? selectedAthlete : "all"],
+    queryKey: ["/api/analytics/acwr", selectedAthlete !== "all" ? selectedAthlete : "all", timeRange],
     queryFn: async () => {
       const url = selectedAthlete !== "all" 
         ? `/api/analytics/acwr?athleteId=${selectedAthlete}`
@@ -150,13 +150,8 @@ export default function LoadInsights() {
     const { week, range } = isoWeekInfo(today);
     
     const totalAU = columnData.reduce((sum, item) => sum + item.total, 0);
-    const totalSessions = columnData.reduce((sum, day) => {
-      let sessions = 0;
-      if (day.Field > 0) sessions++;
-      if (day.Gym > 0) sessions++;
-      if (day.Match > 0) sessions++;
-      return sum + sessions;
-    }, 0);
+    // Count actual sessions from raw training load data (each entry = one session)
+    const totalSessions = filteredTrainingLoad.length;
     const avgAcwr = filteredAcwr.length > 0 
       ? filteredAcwr.reduce((sum, item) => sum + item.ratio, 0) / filteredAcwr.length 
       : 0;
