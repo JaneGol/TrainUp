@@ -15,10 +15,10 @@ export const weekLabel = (key: string) => {
   return `Week ${weekNo} (${format(start, "d MMM")} – ${format(end, "d MMM")})`;
 };
 
-export const bucketByWeek = (sessions: { date: string }[]) => {
+export const bucketByWeek = <T extends { date: string }>(sessions: T[]) => {
   return sessions.reduce((acc, s) => {
     const key = weekKey(s.date);
     (acc[key] ||= []).push(s);
     return acc;
-  }, {} as Record<string, typeof sessions>);
+  }, {} as Record<string, T[]>);
 };

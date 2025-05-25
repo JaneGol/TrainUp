@@ -52,7 +52,7 @@ export default function TrainingLog() {
   }));
 
   // Group sessions by ISO week
-  const sessionsByWeek = bucketByWeek(transformedSessions);
+  const sessionsByWeek: Record<string, TrainingSession[]> = bucketByWeek(transformedSessions);
   const orderedWeeks = Object.keys(sessionsByWeek).sort().reverse(); // newest first
 
   const handleRowClick = (session: TrainingSession) => {
@@ -139,44 +139,61 @@ export default function TrainingLog() {
         </div>
 
         {/* Desktop table view */}
-        <div className="hidden md:block">
-          <div className="bg-zinc-900 rounded-lg border border-zinc-800">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="border-b border-zinc-800">
-                  <tr className="text-zinc-300">
-                    <th className="p-4">Date</th>
-                    <th className="p-4">Session</th>
-                    <th className="p-4">Participants</th>
-                    <th className="p-4">RPE</th>
-                    <th className="p-4">Duration</th>
-                    <th className="p-4">Load</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transformedSessions.map((session) => (
-                    <tr 
-                      key={session.id}
-                      className="border-b border-zinc-800 hover:bg-zinc-800/50 cursor-pointer"
-                      onClick={() => handleRowClick(session)}
-                    >
-                      <td className="p-4">{new Date(session.date).toLocaleDateString()}</td>
-                      <td className="p-4">{session.trainingType}</td>
-                      <td className="p-4">
-                        <span className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          {session.participantCount}/{session.totalAthletes}
-                        </span>
-                      </td>
-                      <td className="p-4">{session.rpe}</td>
-                      <td className="p-4">{session.duration} min</td>
-                      <td className="p-4">{session.load} AU</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <div className="hidden md:block space-y-6">
+          {transformedSessions.length === 0 ? (
+            <div className="text-center py-8 text-zinc-400">
+              <Clock className="h-8 w-8 mx-auto mb-2" />
+              <p>No training sessions found</p>
             </div>
-          </div>
+          ) : (
+            orderedWeeks.map(wKey => (
+              <div key={wKey}>
+                {/* Week header */}
+                <h3 className="px-2 py-1 mb-2 text-sm font-semibold tracking-wide text-zinc-400">
+                  {weekLabel(wKey)}
+                </h3>
+
+                {/* Table for this week */}
+                <div className="bg-zinc-900 rounded-lg border border-zinc-800">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead className="border-b border-zinc-800">
+                        <tr className="text-zinc-300">
+                          <th className="p-4">Date</th>
+                          <th className="p-4">Session</th>
+                          <th className="p-4">Participants</th>
+                          <th className="p-4">RPE</th>
+                          <th className="p-4">Duration</th>
+                          <th className="p-4">Load</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sessionsByWeek[wKey].map((session) => (
+                          <tr 
+                            key={session.id}
+                            className="border-b border-zinc-800 hover:bg-zinc-800/50 cursor-pointer"
+                            onClick={() => handleRowClick(session)}
+                          >
+                            <td className="p-4">{new Date(session.date).toLocaleDateString()}</td>
+                            <td className="p-4">{session.trainingType}</td>
+                            <td className="p-4">
+                              <span className="flex items-center gap-1">
+                                <Users className="h-4 w-4" />
+                                {session.participantCount}/{session.totalAthletes}
+                              </span>
+                            </td>
+                            <td className="p-4">{session.rpe}</td>
+                            <td className="p-4">{session.duration} min</td>
+                            <td className="p-4">{session.load} AU</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Session Sheet */}
