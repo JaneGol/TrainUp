@@ -1,0 +1,163 @@
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Line,
+  ComposedChart,
+  ReferenceArea,
+  Legend
+} from 'recharts';
+import { format, parseISO } from 'date-fns';
+
+const colors = {
+  Field: '#b5f23d',   // Bright lime green for Field Training
+  Gym: '#547aff',     // Blue-grey for Gym Training
+  Match: '#ff6f6f'    // Coral for Match/Game
+};
+
+interface WeeklyLoadData {
+  week: string;
+  weekLabel: string;
+  field: number;
+  gym: number;
+  match: number;
+  total: number;
+  acwr: number;
+}
+
+interface WeeklyLoadChartProps {
+  data: WeeklyLoadData[];
+}
+
+export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const fieldValue = payload.find((p: any) => p.dataKey === 'field')?.value || 0;
+      const gymValue = payload.find((p: any) => p.dataKey === 'gym')?.value || 0;
+      const matchValue = payload.find((p: any) => p.dataKey === 'match')?.value || 0;
+      const acwrValue = payload.find((p: any) => p.dataKey === 'acwr')?.value || 0;
+      const total = fieldValue + gymValue + matchValue;
+
+      return (
+        <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-xs">
+          <p className="text-zinc-300 font-medium mb-2">{label}</p>
+          <div className="space-y-1">
+            {fieldValue > 0 && (
+              <p className="text-[#b5f23d]">Field: {fieldValue} AU</p>
+            )}
+            {gymValue > 0 && (
+              <p className="text-[#547aff]">Gym: {gymValue} AU</p>
+            )}
+            {matchValue > 0 && (
+              <p className="text-[#ff6f6f]">Match: {matchValue} AU</p>
+            )}
+            <p className="text-white font-medium border-t border-zinc-700 pt-1 mt-2">
+              Total: {total} AU
+            </p>
+            <p className="text-yellow-400">ACWR: {acwrValue.toFixed(2)}</p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div>
+      <ResponsiveContainer width="100%" height={280}>
+        <ComposedChart 
+          data={data} 
+          margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+        >
+          {/* Reference areas for ACWR zones */}
+          <ReferenceArea 
+            y1={0.8} 
+            y2={1.3} 
+            yAxisId="acwr" 
+            fill="#22c55e" 
+            fillOpacity={0.05} 
+          />
+          <ReferenceArea 
+            y1={1.3} 
+            y2={2.0} 
+            yAxisId="acwr" 
+            fill="#ef4444" 
+            fillOpacity={0.05} 
+          />
+          <ReferenceArea 
+            y1={0} 
+            y2={0.8} 
+            yAxisId="acwr" 
+            fill="#3b82f6" 
+            fillOpacity={0.05} 
+          />
+
+          <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
+          
+          <XAxis 
+            dataKey="weekLabel" 
+            tick={{ fontSize: 10, fill: '#9ca3af' }}
+            axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+            tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+          />
+          
+          <YAxis 
+            yAxisId="load"
+            tick={{ fontSize: 10, fill: '#9ca3af' }}
+            axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+            tickLine={false}
+            label={{ value: 'AU', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 10, fill: '#9ca3af' } }}
+          />
+          
+          <YAxis 
+            yAxisId="acwr" 
+            orientation="right" 
+            domain={[0, 2]} 
+            tick={{ fontSize: 10, fill: '#facc15' }}
+            axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+            tickLine={false}
+            label={{ value: 'ACWR', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fontSize: 10, fill: '#facc15' } }}
+          />
+          
+          <Tooltip content={<CustomTooltip />} />
+          
+          {/* Stacked bars for training load */}
+          <Bar yAxisId="load" dataKey="field" stackId="a" fill={colors.Field} name="Field" />
+          <Bar yAxisId="load" dataKey="gym" stackId="a" fill={colors.Gym} name="Gym" />
+          <Bar yAxisId="load" dataKey="match" stackId="a" fill={colors.Match} name="Match" />
+          
+          {/* ACWR line */}
+          <Line 
+            yAxisId="acwr"
+            type="monotone" 
+            dataKey="acwr" 
+            stroke="#facc15" 
+            strokeWidth={2}
+            dot={{ r: 3, fill: '#facc15' }}
+            name="ACWR"
+          />
+        </ComposedChart>
+      </ResponsiveContainer>
+      
+      {/* Legend */}
+      <div className="flex justify-center gap-4 mt-2 text-[11px]">
+        <span className="flex items-center gap-1">
+          <span className="w-3 h-2 bg-[#b5f23d] inline-block"></span> Field
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-3 h-2 bg-[#547aff] inline-block"></span> Gym
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-3 h-2 bg-[#ff6f6f] inline-block"></span> Match
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-2 h-2 bg-yellow-400 rounded-full inline-block"></span> ACWR
+        </span>
+      </div>
+    </div>
+  );
+}

@@ -682,6 +682,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(acwrData);
   });
   
+  // Get weekly training load (last 10 weeks)
+  app.get("/api/analytics/weekly-load", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "coach") {
+      return res.sendStatus(401);
+    }
+    
+    try {
+      const { athleteId } = req.query;
+      
+      // Get all training entries from last 10 weeks (70 days)
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 70);
+      
+      const allEntries = await storage.getAllTrainingEntries();
+      const entries = allEntries.filter((entry: any) => {
+        const entryDate = new Date(entry.date);
+        const matchesDateRange = entryDate >= startDate && entryDate <= endDate;
+        const matchesAthlete = !athleteId || entry.userId === parseInt(athleteId as string);
+        return matchesDateRange && matchesAthlete;
+      });
+
+      // Helper function to get ISO week number
+      function getISOWeek(date: Date): number {
+        const tempDate = new Date(date.valueOf());
+        const dayNum = (date.getDay() + 6) % 7;
+        tempDate.setDate(tempDate.getDate() - dayNum + 3);
+        const firstThursday = tempDate.valueOf();
+        tempDate.setMonth(0, 1);
+        if (tempDate.getDay() !== 4) {
+          tempDate.setMonth(0, 1 + ((4 - tempDate.getDay()) + 7) % 7);
+        }
+        return 1 + Math.ceil((firstThursday - tempDate.valueOf()) / 604800000);
+      }
+
+      // Group by ISO week and calculate weekly totals
+      const weeklyData = new Map<string, {
+        week: string;
+        field: number;
+        gym: number;
+        match: number;
+        total: number;
+      }>();
+
+      entries.forEach((entry: any) => {
+        const date = new Date(entry.date);
+        const year = date.getFullYear();
+        const week = getISOWeek(date);
+        const weekKey = `${year}-W${week.toString().padStart(2, '0')}`;
+        
+        if (!weeklyData.has(weekKey)) {
+          weeklyData.set(weekKey, {
+            week: weekKey,
+            field: 0,
+            gym: 0,
+            match: 0,
+            total: 0
+          });
+        }
+
+        const weekData = weeklyData.get(weekKey)!;
+        
+        // Calculate training load using the same formula as other endpoints
+        const emotionalLevel = Math.round(entry.emotional || 3);
+        const emotionalMultiplier = [1.0, 1.125, 1.25, 1.375, 1.5][emotionalLevel - 1] || 1.25;
+        const typeMultiplier = entry.trainingType === 'Field Training' ? 1.25 : 
+                             entry.trainingType === 'Match/Game' ? 1.5 : 1.0;
+        const load = Math.round(entry.rpe * entry.duration * emotionalMultiplier * typeMultiplier);
+        
+        if (entry.trainingType === 'Field Training') {
+          weekData.field += load;
+        } else if (entry.trainingType === 'Gym Training') {
+          weekData.gym += load;
+        } else if (entry.trainingType === 'Match/Game') {
+          weekData.match += load;
+        }
+        
+        weekData.total += load;
+      });
+
+      // Convert to array and sort by week
+      const weeks = Array.from(weeklyData.values())
+        .sort((a, b) => a.week.localeCompare(b.week))
+        .slice(-10); // Last 10 weeks
+
+      // Calculate ACWR for each week
+      const result = weeks.map((week, index) => {
+        // Calculate chronic load (average of previous 4 weeks)
+        const startIndex = Math.max(0, index - 3);
+        const chronicWeeks = weeks.slice(startIndex, index + 1);
+        const chronic = chronicWeeks.length > 0 
+          ? chronicWeeks.reduce((sum, w) => sum + w.total, 0) / chronicWeeks.length 
+          : 0;
+        
+        const acute = week.total;
+        const acwr = chronic > 0 ? acute / chronic : 0;
+
+        // Create week label (W21)
+        const weekNumber = week.week.split('-W')[1];
+        
+        return {
+          ...week,
+          weekLabel: `W${weekNumber}`,
+          acwr: Math.round(acwr * 100) / 100
+        };
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error('Weekly load analytics error:', error);
+      res.status(500).json({ error: 'Failed to fetch weekly load data' });
+    }
+  });
+
   // Get team wellness trends (for 7-day chart)
   app.get("/api/analytics/team-wellness-trends", async (req, res) => {
     if (!req.isAuthenticated() || req.user!.role !== "coach") {

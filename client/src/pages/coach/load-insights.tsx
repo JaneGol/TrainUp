@@ -13,6 +13,8 @@ import Card from "@/components/ui/card-improved";
 import { calcAcwr } from "@/utils/acwr";
 import { isoWeekInfo } from "@/utils/weekHelpers";
 import TrainingLoadColumns from "@/components/TrainingLoadColumns";
+import WeeklyLoadChart from "@/components/WeeklyLoadChart";
+import { useWeeklyLoad } from "@/hooks/useWeeklyLoad";
 
 export default function LoadInsights() {
   const [, navigate] = useLocation();
