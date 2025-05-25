@@ -831,6 +831,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update training session duration
+  app.patch("/api/training-sessions/:id", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "coach") {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const sessionId = req.params.id;
+      const { duration_minutes } = req.body;
+
+      if (!duration_minutes || duration_minutes < 10) {
+        return res.status(400).json({ error: "Duration must be at least 10 minutes" });
+      }
+
+      const updatedSession = await storage.updateTrainingSessionDuration(sessionId, duration_minutes);
+      
+      if (!updatedSession) {
+        return res.status(404).json({ error: "Training session not found" });
+      }
+
+      res.json(updatedSession);
+    } catch (error) {
+      console.error("Error updating training session duration:", error);
+      res.status(500).json({ error: "Failed to update training session" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

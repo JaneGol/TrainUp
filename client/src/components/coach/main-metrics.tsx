@@ -77,30 +77,20 @@ export default function MainMetrics() {
         <p className="text-xs text-white/50">Tap to view</p>
       </button>
 
-      {/* Sick / Injured Card - Refined Rose Theme */}
-      {(() => {
-        const sickActive = keyMetrics.sickInjured > 0;
-        const sickBg = sickActive ? "bg-[var(--danger-bg)]" : "bg-[var(--danger-bg-0)]";
-        const sickText = sickActive ? "text-[var(--danger-text)]" : "text-green-300";
-        const sickIconColor = sickActive ? "text-rose-300" : "text-green-300";
-        const sickSubtitle = sickActive ? "Tap to view" : "All clear";
-        
-        return (
-          <button 
-            className={`rounded-xl ${sickBg} shadow-inner shadow-rose-900/40 backdrop-blur p-3 md:p-4 hover:ring-2 hover:ring-white/10 transition cursor-pointer hover:opacity-90`}
-            onClick={() => navigate('/coach/athlete-status?filter=sick')}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <HeartPulse className={`h-4 w-4 ${sickIconColor}`} />
-              <p className="text-xs uppercase text-white/60">Sick / Injured</p>
-            </div>
-            <p className={`text-2xl font-extrabold ${sickText} mb-1`} aria-live="polite">
-              {keyMetrics.sickInjured}
-            </p>
-            <p className="text-xs text-white/50">{sickSubtitle}</p>
-          </button>
-        );
-      })()}
+      {/* Sick / Injured Card - Same style as High Risk */}
+      <button 
+        className="rounded-xl bg-red-900/60 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-red-500/30 transition cursor-pointer hover:bg-red-900/70"
+        onClick={() => navigate('/coach/athlete-status?filter=sick')}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <HeartPulse className="h-4 w-4 text-red-400" />
+          <p className="text-xs uppercase text-white/60">Sick / Injured</p>
+        </div>
+        <p className="text-2xl font-extrabold text-red-400 mb-1">
+          {keyMetrics.sickInjured}
+        </p>
+        <p className="text-xs text-white/50">Tap to view</p>
+      </button>
 
       {/* Training Recommendations Card */}
       <button 

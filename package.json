@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
+    "@headlessui/react": "^2.2.4",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@neondatabase/serverless": "^0.10.4",
