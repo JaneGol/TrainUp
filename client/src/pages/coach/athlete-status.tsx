@@ -10,7 +10,11 @@ import AthleteIconGrid from "@/components/coach/athlete-icon-grid";
 
 export default function AthleteStatusPage() {
   const { user } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
+  
+  // Extract filter parameter from URL
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const filter = urlParams.get('filter');
   
   // Go back to dashboard
   const handleBackClick = () => {

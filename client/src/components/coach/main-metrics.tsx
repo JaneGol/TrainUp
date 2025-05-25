@@ -77,19 +77,17 @@ export default function MainMetrics() {
         <p className="text-xs text-white/50">Tap to view</p>
       </button>
 
-      {/* Low Readiness Card */}
+      {/* Sick / Injured Card */}
       <button 
-        className={`rounded-xl backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer ${
-          keyMetrics.lowReadiness > 0 ? 'bg-orange-600/20 hover:bg-orange-600/30' : 'bg-white/5 hover:bg-white/10'
-        }`}
-        onClick={() => navigate('/coach/athlete-status')}
+        className="rounded-xl bg-red-600/20 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer hover:bg-red-600/30"
+        onClick={() => navigate('/coach/athlete-status?filter=sick')}
       >
         <div className="flex items-center gap-2 mb-2">
-          <HeartPulse className="h-4 w-4 text-orange-400" />
-          <p className="text-xs uppercase text-white/60">Low Readiness</p>
+          <HeartPulse className="h-4 w-4 text-red-300" />
+          <p className="text-xs uppercase text-white/60">Sick / Injured</p>
         </div>
-        <p className="text-2xl font-extrabold text-orange-400 mb-1">
-          {keyMetrics.lowReadiness}
+        <p className="text-2xl font-extrabold text-red-100 mb-1">
+          {keyMetrics.sickInjured}
         </p>
         <p className="text-xs text-white/50">Tap to view</p>
       </button>

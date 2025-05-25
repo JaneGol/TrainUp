@@ -35,7 +35,7 @@ export const useKeyMetrics = () => {
         avgRecovery: 0,
         avgReadiness: 0,
         highRisk: 0,
-        lowReadiness: 0,
+        sickInjured: 0,
         isLoading: false
       };
     }
@@ -53,16 +53,26 @@ export const useKeyMetrics = () => {
       athlete.readinessScore < 60 || (athlete.issues && athlete.issues.length >= 3)
     ).length;
 
-    // Count athletes with low readiness (< 70%)
-    const lowReadiness = activeAthletes.filter((athlete: any) => 
-      athlete.readinessScore < 70
-    ).length;
+    // Count sick/injured athletes (those with health-related issues)
+    const sickInjured = athleteReadiness.filter((athlete: any) => {
+      const issues = athlete.issues || [];
+      return issues.some((issue: string) => 
+        issue.includes('soreness') || 
+        issue.includes('injury') || 
+        issue.includes('Sick') ||
+        issue.includes('Fever') ||
+        issue.includes('Sore Throat') ||
+        issue.includes('Runny Nose') ||
+        issue.includes('Headache') ||
+        issue.includes('Fatigue')
+      );
+    }).length;
 
     return {
       avgRecovery: Number(avgRecovery.toFixed(1)),
       avgReadiness: Number(avgReadiness.toFixed(0)),
       highRisk,
-      lowReadiness,
+      sickInjured,
       isLoading: false
     };
   };
