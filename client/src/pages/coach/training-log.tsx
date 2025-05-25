@@ -9,6 +9,7 @@ import TrainingRow from "@/components/TrainingRow";
 import SessionSheet from "@/components/SessionSheet";
 import { useUpdateDuration } from "@/hooks/useUpdateDuration";
 import CoachDashboardLayout from "@/components/layout/coach-dashboard-layout";
+import { bucketByWeek, weekLabel } from "@/utils/weekHelpers";
 
 interface TrainingSession {
   id: string;
@@ -49,6 +50,10 @@ export default function TrainingLog() {
     duration: session.duration,
     emotionalLoad: 1.25 // Default emotional load
   }));
+
+  // Group sessions by ISO week
+  const sessionsByWeek = bucketByWeek(transformedSessions);
+  const orderedWeeks = Object.keys(sessionsByWeek).sort().reverse(); // newest first
 
   const handleRowClick = (session: TrainingSession) => {
     setSelectedSession(session);
@@ -104,19 +109,31 @@ export default function TrainingLog() {
         </div>
 
         {/* Mobile-first row list */}
-        <div className="md:hidden space-y-2">
+        <div className="md:hidden space-y-6">
           {transformedSessions.length === 0 ? (
             <div className="text-center py-8 text-zinc-400">
               <Clock className="h-8 w-8 mx-auto mb-2" />
               <p>No training sessions found</p>
             </div>
           ) : (
-            transformedSessions.map((session) => (
-              <TrainingRow
-                key={session.id}
-                session={session}
-                onOpen={handleRowClick}
-              />
+            orderedWeeks.map(wKey => (
+              <div key={wKey}>
+                {/* Week header */}
+                <h3 className="px-2 py-1 mb-2 text-sm font-semibold tracking-wide text-zinc-400">
+                  {weekLabel(wKey)}
+                </h3>
+
+                {/* Training rows for this week */}
+                <div className="space-y-3">
+                  {sessionsByWeek[wKey].map(session => (
+                    <TrainingRow
+                      key={session.id}
+                      session={session}
+                      onOpen={handleRowClick}
+                    />
+                  ))}
+                </div>
+              </div>
             ))
           )}
         </div>
