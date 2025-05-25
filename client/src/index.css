@@ -6,6 +6,9 @@
 @tailwind utilities;
 
 :root {
+  /* Font family consistency */
+  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  
   /* Dark sports app color palette - matching the screenshot */
   --background: 0 0% 13%; /* Dark gray, almost black #212121 */
   --foreground: 0 0% 98%; /* Off-white for text */
