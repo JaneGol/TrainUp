@@ -111,37 +111,15 @@ export default function LoadInsights() {
     
     console.log('Raw training load data:', filteredTrainingLoad);
     
-    // Group by date
-    const dateGroups = filteredTrainingLoad.reduce((acc, item) => {
-      const date = item.date;
-      if (!acc[date]) {
-        acc[date] = { date, Field: 0, Gym: 0, Match: 0, sessions: [] };
-      }
-      
-      // Map training types to our chart categories - check both normalized and original data
-      let category = 'Gym'; // default
-      if (item.trainingType === 'Field Training' || item.Field > 0) category = 'Field';
-      else if (item.trainingType === 'Match/Game' || item.Match > 0) category = 'Match';
-      else if (item.trainingType === 'Gym Training' || item.Gym > 0) category = 'Gym';
-      
-      console.log(`Processing ${date}: ${item.trainingType} -> ${category}, load: ${item.load || item.Field || item.Gym || item.Match || 0}`);
-      
-      const loadValue = item.load || item.Field || item.Gym || item.Match || 0;
-      acc[date][category] += loadValue;
-      acc[date].sessions.push({ type: category, load: loadValue });
-      
-      return acc;
-    }, {} as Record<string, any>);
-
-    const result = Object.values(dateGroups).map((day: any) => ({
-      date: day.date,
-      Field: day.Field,
-      Gym: day.Gym,
-      Match: day.Match,
-      total: day.Field + day.Gym + day.Match,
-      double: day.sessions.length > 1 && day.sessions.some((s: any, i: number) => 
-        day.sessions.findIndex((other: any, j: number) => other.type === s.type && i !== j) !== -1
-      )
+    // Use the normalized data directly from our API response
+    const result = filteredTrainingLoad.map((item) => ({
+      date: item.date,
+      Field: item.Field || 0,
+      Gym: item.Gym || 0, 
+      Match: item.Match || 0,
+      total: (item.Field || 0) + (item.Gym || 0) + (item.Match || 0),
+      // Check if both Field and Gym have values (indicating double session)
+      double: (item.Field > 0 && item.Gym > 0) || (item.Field > 0 && item.Match > 0) || (item.Gym > 0 && item.Match > 0)
     }));
     
     console.log('Processed column data:', result);
