@@ -1250,12 +1250,12 @@ export class DatabaseStorage implements IStorage {
         const diary = todaysDiary[0];
         
         // Check for injury
-        if (diary.hasInjury && diary.injuryType) {
+        if (diary.hasInjury && diary.injuryNotes) {
           alerts.push({
             athleteId: athlete.id,
             name: `${athlete.firstName} ${athlete.lastName}`,
             type: "injury",
-            note: diary.injuryType
+            note: diary.injuryNotes
           });
         }
         

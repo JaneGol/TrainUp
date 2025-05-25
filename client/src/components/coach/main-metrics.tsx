@@ -1,21 +1,10 @@
 import Gauge from "@/components/ui/gauge";
 import { useKeyMetrics } from "@/hooks/use-key-metrics";
-import { ArrowUp, ArrowDown, AlertTriangle, HeartPulse, Brain } from "lucide-react";
+import { ArrowUp, ArrowDown, Brain } from "lucide-react";
 import { useLocation } from "wouter";
+import AlertsCard from "@/components/coach/alerts-card";
 
-// Utility for unified danger card styling
-const dangerClasses = (count: number) => ({
-  bg: count > 0 
-    ? "bg-rose-900/35" 
-    : "bg-zinc-700",
-  icon: count > 0 
-    ? "text-rose-400" 
-    : "text-zinc-400",
-  num: count > 0 
-    ? "text-rose-400" 
-    : "text-zinc-300",
-  subtitle: count > 0 ? "Tap to view" : "All clear"
-});
+
 
 export default function MainMetrics() {
   const [, navigate] = useLocation();
@@ -76,37 +65,12 @@ export default function MainMetrics() {
         </button>
       </section>
 
-      {/* One-row metric bar: 2 squares + 1 flexible card */}
+      {/* Unified Alerts and AI Recommendations Section */}
       <section className="w-full flex gap-4 pt-2 mb-6">
-        {/* High Risk Card (square) */}
-        <button 
-          className={`flex-none aspect-square w-28 md:w-32 rounded-xl backdrop-blur shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer flex flex-col items-center justify-center ${dangerClasses(keyMetrics.highRisk).bg}`}
-          onClick={() => navigate('/coach/athlete-status')}
-        >
-          <AlertTriangle size={16} className={dangerClasses(keyMetrics.highRisk).icon} />
-          <p className="text-[10px] uppercase text-zinc-200 mt-0.5">
-            High&nbsp;Risk
-          </p>
-          <p className={`text-xl font-medium ${dangerClasses(keyMetrics.highRisk).num} my-0.5`}>
-            {keyMetrics.highRisk}
-          </p>
-          <p className="text-[10px] text-zinc-400">{dangerClasses(keyMetrics.highRisk).subtitle}</p>
-        </button>
-
-        {/* Sick / Injured Card (square) */}
-        <button 
-          className={`flex-none aspect-square w-28 md:w-32 rounded-xl backdrop-blur shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer flex flex-col items-center justify-center ${dangerClasses(keyMetrics.sickInjured).bg}`}
-          onClick={() => navigate('/coach/athlete-status?filter=sick')}
-        >
-          <HeartPulse size={16} className={dangerClasses(keyMetrics.sickInjured).icon} />
-          <p className="text-[10px] uppercase text-zinc-200 mt-0.5">
-            Sick&nbsp;/&nbsp;Injured
-          </p>
-          <p className={`text-xl font-medium ${dangerClasses(keyMetrics.sickInjured).num} my-0.5`}>
-            {keyMetrics.sickInjured}
-          </p>
-          <p className="text-[10px] text-zinc-400">{dangerClasses(keyMetrics.sickInjured).subtitle}</p>
-        </button>
+        {/* Alerts at a Glance Card (flexible) */}
+        <div className="flex-1 min-w-0">
+          <AlertsCard />
+        </div>
 
         {/* AI Recommendations Card (flexible) */}
         <button 
