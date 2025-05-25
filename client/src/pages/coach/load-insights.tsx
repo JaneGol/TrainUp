@@ -280,97 +280,82 @@ export default function LoadInsights() {
           </div>
         </div>
         
-        {/* Weekly Summary Card */}
+        {/* Merged Week Summary + Training Load Chart */}
         {weeklySummary && (
-          <Card>
-            <h2 className="font-bold text-lg mb-2">Week {weeklySummary.weekNum}</h2>
-            <p className="text-zinc-300">
-              Total AU: <span className="text-white font-semibold">{weeklySummary.totalAU}</span> | 
-              Avg ACWR: <span className="text-white font-semibold">{weeklySummary.avgAcwr.toFixed(2)}</span>
+          <Card className="bg-zinc-800/90 mt-6 px-4 py-3">
+            <h3 className="text-sm font-semibold text-zinc-300">
+              Week {weeklySummary.weekNum} (20 – 26 May)
+            </h3>
+            <p className="text-[13px] text-zinc-400 mb-2">
+              Total AU: {weeklySummary.totalAU} &nbsp;|&nbsp; Avg ACWR: {weeklySummary.avgAcwr.toFixed(2)}
             </p>
-            {weeklySummary.avgAcwr > 1.3 && (
-              <p className="text-red-400 text-sm mt-2">⚠️ High ACWR - consider lighter training</p>
-            )}
-            {weeklySummary.avgAcwr < 0.8 && (
-              <p className="text-yellow-400 text-sm mt-2">⚡ Low ACWR - may increase intensity safely</p>
-            )}
-          </Card>
-        )}
-        
-        {/* Training Load Chart - More compact */}
-        <div className="bg-zinc-900 rounded-lg p-4 mb-4">
-          <h3 className="text-xl font-semibold mb-3">Training Load</h3>
-          {loadLoading ? (
-            <p className="py-10 text-center">Loading training load data...</p>
-          ) : filteredTrainingLoad.length === 0 ? (
-            <p className="py-10 text-center">No training load data available for the selected filters.</p>
-          ) : (
-            <div>
-              {/* Height reduced from h-80 to h-64 for more compact display */}
-              <div className="h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
+
+            {loadLoading ? (
+              <p className="py-10 text-center text-zinc-400">Loading training load data...</p>
+            ) : filteredTrainingLoad.length === 0 ? (
+              <p className="py-10 text-center text-zinc-400">No training load data available for the selected filters.</p>
+            ) : (
+              <div className="h-50">
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart
                     data={filteredTrainingLoad}
-                    margin={{ top: 0, right: 20, left: 0, bottom: 20 }}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                     <XAxis 
                       dataKey="date" 
-                      tick={{ fontSize: 12, fill: '#9ca3af' }}
+                      tick={{ fontSize: 11, fill: '#9ca3af' }}
                       tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                       tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                     />
                     <YAxis 
-                      tick={{ fontSize: 12, fill: '#9ca3af' }}
+                      tick={{ fontSize: 11, fill: '#9ca3af' }}
                       axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                       tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                     />
                     <Tooltip content={<CustomBarTooltip />} />
-                    <Legend 
-                      verticalAlign="bottom"
-                      align="center"
-                      layout="horizontal"
-                      height={25}
-                      iconType="circle"
-                      iconSize={8}
-                      wrapperStyle={{ padding: "2px 0 0 0" }}
-                      formatter={(value: string) => {
-                        const displayNames: Record<string, string> = {
-                          "Field Training": "Field",
-                          "Gym Training": "Gym",
-                          "Match/Game": "Match/Game"
-                        };
-                        return <span style={{ color: "#9ca3af", fontSize: "12px" }}>{displayNames[value] || value}</span>;
-                      }}
+                    <Area 
+                      dataKey="Field" 
+                      stackId="1" 
+                      stroke="#CBFF00" 
+                      fill="#CBFF00" 
+                      fillOpacity={0.8}
+                      name="Field Training"
                     />
-                    <Bar 
-                      dataKey="fieldTraining" 
-                      name="Field Training" 
-                      stackId="a" 
-                      fill="#A3E635" // Bright green
+                    <Area 
+                      dataKey="Gym" 
+                      stackId="1" 
+                      stroke="#FF6B6B" 
+                      fill="#FF6B6B" 
+                      fillOpacity={0.8}
+                      name="Gym Training"
                     />
-                    <Bar 
-                      dataKey="gymTraining" 
-                      name="Gym Training" 
-                      stackId="a" 
-                      fill="#60A5FA" // Blue
+                    <Area 
+                      dataKey="Match" 
+                      stackId="1" 
+                      stroke="#4ECDC4" 
+                      fill="#4ECDC4" 
+                      fillOpacity={0.8}
+                      name="Match/Game"
                     />
-                    <Bar 
-                      dataKey="matchGame" 
-                      name="Match/Game" 
-                      stackId="a" 
-                      fill="#f87171" // Red
-                    />
-                  </BarChart>
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+            
+            {weeklySummary.avgAcwr > 1.3 && (
+              <p className="text-red-400 text-xs mt-2">⚠️ High ACWR - consider lighter training</p>
+            )}
+            {weeklySummary.avgAcwr < 0.8 && (
+              <p className="text-yellow-400 text-xs mt-2">⚡ Low ACWR - may increase intensity safely</p>
+            )}
+          </Card>
+        )}
+
         
         {/* ACWR Chart - Compact version below training load chart */}
-        <div className="bg-zinc-900 rounded-lg p-4">
+        <div className="bg-zinc-900 rounded-lg p-4 mt-8">
           <h3 className="text-lg font-semibold mb-3 text-center">ACWR - Acute: Chronic Workload Ratio</h3>
           {acwrLoading ? (
             <p className="py-10 text-center">Loading ACWR data...</p>
