@@ -62,11 +62,11 @@ export default function MainMetrics() {
         </button>
       </section>
 
-      {/* Compact 3-button row: High Risk, Sick/Injured, AI Recommendations */}
-      <section className="flex md:grid gap-3 overflow-x-auto md:overflow-visible md:grid-cols-3 mb-6 justify-center md:max-w-4xl md:mx-auto">
+      {/* Full-width metric cards: High Risk, Sick/Injured, AI Recommendations */}
+      <section className="w-full grid gap-4 grid-cols-1 sm:grid-cols-1 md:grid-cols-1 mb-6">
         {/* High Risk Card */}
         <button 
-          className={`rounded-xl backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer h-full ${
+          className={`w-full rounded-xl backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer ${
             keyMetrics.highRisk > 0 ? 'bg-red-600/20 hover:bg-red-600/30' : 'bg-white/5 hover:bg-white/10'
           }`}
           onClick={() => navigate('/coach/athlete-status')}
@@ -83,7 +83,7 @@ export default function MainMetrics() {
 
         {/* Sick / Injured Card */}
         <button 
-          className="rounded-xl bg-red-900/60 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-red-500/30 transition cursor-pointer hover:bg-red-900/70 h-full"
+          className="w-full rounded-xl bg-red-900/60 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-red-500/30 transition cursor-pointer hover:bg-red-900/70"
           onClick={() => navigate('/coach/athlete-status?filter=sick')}
         >
           <div className="flex items-center gap-2 mb-2">
@@ -98,7 +98,7 @@ export default function MainMetrics() {
 
         {/* AI Recommendations Card */}
         <button 
-          className="rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20 border border-primary/20 h-full"
+          className="w-full rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20 border border-primary/20"
           onClick={() => navigate('/coach/training-recommendations')}
         >
           <div className="flex items-center gap-2 mb-2">
