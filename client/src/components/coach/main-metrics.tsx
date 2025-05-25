@@ -1,6 +1,6 @@
 import Gauge from "@/components/ui/gauge";
 import { useKeyMetrics } from "@/hooks/use-key-metrics";
-import { ArrowUp, ArrowDown, AlertTriangle, HeartPulse } from "lucide-react";
+import { ArrowUp, ArrowDown, AlertTriangle, HeartPulse, Brain } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function MainMetrics() {
