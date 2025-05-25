@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import Card from "@/components/ui/card-improved";
 import { calcAcwr } from "@/utils/acwr";
+import { isoWeekInfo } from "@/utils/weekHelpers";
+import TrainingLoadColumns from "@/components/TrainingLoadColumns";
 
 export default function LoadInsights() {
   const [, navigate] = useLocation();
@@ -102,6 +104,43 @@ export default function LoadInsights() {
     // Individual athlete or team-level data
     return dateFiltered && (selectedAthlete === "all" || (item.athleteId !== undefined && parseInt(selectedAthlete) === item.athleteId));
   }) : [];
+
+  // Process data for stacked columns with double session detection
+  const processedLoadData = () => {
+    if (!filteredTrainingLoad || filteredTrainingLoad.length === 0) return [];
+    
+    // Group by date
+    const dateGroups = filteredTrainingLoad.reduce((acc, item) => {
+      const date = item.date;
+      if (!acc[date]) {
+        acc[date] = { date, Field: 0, Gym: 0, Match: 0, sessions: [] };
+      }
+      
+      // Map training types to our chart categories
+      let category = 'Gym';
+      if (item.trainingType === 'Field Training') category = 'Field';
+      else if (item.trainingType === 'Match/Game') category = 'Match';
+      
+      acc[date][category] += item.load || 0;
+      acc[date].sessions.push({ type: category, load: item.load || 0 });
+      
+      return acc;
+    }, {} as Record<string, any>);
+
+    // Convert to array and detect double sessions
+    return Object.values(dateGroups).map((day: any) => ({
+      date: day.date,
+      Field: day.Field,
+      Gym: day.Gym,
+      Match: day.Match,
+      total: day.Field + day.Gym + day.Match,
+      double: day.sessions.length > 1 && day.sessions.some((s: any, i: number) => 
+        day.sessions.findIndex((other: any, j: number) => other.type === s.type && i !== j) !== -1
+      )
+    }));
+  };
+
+  const columnData = processedLoadData();
   
   const filteredAcwr = Array.isArray(acwrData) ? acwrData.filter((item: AcwrItem) => {
     // Only filter by date when we have data to filter
@@ -110,35 +149,19 @@ export default function LoadInsights() {
     return dateFiltered && (selectedAthlete === "all" || (item.athleteId !== undefined && parseInt(selectedAthlete) === item.athleteId));
   }) : [];
 
-  // Calculate weekly summary data
+  // Calculate weekly summary data with accurate ISO week
   const calculateWeeklySummary = () => {
-    if (!filteredTrainingLoad || !filteredAcwr) return null;
+    if (!columnData || columnData.length === 0) return null;
     
-    // Get current week's data (last 7 days)
-    const today = new Date();
-    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const today = new Date().toISOString().split('T')[0];
+    const { week, range } = isoWeekInfo(today);
     
-    const weeklyLoad = filteredTrainingLoad.filter(item => {
-      const itemDate = new Date(item.date);
-      return itemDate >= weekAgo && itemDate <= today;
-    });
-    
-    const weeklyAcwr = filteredAcwr.filter(item => {
-      const itemDate = new Date(item.date);
-      return itemDate >= weekAgo && itemDate <= today;
-    });
-    
-    const totalAU = weeklyLoad.reduce((sum, item) => sum + item.load, 0);
-    const avgAcwr = weeklyAcwr.length > 0 
-      ? weeklyAcwr.reduce((sum, item) => sum + item.ratio, 0) / weeklyAcwr.length 
+    const totalAU = columnData.reduce((sum, item) => sum + item.total, 0);
+    const avgAcwr = filteredAcwr.length > 0 
+      ? filteredAcwr.reduce((sum, item) => sum + item.ratio, 0) / filteredAcwr.length 
       : 0;
     
-    // Get current week number
-    const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
-    const pastDaysOfYear = (today.getTime() - firstDayOfYear.getTime()) / 86400000;
-    const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-    
-    return { weekNum, totalAU, avgAcwr };
+    return { week, range, totalAU, avgAcwr };
   };
 
   const weeklySummary = calculateWeeklySummary();
@@ -283,8 +306,8 @@ export default function LoadInsights() {
         {/* Merged Week Summary + Training Load Chart */}
         {weeklySummary && (
           <Card className="bg-zinc-800/90 mt-6 px-4 py-3">
-            <h3 className="text-sm font-semibold text-zinc-300">
-              Week {weeklySummary.weekNum} (20 – 26 May)
+            <h3 className="font-semibold text-white">
+              Week {weeklySummary.week} <span className="text-zinc-400 text-[13px]">({weeklySummary.range})</span>
             </h3>
             <p className="text-[13px] text-zinc-400 mb-2">
               Total AU: {weeklySummary.totalAU} &nbsp;|&nbsp; Avg ACWR: {weeklySummary.avgAcwr.toFixed(2)}
@@ -292,56 +315,10 @@ export default function LoadInsights() {
 
             {loadLoading ? (
               <p className="py-10 text-center text-zinc-400">Loading training load data...</p>
-            ) : filteredTrainingLoad.length === 0 ? (
+            ) : columnData.length === 0 ? (
               <p className="py-10 text-center text-zinc-400">No training load data available for the selected filters.</p>
             ) : (
-              <div className="h-50">
-                <ResponsiveContainer width="100%" height={200}>
-                  <AreaChart
-                    data={filteredTrainingLoad}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                    <XAxis 
-                      dataKey="date" 
-                      tick={{ fontSize: 11, fill: '#9ca3af' }}
-                      tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                      axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-                      tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 11, fill: '#9ca3af' }}
-                      axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-                      tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-                    />
-                    <Tooltip content={<CustomBarTooltip />} />
-                    <Area 
-                      dataKey="Field" 
-                      stackId="1" 
-                      stroke="#CBFF00" 
-                      fill="#CBFF00" 
-                      fillOpacity={0.8}
-                      name="Field Training"
-                    />
-                    <Area 
-                      dataKey="Gym" 
-                      stackId="1" 
-                      stroke="#FF6B6B" 
-                      fill="#FF6B6B" 
-                      fillOpacity={0.8}
-                      name="Gym Training"
-                    />
-                    <Area 
-                      dataKey="Match" 
-                      stackId="1" 
-                      stroke="#4ECDC4" 
-                      fill="#4ECDC4" 
-                      fillOpacity={0.8}
-                      name="Match/Game"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+              <TrainingLoadColumns data={columnData} />
             )}
             
             {weeklySummary.avgAcwr > 1.3 && (

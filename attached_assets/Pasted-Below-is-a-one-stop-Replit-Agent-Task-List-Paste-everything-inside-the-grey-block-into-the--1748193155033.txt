@@ -1,0 +1,160 @@
+Below is a **one-stop “Replit Agent Task List.”**
+Paste everything inside the grey block into the **Ask AI** side-panel of your *SportsMindTracker* Repl and press **Send**.
+The agent will:
+
+1. **Compute the correct ISO week + date range** (no more off-by-one).
+2. Replace the area chart with a **stacked column (bar) chart**:
+
+   * Field ⬤ = lime `#b5f23d`
+   * Gym ⬤ = blue-grey `#547aff`
+   * Match/Game ⬤ = coral `#ff6f6f`
+3. If a day has **two sessions** of the same type, the second segment gets a **dotted border** so coaches can spot doubles.
+4. Add a **data-label** (total AU) in the centre of each column, same text size as the ACWR chart labels.
+5. Tweak padding so nothing hits the card edges.
+
+---
+
+````txt
+# -----------------------------------------------------------------
+# Replit-Agent Task ·  Stacked Column Training-Load chart overhaul
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+# -----------------------------------------------------------------
+
+## 0. Dependencies
+npm i recharts@latest              # ensure v2.8+ for Pattern & LabelList
+
+## 1. Accurate ISO-week helper
+### 1.1  src/utils/weekHelpers.ts
+```ts
+import {
+  startOfISOWeek, endOfISOWeek, getISOWeek, format, parseISO
+} from 'date-fns';
+
+export const isoWeekInfo = (dateStr:string) => {
+  const d       = parseISO(dateStr);
+  const week    = getISOWeek(d);              // 1-53, ISO standard
+  const start   = startOfISOWeek(d);
+  const end     = endOfISOWeek(d);
+  const range   = `${format(start,'d MMM')} – ${format(end,'d MMM')}`;
+  return { week, range };
+};
+````
+
+## 2. Load hook returns **stack array + per-day labels**
+
+### 2.1  src/hooks/useTrainingLoad.ts
+
+```ts
+import { groupBy } from 'lodash-es';
+import { calcAcwr } from '@/utils/acwr';
+
+export const useWeekLoad = (ath:string, date:string)=>
+  useQuery(['weekLoad', ath, date], async ()=>{
+    const raws = await api.get(`/load/week?ath=${ath}&date=${date}`)
+                          .then(r=>r.data);  // [{date, type, load}]
+    // group by date → {Field, Gym, Match} sums + total
+    const dayBuckets = Object.values(groupBy(raws,'date')).map(rows=>{
+      const out = { date: rows[0].date, Field:0, Gym:0, Match:0 };
+      rows.forEach(r=> out[r.type]+=r.load);
+      out.total = out.Field + out.Gym + out.Match;
+      // detect double sessions of same type
+      out.double = rows.length>1 && rows.some(
+        (r,i)=> rows.findIndex(s=>s.type===r.type && i!==rows.indexOf(s))!==-1);
+      return out;
+    });
+    return dayBuckets;
+  });
+```
+
+## 3. New StackedColumn component
+
+### 3.1  src/components/TrainingLoadColumns.tsx
+
+```tsx
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, LabelList, CartesianGrid, ResponsiveContainer,
+  Cell, PatternLines
+} from 'recharts';
+
+const colors = { Field:'#b5f23d', Gym:'#547aff', Match:'#ff6f6f' };
+
+export default function TrainingLoadColumns({data}:{data:any[]}){
+  return (
+  <ResponsiveContainer width="100%" height={220}>
+    <BarChart data={data} stackOffset="expand" margin={{top:10,right:16,left:0,bottom:0}}>
+      <defs>
+        <PatternLines id="dot" height={6} width={6} stroke="#fff" strokeWidth={1}
+                      orientation={['diagonal']} />
+      </defs>
+
+      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2}/>
+      <XAxis dataKey="date" tickFormatter={d=>format(parseISO(d),'d MMM')}/>
+      <YAxis tickLine={false}/>
+      <Tooltip/>
+      {['Field','Gym','Match'].map(k=>(
+        <Bar key={k} dataKey={k} stackId="a" fill={colors[k]}>
+          {/* dotted overlay if double session */}
+          <Cell fill="url(#dot)" stroke={colors[k]}
+                strokeWidth={0} dataKey="double" filter={(_v,i)=>data[i].double}/>
+        </Bar>
+      ))}
+      <LabelList dataKey="total" position="center"
+                 className="text-[10px] fill-zinc-100 font-medium" />
+    </BarChart>
+  </ResponsiveContainer>);
+}
+```
+
+## 4. Replace chart card
+
+### 4.1  src/pages/coach/LoadInsights.tsx
+
+```tsx
+import { isoWeekInfo } from '@/utils/weekHelpers';
+import TrainingLoadColumns from '@/components/TrainingLoadColumns';
+
+const {week, range} = isoWeekInfo(today);           // today already in scope
+const {data:weekLoad=[]} = useWeekLoad(athlete, today);
+
+<Card className="bg-zinc-800/90 px-4 py-3 mt-6">
+  <h3 className="font-semibold">
+    {`Week ${week}`} <span className="text-zinc-400 text-[13px]">({range})</span>
+  </h3>
+  <p className="text-[13px] text-zinc-400 mb-2">
+    Total AU: {sum(weekLoad.map(d=>d.total))} | Avg ACWR: {weekAcwr}
+  </p>
+
+  <TrainingLoadColumns data={weekLoad}/>
+</Card>
+```
+
+*(Remove the now-superfluous “Training Load” card.)*
+
+## 5. Spacing below card
+
+Add `mt-10` to the **ACWR** card wrapper.
+
+## 6. Compile / test hint
+
+Run `npx tsc -p .` and `npm run dev` to ensure PatternLines import compiles.
+
+## 7. Commit message
+
+> feat(load-insights): stacked column chart with type colours, ISO week label, dotted overlay for double sessions
+
+# End of agent task
+
+```
+
+---
+
+### After it’s applied
+
+* **Week header** shows the correct ISO week number and date range.  
+* **Stacked columns** clearly separate Field, Gym, and Match loads.  
+* A **dotted segment** marks a second session of the same type.  
+* **Total AU** appears in the centre of each column, matching ACWR font size.  
+* Colours match the app’s dark theme and pass contrast (WCAG AA) on the charcoal background.
+
+Have another look once it’s live and ping me if you want any shade or size tweaks!
+```

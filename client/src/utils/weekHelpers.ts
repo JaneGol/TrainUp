@@ -1,5 +1,14 @@
 import { getISOWeek, startOfISOWeek, endOfISOWeek, format, parseISO } from 'date-fns';
 
+export const isoWeekInfo = (dateStr: string) => {
+  const d = parseISO(dateStr);
+  const week = getISOWeek(d);              // 1-53, ISO standard
+  const start = startOfISOWeek(d);
+  const end = endOfISOWeek(d);
+  const range = `${format(start, 'd MMM')} – ${format(end, 'd MMM')}`;
+  return { week, range };
+};
+
 export const weekKey = (dateStr: string) => {
   const d = parseISO(dateStr);
   return `${d.getFullYear()}-W${String(getISOWeek(d)).padStart(2, "0")}`;
