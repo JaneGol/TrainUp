@@ -52,7 +52,7 @@ function Router() {
       <ProtectedRoute path="/coach/old-dashboard" component={CoachDashboard} />
       <ProtectedRoute path="/coach/athlete-status" component={AthleteStatus} />
       <ProtectedRoute path="/coach/load-insights" component={LoadInsights} />
-      <ProtectedRoute path="/coach/add-training" component={TrainingLog} />
+      <ProtectedRoute path="/coach/training-log" component={TrainingLog} />
       <ProtectedRoute path="/coach/smart-doctor" component={CoachSmartDoctor} />
       <ProtectedRoute path="/coach/athlete-logs" component={AthleteLogsPage} />
       <ProtectedRoute path="/coach/team-overview" component={TeamOverviewPage} />
