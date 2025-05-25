@@ -717,6 +717,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const riskFactors = await storage.getInjuryRiskFactors();
     res.json(riskFactors);
   });
+
+  // Get today's alerts for coaches
+  app.get("/api/alerts/today", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "coach") {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const alerts = await storage.getTodaysAlerts();
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching today's alerts:", error);
+      res.status(500).json({ error: "Failed to fetch alerts" });
+    }
+  });
   
   // Get athlete fitness progress metrics
   app.get("/api/athlete/fitness-progress", async (req, res) => {
