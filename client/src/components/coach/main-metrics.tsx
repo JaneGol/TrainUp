@@ -66,20 +66,19 @@ export default function MainMetrics() {
       </section>
 
       {/* ▼ Alerts + Smart row ------------------------------------------------ */}        
-      <section className="flex gap-4 mt-4">
+      <section className="flex gap-4 mt-4 mb-8">
         <AlertsCard className="flex-1 min-w-0" />
         <button 
-          className="flex-1 min-w-0 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20"
+          className="flex-1 min-w-0 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur px-4 py-3 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20"
           onClick={() => navigate('/coach/training-recommendations')}
         >
           <div className="flex items-center gap-2 mb-2">
-            <Brain className="h-4 w-4 text-primary" />
-            <p className="text-xs uppercase text-white/60">AI Recommendations</p>
+            <Brain size={14} className="text-primary" />
+            <p className="text-[14px] font-medium text-white">AI Recommendations</p>
           </div>
-          <p className="text-2xl font-extrabold text-primary mb-1">
+          <p className="text-[28px] font-semibold text-primary">
             Smart
           </p>
-          <p className="text-xs text-white/50">Get training guidance</p>
         </button>
       </section>
       {/* ▲-------------------------------------------------------------------- */}
