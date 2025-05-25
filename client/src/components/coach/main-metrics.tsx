@@ -101,6 +101,21 @@ export default function MainMetrics() {
           </button>
         );
       })()}
+
+      {/* Training Recommendations Card */}
+      <button 
+        className="rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20 border border-primary/20"
+        onClick={() => navigate('/coach/training-recommendations')}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <Brain className="h-4 w-4 text-primary" />
+          <p className="text-xs uppercase text-white/60">AI Recommendations</p>
+        </div>
+        <p className="text-2xl font-extrabold text-primary mb-1">
+          Smart
+        </p>
+        <p className="text-xs text-white/50">Get training guidance</p>
+      </button>
     </section>
   );
 }

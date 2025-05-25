@@ -28,6 +28,7 @@ import TeamOverviewPage from "@/pages/coach/team-overview";
 import PerformanceAnalyticsPage from "@/pages/coach/performance-analytics";
 import EnhancedAnalyticsPage from "@/pages/coach/enhanced-analytics";
 import DataExportPage from "@/pages/coach/data-export";
+import TrainingRecommendationsPage from "@/pages/coach/training-recommendations";
 
 function Router() {
   return (
@@ -58,6 +59,7 @@ function Router() {
       <ProtectedRoute path="/coach/performance-analytics" component={PerformanceAnalyticsPage} />
       <ProtectedRoute path="/coach/enhanced-analytics" component={EnhancedAnalyticsPage} />
       <ProtectedRoute path="/coach/data-export" component={DataExportPage} />
+      <ProtectedRoute path="/coach/training-recommendations" component={TrainingRecommendationsPage} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

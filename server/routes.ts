@@ -80,6 +80,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to generate health recommendations" });
     }
   });
+
+  // Training Recommendations API
+  app.get("/api/training-recommendations", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamRecommendations = await trainingRecommendationService.generateTeamRecommendations();
+      res.json(teamRecommendations);
+    } catch (error) {
+      console.error("Error generating training recommendations:", error);
+      res.status(500).json({ error: "Failed to generate training recommendations" });
+    }
+  });
+
+  // Individual athlete training recommendation
+  app.get("/api/training-recommendations/:athleteId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const athleteId = parseInt(req.params.athleteId);
+    if (isNaN(athleteId)) {
+      return res.status(400).json({ error: "Invalid athlete ID" });
+    }
+    
+    try {
+      const recommendation = await trainingRecommendationService.generateAthleteRecommendation(athleteId);
+      if (!recommendation) {
+        return res.status(404).json({ error: "Athlete not found or no data available" });
+      }
+      res.json(recommendation);
+    } catch (error) {
+      console.error("Error generating athlete recommendation:", error);
+      res.status(500).json({ error: "Failed to generate athlete recommendation" });
+    }
+  });
   
   // Change password route for logged-in users
   app.post("/api/user/change-password", (req, res) => {
