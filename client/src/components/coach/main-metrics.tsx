@@ -67,13 +67,13 @@ export default function MainMetrics() {
 
       {/* ▼ Alerts + Smart row ------------------------------------------------ */}        
       <section className="flex gap-4 mt-4 mb-8">
-        <AlertsCard className="flex-1 min-w-0" />
+        <AlertsCard className="flex-[3] min-w-0" />
         <button 
-          className="flex-1 min-w-0 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur h-14 px-4 flex items-center gap-2 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20"
+          className="flex-[2] min-w-0 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur h-20 px-4 flex items-center gap-2 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20"
           onClick={() => navigate('/coach/training-recommendations')}
         >
           <Brain size={16} className="text-primary" />
-          <span className="text-sm font-medium text-primary">Assistant Coach</span>
+          <span className="text-sm font-medium text-primary">Assistant&nbsp;Coach</span>
         </button>
       </section>
       {/* ▲-------------------------------------------------------------------- */}
