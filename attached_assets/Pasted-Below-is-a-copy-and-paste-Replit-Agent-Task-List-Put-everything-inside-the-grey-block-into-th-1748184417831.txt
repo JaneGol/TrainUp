@@ -1,0 +1,75 @@
+Below is a **copy-and-paste “Replit Agent Task List.”**
+Put everything inside the grey block into the **Ask AI** panel of your *SportsMindTracker* Repl and click **Send**.
+The agent will:
+
+* Place **Alerts at a Glance** and **AI Recommendations** in a single row.
+* Give them **equal widths** (`flex-1`) so they shrink/grow together.
+* Add a clear **vertical indent (mt-4)** below the key-indicator gauges.
+* Keep all existing card content and click-through logic unchanged.
+
+---
+
+````txt
+# 🚀  Replit Agent Task – Compact row for Alerts + Smart cards
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+
+## 1. Locate the JSX block
+File: **src/pages/coach/MainMetrics.tsx** (or wherever the dashboard cards are rendered).  
+Find the section that renders `<AlertsCard …>` and the “Smart” AI card.
+
+## 2. Wrap the two cards in a flex row with equal widths
+Replace the surrounding wrapper with:
+
+```tsx
+{/* ▼ Alerts + Smart row ------------------------------------------------ */}        
+<section className="flex gap-4 mt-4">
+  <AlertsCard className="flex-1 min-w-0" teamId={teamId} />
+  <Card className="flex-1 min-w-0 bg-lime-500/10"
+        onClick={()=>navigate('/smart')}>
+    {/* existing Smart card inner content stays as-is */}
+  </Card>
+</section>
+{/* ▲-------------------------------------------------------------------- */}
+````
+
+### Notes
+
+* `flex` → puts cards on one horizontal line.
+* `gap-4` → equal horizontal spacing.
+* `flex-1 min-w-0` → each card grows equally; prevents overflow on narrow screens.
+* `mt-4` → 16 px indent below the Recovery / Readiness gauges.
+
+## 3. Remove any external widths
+
+Delete leftover `w-full`, `grid-cols-2`, or fixed `max-w` on the two cards if present, to avoid style conflicts.
+
+## 4. Mobile overflow safeguard (optional)
+
+If testing on a 320 px viewport shows overflow, add `flex-wrap`:
+
+```tsx
+<section className="flex flex-wrap gap-4 mt-4">
+```
+
+Cards will drop to two rows on ultra-small phones.
+
+## 5. No logic changes
+
+Component props, data hooks, and click handlers remain untouched.
+
+## 6. Manual QA (agent runs)
+
+1. Dashboard shows **Alerts** and **Smart** side-by-side, same width, equal gap.
+2. Clear 16 px space between the key-indicator gauges and this new row.
+3. Tap actions still work; content layout inside each card is unchanged.
+
+## 7. Commit message
+
+> style(dashboard): align Alerts + Smart as equal-width row, add top indent
+
+# End of agent task
+
+```
+
+---
+```

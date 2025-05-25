@@ -8,12 +8,16 @@ const iconMap = {
   acwr: <AlertTriangle size={16} className="text-yellow-400" />,
 };
 
-export default function AlertsCard() {
+interface AlertsCardProps {
+  className?: string;
+}
+
+export default function AlertsCard({ className = "" }: AlertsCardProps) {
   const [, navigate] = useLocation();
   const { data: alerts = [], isLoading } = useAlerts();
 
   return (
-    <div className="bg-zinc-800/90 rounded-xl p-4 backdrop-blur shadow">
+    <div className={`bg-zinc-800/90 rounded-xl p-4 backdrop-blur shadow ${className}`}>
       <h2 className="text-lg font-semibold mb-3 text-white">Alerts at a Glance</h2>
 
       {isLoading && (

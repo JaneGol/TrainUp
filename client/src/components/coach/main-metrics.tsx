@@ -65,14 +65,9 @@ export default function MainMetrics() {
         </button>
       </section>
 
-      {/* Unified Alerts and AI Recommendations Section */}
-      <section className="w-full flex gap-4 pt-2 mb-6">
-        {/* Alerts at a Glance Card (flexible) */}
-        <div className="flex-1 min-w-0">
-          <AlertsCard />
-        </div>
-
-        {/* AI Recommendations Card (flexible) */}
+      {/* ▼ Alerts + Smart row ------------------------------------------------ */}        
+      <section className="flex gap-4 mt-4">
+        <AlertsCard className="flex-1 min-w-0" />
         <button 
           className="flex-1 min-w-0 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20"
           onClick={() => navigate('/coach/training-recommendations')}
@@ -87,6 +82,7 @@ export default function MainMetrics() {
           <p className="text-xs text-white/50">Get training guidance</p>
         </button>
       </section>
+      {/* ▲-------------------------------------------------------------------- */}
     </>
   );
 }
