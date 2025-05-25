@@ -57,6 +57,7 @@ export interface IStorage {
   getTeamWellnessTrends(): Promise<{ date: string; value: number; category: string }[]>;
   getAthleteRecoveryReadiness(): Promise<{ athleteId: number; name: string; readinessScore: number; trend: string; issues: string[] }[]>;
   getInjuryRiskFactors(): Promise<{ athleteId: number; name: string; riskScore: number; factors: string[] }[]>;
+  getTodaysAlerts(): Promise<{ athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[]>;
 
   
   // Session store
@@ -663,6 +664,61 @@ export class MemStorage implements IStorage {
     }
     
     return result.length > 0 ? result : generateDefaultACWR();
+  }
+
+  async getTodaysAlerts(): Promise<{ athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[]> {
+    const alerts: { athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[] = [];
+    
+    // Get all athletes
+    const athletes = Array.from(this.users.values()).filter(user => user.role === 'athlete');
+    
+    for (const athlete of athletes) {
+      // Check latest morning diary for injury/sickness
+      const latestDiary = await this.getLatestMorningDiary(athlete.id);
+      
+      if (latestDiary) {
+        // Check for injury
+        if (latestDiary.hasInjury && latestDiary.injuryType) {
+          alerts.push({
+            athleteId: athlete.id,
+            name: `${athlete.firstName} ${athlete.lastName}`,
+            type: "injury",
+            note: latestDiary.injuryType
+          });
+        }
+        
+        // Check for sickness symptoms
+        if (latestDiary.symptoms && Array.isArray(latestDiary.symptoms) && 
+            !latestDiary.symptoms.includes('no_symptoms') && latestDiary.symptoms.length > 0) {
+          alerts.push({
+            athleteId: athlete.id,
+            name: `${athlete.firstName} ${athlete.lastName}`,
+            type: "sick",
+            note: latestDiary.symptoms.join(', ')
+          });
+        }
+      }
+      
+      // Check for high ACWR
+      try {
+        const acwrData = await this.getAcuteChronicLoadRatio(athlete.id);
+        if (acwrData.length > 0) {
+          const latestACWR = acwrData[acwrData.length - 1];
+          if (latestACWR.ratio > 1.3) {
+            alerts.push({
+              athleteId: athlete.id,
+              name: `${athlete.firstName} ${athlete.lastName}`,
+              type: "acwr",
+              note: `ACWR ${latestACWR.ratio.toFixed(2)}`
+            });
+          }
+        }
+      } catch (error) {
+        // Skip ACWR check if insufficient data
+      }
+    }
+    
+    return alerts;
   }
 }
 

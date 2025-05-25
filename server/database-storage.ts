@@ -1223,4 +1223,75 @@ export class DatabaseStorage implements IStorage {
     
     return result;
   }
+
+  async getTodaysAlerts(): Promise<{ athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[]> {
+    const alerts: { athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[] = [];
+    
+    // Get today's date
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+    
+    // Get all athletes
+    const athletes = await db
+      .select()
+      .from(users)
+      .where(eq(users.role, 'athlete'));
+    
+    for (const athlete of athletes) {
+      // Check for injury alerts from today's morning diary
+      const todaysDiary = await db
+        .select()
+        .from(morningDiary)
+        .where(eq(morningDiary.userId, athlete.id))
+        .orderBy(desc(morningDiary.date))
+        .limit(1);
+      
+      if (todaysDiary.length > 0) {
+        const diary = todaysDiary[0];
+        
+        // Check for injury
+        if (diary.hasInjury && diary.injuryType) {
+          alerts.push({
+            athleteId: athlete.id,
+            name: `${athlete.firstName} ${athlete.lastName}`,
+            type: "injury",
+            note: diary.injuryType
+          });
+        }
+        
+        // Check for sickness symptoms  
+        if (diary.symptoms && Array.isArray(diary.symptoms) && 
+            !diary.symptoms.includes('no_symptoms') && diary.symptoms.length > 0) {
+          const symptomsText = diary.symptoms.join(', ');
+          alerts.push({
+            athleteId: athlete.id,
+            name: `${athlete.firstName} ${athlete.lastName}`,
+            type: "sick",
+            note: symptomsText
+          });
+        }
+      }
+      
+      // Check for high ACWR (using existing method)
+      try {
+        const acwrData = await this.getAcuteChronicLoadRatio(athlete.id);
+        if (acwrData.length > 0) {
+          const latestACWR = acwrData[acwrData.length - 1];
+          if (latestACWR.ratio > 1.3) {
+            alerts.push({
+              athleteId: athlete.id,
+              name: `${athlete.firstName} ${athlete.lastName}`,
+              type: "acwr",
+              note: `ACWR ${latestACWR.ratio.toFixed(2)}`
+            });
+          }
+        }
+      } catch (error) {
+        // Skip ACWR check if data is insufficient
+        console.log(`Skipping ACWR check for athlete ${athlete.id}: insufficient data`);
+      }
+    }
+    
+    return alerts;
+  }
 }
