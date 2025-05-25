@@ -248,6 +248,23 @@ export default function LoadInsights() {
           </div>
         </div>
         
+        {/* Weekly Summary Card */}
+        {weeklySummary && (
+          <Card>
+            <h2 className="font-bold text-lg mb-2">Week {weeklySummary.weekNum}</h2>
+            <p className="text-zinc-300">
+              Total AU: <span className="text-white font-semibold">{weeklySummary.totalAU}</span> | 
+              Avg ACWR: <span className="text-white font-semibold">{weeklySummary.avgAcwr.toFixed(2)}</span>
+            </p>
+            {weeklySummary.avgAcwr > 1.3 && (
+              <p className="text-red-400 text-sm mt-2">⚠️ High ACWR - consider lighter training</p>
+            )}
+            {weeklySummary.avgAcwr < 0.8 && (
+              <p className="text-yellow-400 text-sm mt-2">⚡ Low ACWR - may increase intensity safely</p>
+            )}
+          </Card>
+        )}
+        
         {/* Training Load Chart - More compact */}
         <div className="bg-zinc-900 rounded-lg p-4 mb-4">
           <h3 className="text-xl font-semibold mb-3">Training Load</h3>

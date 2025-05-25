@@ -20,6 +20,8 @@ import {
   Legend, 
   Line, 
   LineChart, 
+  ComposedChart,
+  ReferenceArea,
   ResponsiveContainer, 
   Tooltip, 
   XAxis, 
