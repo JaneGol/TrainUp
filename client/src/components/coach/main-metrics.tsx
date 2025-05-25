@@ -3,6 +3,14 @@ import { useKeyMetrics } from "@/hooks/use-key-metrics";
 import { ArrowUp, ArrowDown, AlertTriangle, HeartPulse, Brain } from "lucide-react";
 import { useLocation } from "wouter";
 
+// Utility for unified danger card styling
+const dangerClasses = (count: number) => ({
+  bg: count > 0 ? "bg-red-900/80" : "bg-zinc-700",
+  icon: count > 0 ? "text-red-300" : "text-zinc-400",
+  num: count > 0 ? "text-red-300" : "text-zinc-200",
+  subtitle: count > 0 ? "Tap to view" : "All clear"
+});
+
 export default function MainMetrics() {
   const [, navigate] = useLocation();
   const keyMetrics = useKeyMetrics();
@@ -66,39 +74,35 @@ export default function MainMetrics() {
       <section className="w-full flex gap-4 pt-2 mb-6">
         {/* High Risk Card (square) */}
         <button 
-          className={`flex-none aspect-square w-28 md:w-32 rounded-xl backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer ${
-            keyMetrics.highRisk > 0 ? 'bg-red-600/20 hover:bg-red-600/30' : 'bg-white/5 hover:bg-white/10'
-          }`}
+          className={`flex-none aspect-square w-28 md:w-32 rounded-xl backdrop-blur shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer flex flex-col items-center justify-center ${dangerClasses(keyMetrics.highRisk).bg}`}
           onClick={() => navigate('/coach/athlete-status')}
         >
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="h-4 w-4 text-red-400" />
-            <p className="text-xs uppercase text-white/60">High Risk</p>
-          </div>
-          <p className="text-2xl font-extrabold text-red-400 mb-1">
+          <AlertTriangle size={20} className={dangerClasses(keyMetrics.highRisk).icon} />
+          <p className="text-xs font-medium uppercase text-zinc-200 mt-1">High Risk</p>
+          <p className={`text-3xl font-extrabold ${dangerClasses(keyMetrics.highRisk).num} my-1`}>
             {keyMetrics.highRisk}
           </p>
-          <p className="text-xs text-white/50">Tap to view</p>
+          <p className="text-xs">{dangerClasses(keyMetrics.highRisk).subtitle}</p>
         </button>
 
         {/* Sick / Injured Card (square) */}
         <button 
-          className="flex-none aspect-square w-28 md:w-32 rounded-xl bg-red-900/60 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-red-500/30 transition cursor-pointer hover:bg-red-900/70"
+          className={`flex-none aspect-square w-28 md:w-32 rounded-xl backdrop-blur shadow hover:ring-2 hover:ring-white/10 transition cursor-pointer flex flex-col items-center justify-center ${dangerClasses(keyMetrics.sickInjured).bg}`}
           onClick={() => navigate('/coach/athlete-status?filter=sick')}
         >
-          <div className="flex items-center gap-2 mb-2">
-            <HeartPulse className="h-4 w-4 text-red-400" />
-            <p className="text-xs uppercase text-white/60">Sick / Injured</p>
-          </div>
-          <p className="text-2xl font-extrabold text-red-400 mb-1">
+          <HeartPulse size={20} className={dangerClasses(keyMetrics.sickInjured).icon} />
+          <p className="text-xs font-medium uppercase text-zinc-200 mt-1">
+            Sick&nbsp;/&nbsp;Injured
+          </p>
+          <p className={`text-3xl font-extrabold ${dangerClasses(keyMetrics.sickInjured).num} my-1`}>
             {keyMetrics.sickInjured}
           </p>
-          <p className="text-xs text-white/50">Tap to view</p>
+          <p className="text-xs">{dangerClasses(keyMetrics.sickInjured).subtitle}</p>
         </button>
 
         {/* AI Recommendations Card (flexible) */}
         <button 
-          className="flex-1 min-w-0 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20 border border-primary/20"
+          className="flex-1 min-w-0 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur p-3 md:p-4 shadow hover:ring-2 hover:ring-primary/30 transition cursor-pointer hover:from-primary/30 hover:to-primary/20"
           onClick={() => navigate('/coach/training-recommendations')}
         >
           <div className="flex items-center gap-2 mb-2">
