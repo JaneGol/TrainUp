@@ -55,16 +55,25 @@ export default function LoadInsights() {
     queryKey: ["/api/analytics/acwr"],
   });
 
-  // Filter training load data for the selected week
+  // Filter and transform training load data for the selected week
   const weekTrainingData = useMemo(() => {
     const weekStartDate = new Date(weekStart);
     const weekEndDate = new Date(weekStartDate);
     weekEndDate.setDate(weekStartDate.getDate() + 6);
     
-    return (trainingLoadData as any[]).filter(entry => {
+    const weekData = (trainingLoadData as any[]).filter(entry => {
       const entryDate = new Date(entry.date);
       return entryDate >= weekStartDate && entryDate <= weekEndDate;
     });
+    
+    // Transform data to match TrainingLoadColumns expected format
+    return weekData.map(entry => ({
+      date: entry.date,
+      Field: entry.fieldTraining || 0,
+      Gym: entry.gymTraining || 0,
+      Match: entry.matchGame || 0,
+      total: entry.load || 0
+    }));
   }, [trainingLoadData, weekStart]);
 
   return (
