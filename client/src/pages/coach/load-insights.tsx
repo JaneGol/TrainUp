@@ -109,7 +109,7 @@ export default function LoadInsights() {
   
   // Handle athlete selection change
   const handleAthleteChange = (newValue: string) => {
-    setSelectedAthlete(newValue);
+    setAthleteId(newValue);
   };
   
   // Define interfaces for proper type checking

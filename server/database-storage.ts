@@ -5,7 +5,7 @@ import {
   FitnessMetrics, InsertFitnessMetrics,
   HealthReport, InsertHealthReport,
   CoachFeedback, InsertCoachFeedback,
-  users, trainingEntries, morningDiary, fitnessMetrics, healthReports, coachFeedback, trainingSessions
+  users, trainingEntries, morningDiary, fitnessMetrics, healthReports, coachFeedback
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
