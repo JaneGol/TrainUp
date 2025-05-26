@@ -1308,4 +1308,63 @@ export class DatabaseStorage implements IStorage {
     
     return alerts;
   }
+
+  async getWeeklyLoadData(athleteId: string, weekStart: string): Promise<any[]> {
+    // Calculate the week's date range (7 days from weekStart)
+    const startDate = new Date(weekStart);
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+
+    const whereClause = athleteId === 'all' 
+      ? gte(trainingSessions.date, startDate)
+      : and(
+          gte(trainingSessions.date, startDate),
+          eq(trainingSessions.userId, parseInt(athleteId))
+        );
+
+    const sessions = await db
+      .select()
+      .from(trainingSessions)
+      .where(
+        and(
+          whereClause,
+          lte(trainingSessions.date, endDate)
+        )
+      )
+      .orderBy(trainingSessions.date);
+
+    // Group by date and calculate daily totals
+    const dailyData: { [key: string]: { Field: number; Gym: number; Match: number; total: number } } = {};
+    
+    // Initialize all 7 days with zero values
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+      dailyData[dateStr] = { Field: 0, Gym: 0, Match: 0, total: 0 };
+    }
+
+    // Aggregate session data
+    sessions.forEach(session => {
+      const dateStr = new Date(session.date).toISOString().split('T')[0];
+      if (dailyData[dateStr]) {
+        const type = session.trainingType === 'field' ? 'Field' : 
+                    session.trainingType === 'gym' ? 'Gym' : 'Match';
+        const load = session.rpeScore * (session.duration / 60) * 1.25; // Simplified load calculation
+        
+        dailyData[dateStr][type] += load;
+        dailyData[dateStr].total += load;
+      }
+    });
+
+    // Convert to array format with ACWR calculation (simplified for now)
+    return Object.entries(dailyData).map(([date, data]) => ({
+      date,
+      Field: Math.round(data.Field),
+      Gym: Math.round(data.Gym),
+      Match: Math.round(data.Match),
+      total: Math.round(data.total),
+      acwr: data.total > 0 ? 1.0 : 0 // Placeholder ACWR calculation
+    }));
+  }
 }

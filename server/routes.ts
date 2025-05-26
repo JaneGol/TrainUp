@@ -855,6 +855,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch alerts" });
     }
   });
+
+  // Get weekly load data for Load Insights page
+  app.get("/api/load/week", async (req, res) => {
+    if (!req.isAuthenticated() || req.user!.role !== "coach") {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const { ath, weekStart } = req.query;
+      
+      if (!weekStart) {
+        return res.status(400).json({ error: "weekStart parameter required" });
+      }
+
+      const weeklyLoad = await storage.getWeeklyLoadData(
+        ath as string || 'all', 
+        weekStart as string
+      );
+      
+      res.json(weeklyLoad);
+    } catch (error) {
+      console.error("Error fetching weekly load data:", error);
+      res.status(500).json({ error: "Failed to fetch weekly load data" });
+    }
+  });
   
   // Get athlete fitness progress metrics
   app.get("/api/athlete/fitness-progress", async (req, res) => {
