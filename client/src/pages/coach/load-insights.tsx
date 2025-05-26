@@ -56,15 +56,15 @@ export default function LoadInsights() {
 
   // Get weekly load data for the new chart
   const { data: weeklyLoadData = [], isLoading: weeklyLoading } = useWeeklyLoad(
-    selectedAthlete === "all" ? undefined : parseInt(selectedAthlete)
+    athleteId === "all" ? undefined : parseInt(athleteId)
   );
   
   // Get training load data with athlete ID when an athlete is selected
   const { data: trainingLoad, isLoading: loadLoading } = useQuery({
-    queryKey: ["/api/analytics/training-load", selectedAthlete !== "all" ? selectedAthlete : "all", timeRange],
+    queryKey: ["/api/analytics/training-load", athleteId !== "all" ? athleteId : "all"],
     queryFn: async () => {
-      const url = selectedAthlete !== "all" 
-        ? `/api/analytics/training-load?athleteId=${selectedAthlete}`
+      const url = athleteId !== "all" 
+        ? `/api/analytics/training-load?athleteId=${athleteId}`
         : "/api/analytics/training-load";
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch training load data');
@@ -89,10 +89,10 @@ export default function LoadInsights() {
   
   // Get ACWR data with athlete ID when an athlete is selected
   const { data: acwrData, isLoading: acwrLoading } = useQuery({
-    queryKey: ["/api/analytics/acwr", selectedAthlete !== "all" ? selectedAthlete : "all", timeRange],
+    queryKey: ["/api/analytics/acwr", athleteId !== "all" ? athleteId : "all"],
     queryFn: async () => {
-      const url = selectedAthlete !== "all" 
-        ? `/api/analytics/acwr?athleteId=${selectedAthlete}`
+      const url = athleteId !== "all" 
+        ? `/api/analytics/acwr?athleteId=${athleteId}`
         : "/api/analytics/acwr";
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch ACWR data');
