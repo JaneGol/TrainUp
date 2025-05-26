@@ -10,7 +10,7 @@ import {
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
-import { eq, desc, gte, sql } from "drizzle-orm";
+import { eq, desc, gte, sql, and } from "drizzle-orm";
 import { IStorage } from "./storage";
 
 // Helper function to generate default training load
@@ -1245,7 +1245,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.role, 'athlete'));
     
     for (const athlete of athletes) {
-      // Check for injury alerts from today's morning diary
+      // Check for injury alerts from today's morning diary ONLY
       const todaysDiary = await db
         .select()
         .from(morningDiary)
@@ -1253,8 +1253,14 @@ export class DatabaseStorage implements IStorage {
         .orderBy(desc(morningDiary.date))
         .limit(1);
       
-      if (todaysDiary.length > 0) {
-        const diary = todaysDiary[0];
+      // Filter to only include today's entries
+      const todaysEntries = todaysDiary.filter(diary => {
+        const diaryDate = new Date(diary.date).toISOString().split('T')[0];
+        return diaryDate === todayString;
+      });
+      
+      if (todaysEntries.length > 0) {
+        const diary = todaysEntries[0];
         
         // Check for injury
         if (diary.hasInjury && diary.injuryNotes) {
