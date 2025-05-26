@@ -840,7 +840,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
+      // Add cache-busting headers to force recalculation with new date filtering
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       const alerts = await storage.getTodaysAlerts();
+      console.log(`Alerts API: Found ${alerts.length} alerts for today`);
       res.json(alerts);
     } catch (error) {
       console.error("Error fetching today's alerts:", error);
