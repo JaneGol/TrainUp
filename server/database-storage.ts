@@ -1234,7 +1234,7 @@ export class DatabaseStorage implements IStorage {
   async getTodaysAlerts(): Promise<{ athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[]> {
     const alerts: { athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[] = [];
     
-    // Get today's date
+    // Get today's date in local timezone (use server's local time for now)
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
     
@@ -1245,19 +1245,20 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.role, 'athlete'));
     
     for (const athlete of athletes) {
-      // Check for injury alerts from today's morning diary ONLY
-      const todaysDiary = await db
+      // Get ALL diary entries for this athlete and filter client-side for today only
+      const allDiaries = await db
         .select()
         .from(morningDiary)
         .where(eq(morningDiary.userId, athlete.id))
-        .orderBy(desc(morningDiary.date))
-        .limit(1);
+        .orderBy(desc(morningDiary.date));
       
-      // Filter to only include today's entries
-      const todaysEntries = todaysDiary.filter(diary => {
+      // Strictly filter to TODAY's entries only
+      const todaysEntries = allDiaries.filter(diary => {
         const diaryDate = new Date(diary.date).toISOString().split('T')[0];
         return diaryDate === todayString;
       });
+      
+      console.log(`Athlete ${athlete.firstName}: Found ${allDiaries.length} total diaries, ${todaysEntries.length} for today (${todayString})`);
       
       if (todaysEntries.length > 0) {
         const diary = todaysEntries[0];
