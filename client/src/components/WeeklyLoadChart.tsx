@@ -100,14 +100,14 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
           
           <XAxis 
             dataKey="weekLabel" 
-            tick={{ fontSize: 10, fill: '#9ca3af' }}
+            tick={{ fontSize: 12, fontWeight: 500 }}
             axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
             tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
           />
           
           <YAxis 
             yAxisId="load"
-            tick={{ fontSize: 10, fill: '#9ca3af' }}
+            tick={{ fontSize: 12 }}
             axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
             tickLine={false}
             label={{ value: 'AU', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 10, fill: '#9ca3af' } }}

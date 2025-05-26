@@ -1,20 +1,18 @@
 import { eachWeekOfInterval, format, getISOWeek, startOfISOWeek, endOfISOWeek } from 'date-fns';
 
 export const buildWeekOptions = () => {
-  const last12 = eachWeekOfInterval({
-    start: endOfISOWeek(new Date(Date.now() - 1000*60*60*24*70)),  // ~10 weeks back
-    end:   new Date()
+  const weeks = eachWeekOfInterval({
+    start: endOfISOWeek(new Date(Date.now() - 1000*60*60*24*70)),
+    end  : new Date()
   }).reverse();
 
-  return last12.map(d => {
-    const w      = getISOWeek(d);
-    const start  = startOfISOWeek(d);
-    const end    = endOfISOWeek(d);
-    const label  = `W${w} (${format(start,'d MMM')}–${format(end,'d MMM')})`;
-    return { 
-      value: format(start,'yyyy-MM-dd'), 
-      label,
-      weekNumber: w
+  return weeks.map(wStart => {
+    const weekNo = getISOWeek(wStart);
+    const start  = startOfISOWeek(wStart);
+    const end    = endOfISOWeek(wStart);
+    return {
+      value : format(start,'yyyy-MM-dd'),
+      label : `W${weekNo} (${format(start,'dd.MM')}–${format(end,'dd.MM')})`
     };
   });
 };
