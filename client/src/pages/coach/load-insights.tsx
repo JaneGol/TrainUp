@@ -290,7 +290,7 @@ export default function LoadInsights() {
           <div className="mb-2">
             <Label htmlFor="athlete-select" className="mb-2 block">Athlete</Label>
             <Select
-              value={selectedAthlete}
+              value={athleteId}
               onValueChange={handleAthleteChange}
             >
               <SelectTrigger id="athlete-select" className="bg-zinc-800 border-zinc-700 text-white">
