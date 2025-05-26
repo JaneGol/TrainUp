@@ -25,22 +25,18 @@ interface WeekSelectProps {
 
 export default function WeekSelect({ value, onChange }: WeekSelectProps) {
   const weekOptions = buildWeekOptions();
-  const selectedOption = weekOptions.find(option => option.value === value);
   
   return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="bg-zinc-800 border-zinc-700">
-        <SelectValue>
-          {selectedOption?.label || weekOptions[0]?.label}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {weekOptions.map(option => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <select 
+      value={value} 
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+    >
+      {weekOptions.map(option => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   );
 }
