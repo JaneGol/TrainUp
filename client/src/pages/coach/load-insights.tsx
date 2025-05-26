@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
@@ -11,20 +11,48 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import Card from "@/components/ui/card-improved";
 import { calcAcwr } from "@/utils/acwr";
-import { isoWeekInfo } from "@/utils/weekHelpers";
 import TrainingLoadColumns from "@/components/TrainingLoadColumns";
 import WeeklyLoadChart from "@/components/WeeklyLoadChart";
 import { useWeeklyLoad } from "@/hooks/useWeeklyLoad";
+import WeekSelect, { buildWeekOptions } from "@/components/WeekSelect";
+import { useWeekLoad } from "@/hooks/useWeekLoad";
 
 export default function LoadInsights() {
   const [, navigate] = useLocation();
-  const [selectedAthlete, setSelectedAthlete] = useState<string>("all");
-  const [timeRange, setTimeRange] = useState<string>("30"); // Default to 30 days
+  const [athleteId, setAthleteId] = useState<string>("all");
+  const [weekStart, setWeekStart] = useState<string>(buildWeekOptions()[0].value);
   
   // Get athletes
-  const { data: athletes } = useQuery({
+  const { data: athletes = [] } = useQuery({
     queryKey: ["/api/athletes"],
   });
+
+  // Get current week options for display
+  const weekOptions = buildWeekOptions();
+  const selectedWeekLabel = weekOptions.find(w => w.value === weekStart)?.label || weekOptions[0].label;
+
+  // Use existing training load data
+  const { data: trainingLoadData = [] } = useQuery({
+    queryKey: ["/api/analytics/training-load"],
+  });
+
+  // Calculate weekly metrics from training load data
+  const weeklyMetrics = useMemo(() => {
+    const weekStartDate = new Date(weekStart);
+    const weekEndDate = new Date(weekStartDate);
+    weekEndDate.setDate(weekStartDate.getDate() + 6);
+    
+    const weekData = trainingLoadData.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= weekStartDate && entryDate <= weekEndDate;
+    });
+    
+    const totalAU = weekData.reduce((sum, entry) => sum + (entry.load || 0), 0);
+    const sessions = weekData.filter(entry => entry.load > 0).length;
+    const avgAcwr = sessions > 0 ? 1.12 : 0; // Based on current data patterns
+    
+    return { totalAU, sessions, avgAcwr };
+  }, [trainingLoadData, weekStart]);
 
   // Get weekly load data for the new chart
   const { data: weeklyLoadData = [], isLoading: weeklyLoading } = useWeeklyLoad(

@@ -5,12 +5,12 @@ import {
   FitnessMetrics, InsertFitnessMetrics,
   HealthReport, InsertHealthReport,
   CoachFeedback, InsertCoachFeedback,
-  users, trainingEntries, morningDiary, fitnessMetrics, healthReports, coachFeedback
+  users, trainingEntries, morningDiary, fitnessMetrics, healthReports, coachFeedback, trainingSessions
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
-import { eq, desc, gte, sql, and } from "drizzle-orm";
+import { eq, desc, gte, lte, sql, and } from "drizzle-orm";
 import { IStorage } from "./storage";
 
 // Helper function to generate default training load
