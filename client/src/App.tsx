@@ -20,7 +20,7 @@ import TrainingEntryForm from "@/pages/athlete/training-entry";
 import CoachDashboard from "@/pages/coach/dashboard";
 import NewCoachDashboard from "@/pages/coach/new-dashboard";
 import AthleteStatus from "@/pages/coach/athlete-status";
-import LoadInsights from "@/pages/coach/load-insights";
+import LoadInsights from "@/pages/coach/load-insights-clean";
 import TrainingLog from "@/pages/coach/training-log";
 import CoachSmartDoctor from "@/pages/coach/smart-doctor";
 import AthleteLogsPage from "@/pages/coach/athlete-logs";
