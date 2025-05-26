@@ -3,8 +3,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export const buildWeekOptions = () => {
   const weeks = eachWeekOfInterval({
-    start: endOfISOWeek(new Date(Date.now() - 1000*60*60*24*70)),
-    end  : new Date()
+    start: endOfISOWeek(new Date(Date.now() - 1000*60*60*24*120)), // Extended to ~17 weeks
+    end  : endOfISOWeek(new Date(Date.now() + 1000*60*60*24*14))   // Include next 2 weeks
   }).reverse();
 
   return weeks.map(wStart => {
