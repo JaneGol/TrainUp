@@ -29,7 +29,7 @@ export default function WeekSelect({ value, onChange }: WeekSelectProps) {
     <select 
       value={value} 
       onChange={(e) => onChange(e.target.value)}
-      className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+      className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
     >
       {weekOptions.map(option => (
         <option key={option.value} value={option.value}>

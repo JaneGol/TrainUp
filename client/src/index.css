@@ -5,6 +5,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .chart-title { 
+    @apply text-base font-semibold; 
+  }
+  .chart-meta { 
+    @apply text-sm font-medium text-zinc-400; 
+  }
+}
+
 :root {
   /* Font family consistency */
   --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;

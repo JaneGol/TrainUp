@@ -96,7 +96,7 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
             fillOpacity={0.05} 
           />
 
-          <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
+          <CartesianGrid strokeOpacity={0.15} />
           
           <XAxis 
             dataKey="weekLabel" 
@@ -117,7 +117,7 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
             yAxisId="acwr" 
             orientation="right" 
             domain={[0, 2]} 
-            tick={{ fontSize: 10, fill: '#facc15' }}
+            tick={{ fontSize: 12, fill: '#facc15' }}
             axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
             tickLine={false}
             label={{ value: 'ACWR', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fontSize: 10, fill: '#facc15' } }}
@@ -143,19 +143,19 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
         </ComposedChart>
       </ResponsiveContainer>
       
-      {/* Legend */}
-      <div className="flex justify-center gap-4 mt-2 text-[11px]">
+      {/* Compact Legend */}
+      <div className="flex justify-center gap-3 mt-1 text-[11px] font-medium">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-2 bg-[#b5f23d] inline-block"></span> Field
+          <span className="w-3 h-2 bg-[#b5f23d]"></span>Field
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-2 bg-[#547aff] inline-block"></span> Gym
+          <span className="w-3 h-2 bg-[#547aff]"></span>Gym
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-2 bg-[#ff6f6f] inline-block"></span> Match
+          <span className="w-3 h-2 bg-[#ff6f6f]"></span>Match
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 bg-yellow-400 rounded-full inline-block"></span> ACWR
+          <span className="w-3 h-px bg-[#facc15] inline-block"></span>ACWR
         </span>
       </div>
     </div>
