@@ -5,7 +5,7 @@ import { useLocation } from "wouter";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip, ResponsiveContainer, Line, ComposedChart,
-  PieChart, Pie, Cell
+  PieChart, Pie, Cell, ReferenceArea
 } from "recharts";
 import { format, parseISO } from "date-fns";
 
@@ -148,24 +148,28 @@ export default function FitnessProgressRedesigned() {
                 <Bar yAxisId="load" dataKey="Field" stackId="load" fill="#cbff00" />
                 <Bar yAxisId="load" dataKey="Gym" stackId="load" fill="#547aff" />
                 <Bar yAxisId="load" dataKey="Match" stackId="load" fill="#ff6f6f" />
-                <Line 
+                <ReferenceArea
                   yAxisId="acwr"
-                  type="monotone" 
-                  dataKey="acwr" 
-                  stroke="#fbbf24" 
-                  strokeWidth={2}
-                  dot={{ fill: '#fbbf24', strokeWidth: 2, r: 4 }}
+                  y1={0.8}
+                  y2={1.3}
+                  stroke="none"
+                  fill="#22c55e"
+                  fillOpacity={0.08}
                 />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
-          {/* ACWR Reference Zones */}
+          {/* Legend */}
           <div className="flex justify-center mt-2 gap-4 text-xs">
             <span className="text-lime-400">▇ Field</span>
             <span className="text-blue-400">▇ Gym</span>
             <span className="text-red-400">▇ Match</span>
-            <span className="text-yellow-400">— ACWR</span>
           </div>
+          {/* ACWR Zone Caption */}
+          <p className="mt-1 text-[11px] text-zinc-400 text-center">
+            Green band = optimal ACWR&nbsp;(0.8 – 1.3).<br className="sm:hidden"/>
+            Below 🟦 0.8 ⇒ under-training, above 🟥 1.3 ⇒ elevated injury risk.
+          </p>
         </div>
 
         {/* 2. Status Card */}
