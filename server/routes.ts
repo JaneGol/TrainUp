@@ -881,6 +881,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get athlete 14-day weekly load data for Fitness Progress redesign
+  app.get("/api/athlete/weekly-load", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const userId = req.user!.id;
+      
+      // Get 14-day load data using storage interface (single source of truth)
+      const loadData = await storage.getAthleteWeeklyLoad(userId);
+      res.json(loadData);
+    } catch (error) {
+      console.error("Error fetching athlete weekly load:", error);
+      res.status(500).json({ error: "Failed to fetch weekly load data" });
+    }
+  });
+
   // Get athlete fitness progress metrics
   app.get("/api/athlete/fitness-progress", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
