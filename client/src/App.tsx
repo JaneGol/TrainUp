@@ -12,6 +12,7 @@ import { ProtectedRoute } from "./lib/protected-route";
 // Athlete pages
 import AthleteHomePage from "@/pages/athlete/home";
 import FitnessProgressPage from "@/pages/athlete/fitness-progress";
+import FitnessProgressRedesigned from "@/pages/athlete/fitness-progress-redesigned";
 import SmartDoctorPage from "@/pages/athlete/smart-doctor";
 import MorningDiaryPage from "@/pages/athlete/morning-diary";
 import TrainingEntryForm from "@/pages/athlete/training-entry";
@@ -44,7 +45,7 @@ function Router() {
       <ProtectedRoute path="/athlete" component={AthleteHomePage} />
       <ProtectedRoute path="/athlete/morning-diary" component={MorningDiaryPage} />
       <ProtectedRoute path="/athlete/training-entry" component={TrainingEntryForm} />
-      <ProtectedRoute path="/athlete/fitness-progress" component={FitnessProgressPage} />
+      <ProtectedRoute path="/athlete/fitness-progress" component={FitnessProgressRedesigned} />
       <ProtectedRoute path="/athlete/smart-doctor" component={SmartDoctorPage} />
       
       {/* Coach routes */}
