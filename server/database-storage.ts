@@ -1372,6 +1372,7 @@ export class DatabaseStorage implements IStorage {
         sessionGroups[sessionKey].count++;
         
         console.log(`Grouping session: ${sessionKey} with load ${Math.round(session.trainingLoad)} AU`);
+        console.log(`DEBUG sessionKey parts:`, sessionKey.split('-'));
       });
 
       console.log(`Found ${Object.keys(sessionGroups).length} unique session groups`);
