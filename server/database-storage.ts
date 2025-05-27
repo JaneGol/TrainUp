@@ -1310,10 +1310,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getWeeklyLoadData(athleteId: string, weekStart: string): Promise<any[]> {
+    console.log(`Getting weekly load data for athlete ${athleteId}, week starting ${weekStart}`);
+    
     // Calculate the week's date range (7 days from weekStart)
     const startDate = new Date(weekStart);
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 6);
+
+    console.log(`Week range: ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`);
 
     const whereClause = athleteId === 'all' 
       ? gte(trainingSessions.date, startDate)
@@ -1333,7 +1337,9 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(trainingSessions.date);
 
-    // Group by date and calculate daily totals
+    console.log(`Found ${sessions.length} sessions for the week`);
+
+    // Group by date and calculate daily totals using authentic training load formula
     const dailyData: { [key: string]: { Field: number; Gym: number; Match: number; total: number } } = {};
     
     // Initialize all 7 days with zero values
@@ -1344,27 +1350,76 @@ export class DatabaseStorage implements IStorage {
       dailyData[dateStr] = { Field: 0, Gym: 0, Match: 0, total: 0 };
     }
 
-    // Aggregate session data
+    // Get diary entries for emotional factors
+    const diaryEntries = await db
+      .select()
+      .from(morningDiaries)
+      .where(
+        and(
+          gte(morningDiaries.date, startDate),
+          lte(morningDiaries.date, endDate),
+          athleteId !== 'all' ? eq(morningDiaries.userId, parseInt(athleteId)) : undefined
+        ).filter(Boolean)
+      );
+
+    // Aggregate session data using authentic training load calculation
     sessions.forEach(session => {
       const dateStr = new Date(session.date).toISOString().split('T')[0];
+      
       if (dailyData[dateStr]) {
+        // Find diary entry for emotional factor
+        const diaryEntry = diaryEntries.find(d => 
+          new Date(d.date).toISOString().split('T')[0] === dateStr && 
+          d.userId === session.userId
+        );
+
+        // Calculate emotional factor (same as training load calculation)
+        let emotionalFactor = 1.25; // Default if no diary
+        if (diaryEntry) {
+          const avgEmotional = (
+            (diaryEntry.stressLevel || 3) + 
+            (diaryEntry.motivationLevel || 3) + 
+            (diaryEntry.sleepQuality || 3)
+          ) / 3;
+          
+          const roundedEmotional = Math.round(avgEmotional);
+          emotionalFactor = roundedEmotional <= 2 ? 1.125 : 
+                          roundedEmotional === 3 ? 1.25 : 1.375;
+        }
+
+        // Type weight factors
+        const typeWeights = {
+          field: 1.25,
+          gym: 1.0,
+          match: 1.5
+        };
+
         const type = session.trainingType === 'field' ? 'Field' : 
                     session.trainingType === 'gym' ? 'Gym' : 'Match';
-        const load = session.rpeScore * (session.duration / 60) * 1.25; // Simplified load calculation
+        
+        const typeWeight = typeWeights[session.trainingType as keyof typeof typeWeights] || 1.0;
+        const load = Math.round(session.rpeScore * session.duration * emotionalFactor * typeWeight);
+        
+        console.log(`Load calc for ${type} Training: RPE=${session.rpeScore}, Duration=${session.duration}, Emotional=${emotionalFactor}, Type=${typeWeight}, Total=${load} AU`);
         
         dailyData[dateStr][type] += load;
         dailyData[dateStr].total += load;
       }
     });
 
-    // Convert to array format with ACWR calculation (simplified for now)
-    return Object.entries(dailyData).map(([date, data]) => ({
-      date,
-      Field: Math.round(data.Field),
-      Gym: Math.round(data.Gym),
-      Match: Math.round(data.Match),
-      total: Math.round(data.total),
-      acwr: data.total > 0 ? 1.0 : 0 // Placeholder ACWR calculation
-    }));
+    // Convert to array format and ensure all 7 days are included
+    const result = Object.entries(dailyData)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, data]) => ({
+        date,
+        Field: Math.round(data.Field),
+        Gym: Math.round(data.Gym),
+        Match: Math.round(data.Match),
+        total: Math.round(data.total),
+        acwr: data.total > 0 ? 1.0 : 0 // Placeholder ACWR calculation
+      }));
+
+    console.log(`Returning ${result.length} days of data:`, result.map(d => `${d.date}: ${d.total} AU`));
+    return result;
   }
 }
