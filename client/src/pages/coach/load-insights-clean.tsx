@@ -140,11 +140,13 @@ export default function LoadInsights() {
         {/* Weekly Training Load Card */}
         <Card className="bg-zinc-800/90 px-4 py-4 relative">
           <div className="flex items-center justify-between">
-            <h2 className="chart-title mb-1">Weekly Training Load</h2>
+            <div className="flex-1">
+              <h2 className="chart-title mb-1 text-center">Weekly Training Load</h2>
+            </div>
             {isMobile && (
               <button 
                 onClick={() => setCompact(!compact)}
-                className="text-[11px] underline text-zinc-400 hover:text-white"
+                className="text-[11px] underline text-zinc-400 hover:text-white absolute top-4 right-4"
               >
                 {compact ? 'Bars' : 'Totals'}
               </button>
