@@ -158,17 +158,17 @@ export default function FitnessProgressRedesigned() {
                 <ReferenceLine
                   yAxisId="acwr"
                   y={0.8}
-                  stroke="#22c55e"
+                  stroke="#3b82f6"
                   strokeWidth={1}
-                  strokeOpacity={0.6}
+                  strokeOpacity={0.7}
                   strokeDasharray="2 2"
                 />
                 <ReferenceLine
                   yAxisId="acwr"
                   y={1.3}
-                  stroke="#22c55e"
+                  stroke="#ef4444"
                   strokeWidth={1}
-                  strokeOpacity={0.6}
+                  strokeOpacity={0.7}
                   strokeDasharray="2 2"
                 />
               </ComposedChart>
