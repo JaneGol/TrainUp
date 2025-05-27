@@ -1378,7 +1378,10 @@ export class DatabaseStorage implements IStorage {
 
       // Calculate representative load per session type
       Object.entries(sessionGroups).forEach(([sessionKey, group]) => {
-        const [dateStr, type, sessionNum] = sessionKey.split('-');
+        const parts = sessionKey.split('-');
+        const dateStr = `${parts[0]}-${parts[1]}-${parts[2]}`; // Reconstruct full date
+        const type = parts[3];
+        const sessionNum = parts[4];
         const avgLoad = Math.round(group.loads.reduce((sum, load) => sum + load, 0) / group.loads.length);
         
         console.log(`Team avg for ${type} Session ${sessionNum}: ${avgLoad} AU on ${dateStr} (avg of ${group.count} athletes with loads: ${group.loads.join(', ')})`);
