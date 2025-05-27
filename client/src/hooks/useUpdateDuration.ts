@@ -18,10 +18,13 @@ export function useUpdateDuration() {
       });
       return response.json();
     },
-    onSuccess: () => {
-      // Invalidate all related queries to ensure data consistency
+    onSuccess: (updated) => {
+      // Invalidate all related queries with proper cache keys
       queryClient.invalidateQueries({ queryKey: ["/api/training-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics/training-load"] });
+      queryClient.invalidateQueries({ queryKey: ["weekLoad"] }); // All week load queries
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/weekly-load"] }); // Ten week data
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/acwr"] }); // ACWR data
       queryClient.invalidateQueries({ queryKey: ["/api/team-readiness"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics/athlete-recovery-readiness"] });
       

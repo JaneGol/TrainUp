@@ -15,6 +15,7 @@ interface TrainingSession {
   totalAthletes: number;
   duration: number;
   emotionalLoad?: number;
+  sessionLoad?: number;
 }
 
 interface SessionSheetProps {
@@ -39,10 +40,8 @@ export default function SessionSheet({ open, onClose, session, onSave, isLoading
   const increment = () => setDuration(d => Math.min(240, d + 5));
   const decrement = () => setDuration(d => Math.max(15, d - 5));
 
-  // Calculate live session load
-  const emotionalFactor = session.emotionalLoad || 1.25; // Default fallback
-  const typeWeight = session.trainingType === 'Field Training' ? 1.25 : 1.0;
-  const calculatedLoad = Math.round(session.rpe * emotionalFactor * duration * typeWeight);
+  // Use database session_load value (no more client calculations!)
+  const calculatedLoad = session.load || 0;
 
   const hasChanged = duration !== session.duration;
 
