@@ -5,13 +5,15 @@ import { ChevronLeft } from "lucide-react";
 import { useLocation } from "wouter";
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
-  Tooltip, Legend, ResponsiveContainer, ReferenceLine
+  Tooltip, Legend, ResponsiveContainer, ReferenceLine, ReferenceArea
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import Card from "@/components/ui/card-improved";
 import TrainingLoadColumns from "@/components/TrainingLoadColumns";
 import WeekSelect, { buildWeekOptions } from "@/components/WeekSelect";
+import LegendChips from "@/components/LegendChips";
+import { format, parseISO } from 'date-fns';
 
 export default function LoadInsights() {
   const [, navigate] = useLocation();
