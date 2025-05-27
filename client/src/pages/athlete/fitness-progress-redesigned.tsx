@@ -217,6 +217,20 @@ export default function FitnessProgressRedesigned() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
+            {/* Legend */}
+            <div className="flex justify-center gap-4 text-sm mt-2">
+              {bodyMindData.map((entry, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: entry.color }}
+                  />
+                  <span className="text-zinc-300">
+                    {entry.name} ({Math.round(entry.value)}%)
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
