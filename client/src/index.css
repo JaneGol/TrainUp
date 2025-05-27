@@ -6,12 +6,9 @@
 @tailwind utilities;
 
 @layer components {
-  .chart-title { 
-    @apply text-base font-semibold; 
-  }
-  .chart-meta { 
-    @apply text-sm font-medium text-zinc-400; 
-  }
+  .chart-title { @apply text-base font-semibold text-center; }
+  .chart-meta  { @apply text-sm   font-medium text-zinc-400 text-center md:text-left; }
+  .tick-font   { @apply text-[11px] font-medium fill-zinc-300; }
 }
 
 :root {

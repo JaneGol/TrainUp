@@ -118,14 +118,16 @@ export default function LoadInsights() {
             <Label className="text-sm font-medium text-zinc-300 mb-2 block">
               Week
             </Label>
-            <WeekSelect value={weekStart} onChange={setWeekStart} />
+            <div className="w-full">
+              <WeekSelect value={weekStart} onChange={setWeekStart} />
+            </div>
           </div>
         </div>
 
         {/* Weekly Training Load Card */}
         <Card className="bg-zinc-800/90 px-4 py-4 mb-6">
-          <h2 className="text-base font-semibold text-center mb-1">Weekly Training Load</h2>
-          <p className="text-sm text-zinc-400 mb-3 text-center">
+          <h2 className="chart-title mb-1">Weekly Training Load</h2>
+          <p className="chart-meta mb-3">
             {selectedWeekLabel} │ Total AU: {weeklyMetrics.totalAU} │ Sessions: {weeklyMetrics.sessions} │ Avg ACWR: {weeklyMetrics.avgAcwr}
           </p>
           <div className="h-64">
@@ -135,21 +137,26 @@ export default function LoadInsights() {
 
         {/* ACWR Chart - Always Last 30 Days */}
         <Card className="bg-zinc-800/90 px-4 py-4 mb-6">
-          <h2 className="text-base font-semibold text-center mb-4">
-            ACWR – Acute:Chronic Workload Ratio (Last 30 Days)
-          </h2>
+          <h2 className="chart-title mb-1">ACWR – Acute:Chronic Workload Ratio (Last 30 Days)</h2>
+          <p className="chart-meta mb-3">Risk monitoring and training load balance</p>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={acwrData as any[]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <CartesianGrid strokeOpacity={0.15} />
+                <ReferenceArea y1={0.8} y2={1.3} stroke="none" fill="#10b981" fillOpacity={0.08} />
+                <ReferenceArea y1={1.3} y2={2} stroke="none" fill="#f87171" fillOpacity={0.05} />
+                <ReferenceArea y1={0} y2={0.8} stroke="none" fill="#38bdf8" fillOpacity={0.05} />
                 <XAxis 
                   dataKey="date" 
-                  stroke="#9CA3AF"
-                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                  tickFormatter={(d) => format(parseISO(d), 'dd.MM')}
+                  tick={{ className: 'tick-font' }}
+                  axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+                  tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                 />
                 <YAxis 
-                  stroke="#9CA3AF"
-                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                  domain={[0, 2]}
+                  tick={{ className: 'tick-font' }}
+                  axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -158,17 +165,16 @@ export default function LoadInsights() {
                     borderRadius: '6px'
                   }}
                 />
-                <ReferenceLine y={0.8} stroke="#DC2626" strokeDasharray="5 5" label="Under-training" />
-                <ReferenceLine y={1.3} stroke="#DC2626" strokeDasharray="5 5" label="Injury Risk" />
                 <Line 
-                  type="monotone" 
                   dataKey="ratio" 
-                  stroke="#CBFF00" 
-                  strokeWidth={2}
-                  dot={{ fill: '#CBFF00', strokeWidth: 2, r: 4 }}
+                  type="monotone" 
+                  stroke="#facc15" 
+                  strokeWidth={2} 
+                  dot={{r:3}} 
                 />
               </LineChart>
             </ResponsiveContainer>
+            <LegendChips keys={['ACWR']} acwrLine />
           </div>
         </Card>
 

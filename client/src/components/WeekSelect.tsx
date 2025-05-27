@@ -3,17 +3,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export const buildWeekOptions = () => {
   const weeks = eachWeekOfInterval({
-    start: endOfISOWeek(new Date(Date.now() - 1000*60*60*24*120)), // Extended to ~17 weeks
-    end  : endOfISOWeek(new Date(Date.now() + 1000*60*60*24*14))   // Include next 2 weeks
-  }).reverse();
+    start: endOfISOWeek(new Date(Date.now() - 60*24*60*60*1000)), // ≈ 8 weeks back
+    end  : new Date()
+  }).reverse();                                                   // newest first
 
   return weeks.map(wStart => {
     const weekNo = getISOWeek(wStart);
-    const start  = startOfISOWeek(wStart);
-    const end    = endOfISOWeek(wStart);
+    const s = startOfISOWeek(wStart);
+    const e = endOfISOWeek(wStart);
     return {
-      value : format(start,'yyyy-MM-dd'),
-      label : `W${weekNo} (${format(start,'dd.MM')}–${format(end,'dd.MM')})`
+      value : format(s,'yyyy-MM-dd'),
+      label : `Week ${weekNo} (${format(s,'MM.dd')} – ${format(e,'MM.dd')})`
     };
   });
 };

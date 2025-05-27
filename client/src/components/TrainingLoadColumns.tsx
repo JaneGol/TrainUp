@@ -10,6 +10,7 @@ import {
   Cell
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
+import LegendChips from './LegendChips';
 
 const colors = {
   Field: '#b5f23d',   // Bright lime green for Field Training
@@ -34,19 +35,19 @@ export default function TrainingLoadColumns({ data }: TrainingLoadColumnsProps) 
       <ResponsiveContainer width="100%" height={220}>
         <BarChart 
           data={data} 
-          margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
+          margin={{ top: 10, right: 16, left: 8, bottom: 0 }}
         >
           <CartesianGrid strokeOpacity={0.15} />
           <XAxis 
             dataKey="date" 
             tickFormatter={(d) => format(parseISO(d), 'dd.MM')}
-            tick={{ fontSize: 12, fontWeight: 500 }}
+            tick={{ className: 'tick-font' }}
             axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
             tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
           />
           <YAxis 
             tickLine={false}
-            tick={{ fontSize: 12 }}
+            tick={{ className: 'tick-font' }}
             axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
           />
           <Tooltip 
@@ -72,18 +73,7 @@ export default function TrainingLoadColumns({ data }: TrainingLoadColumnsProps) 
         </BarChart>
       </ResponsiveContainer>
       
-      {/* Compact Legend */}
-      <div className="flex justify-center gap-3 mt-1 text-[11px] font-medium">
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-2 bg-[#b5f23d]"></span>Field
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-2 bg-[#547aff]"></span>Gym
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-2 bg-[#ff6f6f]"></span>Match
-        </span>
-      </div>
+      <LegendChips keys={['Field','Gym','Match']} />
     </div>
   );
 }
