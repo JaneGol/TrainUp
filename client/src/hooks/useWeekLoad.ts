@@ -6,6 +6,7 @@ export interface WeekLoadData {
   Gym: number;
   Match: number;
   total: number;
+  sessionCount: number;
   acwr: number;
 }
 

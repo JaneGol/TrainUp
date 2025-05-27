@@ -1351,23 +1351,56 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Aggregate session data using the authentic training load that's already calculated
-    sessions.forEach(session => {
-      const dateStr = new Date(session.date).toISOString().split('T')[0];
+    if (athleteId === 'all') {
+      // For "all athletes" view, group by date+type+session and take average across athletes
+      const sessionGroups: { [key: string]: { loads: number[], count: number } } = {};
       
-      if (dailyData[dateStr]) {
+      sessions.forEach(session => {
+        const dateStr = new Date(session.date).toISOString().split('T')[0];
         const type = session.trainingType === 'Field Training' ? 'Field' : 
                     session.trainingType === 'Gym Training' ? 'Gym' : 'Match';
+        const sessionKey = `${dateStr}-${type}-${session.sessionNumber || 1}`;
         
-        const load = Math.round(session.trainingLoad); // Use the pre-calculated training load
+        if (!sessionGroups[sessionKey]) {
+          sessionGroups[sessionKey] = { loads: [], count: 0 };
+        }
         
-        console.log(`Weekly load for ${type}: ${load} AU on ${dateStr} (Session ${session.sessionNumber || 1})`);
+        sessionGroups[sessionKey].loads.push(Math.round(session.trainingLoad));
+        sessionGroups[sessionKey].count++;
+      });
+
+      // Calculate representative load per session type
+      Object.entries(sessionGroups).forEach(([sessionKey, group]) => {
+        const [dateStr, type] = sessionKey.split('-');
+        const avgLoad = Math.round(group.loads.reduce((sum, load) => sum + load, 0) / group.loads.length);
         
-        // Sum all sessions (Field 1 + Field 2, etc.)
-        dailyData[dateStr][type] += load;
-        dailyData[dateStr].total += load;
-        dailyData[dateStr].sessionCount += 1; // Count each individual session
-      }
-    });
+        console.log(`Weekly load for ${type}: ${avgLoad} AU on ${dateStr} (avg of ${group.count} athletes)`);
+        
+        if (dailyData[dateStr]) {
+          dailyData[dateStr][type as 'Field' | 'Gym' | 'Match'] += avgLoad;
+          dailyData[dateStr].total += avgLoad;
+          dailyData[dateStr].sessionCount += 1;
+        }
+      });
+    } else {
+      // For individual athlete view, sum all their sessions
+      sessions.forEach(session => {
+        const dateStr = new Date(session.date).toISOString().split('T')[0];
+        
+        if (dailyData[dateStr]) {
+          const type = session.trainingType === 'Field Training' ? 'Field' : 
+                      session.trainingType === 'Gym Training' ? 'Gym' : 'Match';
+          
+          const load = Math.round(session.trainingLoad);
+          
+          console.log(`Weekly load for ${type}: ${load} AU on ${dateStr} (Session ${session.sessionNumber || 1})`);
+          
+          dailyData[dateStr][type] += load;
+          dailyData[dateStr].total += load;
+          dailyData[dateStr].sessionCount += 1;
+        }
+      });
+    }
 
     // Convert to array format and ensure all 7 days are included
     const result = Object.entries(dailyData)
