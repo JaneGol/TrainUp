@@ -16,9 +16,30 @@ import LegendChips from "@/components/LegendChips";
 import { useWeekLoad } from "@/hooks/useWeekLoad";
 import { format, parseISO } from 'date-fns';
 
+// Mobile detection hook
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+  
+  useMemo(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    media.addListener(listener);
+    return () => media.removeListener(listener);
+  }, [matches, query]);
+  
+  return matches;
+}
+
 export default function LoadInsights() {
   const [, navigate] = useLocation();
   const [athleteId, setAthleteId] = useState<string>("all");
+  const [compact, setCompact] = useState(false);
+  
+  // Mobile detection
+  const isMobile = useMediaQuery('(max-width: 639px)');
   
   // Default to current ISO week (Week 22) - May 26, 2025
   const weekOpts = buildWeekOptions();
@@ -117,13 +138,39 @@ export default function LoadInsights() {
         </div>
 
         {/* Weekly Training Load Card */}
-        <Card className="bg-zinc-800/90 px-4 py-4">
-          <h2 className="chart-title mb-1">Weekly Training Load</h2>
+        <Card className="bg-zinc-800/90 px-4 py-4 relative">
+          <div className="flex items-center justify-between">
+            <h2 className="chart-title mb-1">Weekly Training Load</h2>
+            {isMobile && (
+              <button 
+                onClick={() => setCompact(!compact)}
+                className="text-[11px] underline text-zinc-400 hover:text-white"
+              >
+                {compact ? 'Bars' : 'Totals'}
+              </button>
+            )}
+          </div>
           <p className="chart-meta mb-3">
             {weekMeta.label} │ Total AU: {weeklyMetrics.totalAU} │ Sessions: {weeklyMetrics.sessions} │ Avg ACWR: {weeklyMetrics.avgAcwr}
           </p>
-          <div className="h-64">
-            <TrainingLoadColumns data={weekTrainingData} />
+          <div className={compact ? "space-y-1" : "h-64"}>
+            {compact ? (
+              // Mobile compact totals view
+              <div className="space-y-1">
+                {weekTrainingData.map(day => (
+                  <div key={day.date} className="flex justify-between text-[11px] py-1 border-b border-zinc-800">
+                    <span className="text-zinc-300">{format(parseISO(day.date), 'dd.MM')}</span>
+                    <span className="text-white font-medium">{day.total} AU</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Full chart view
+              <TrainingLoadColumns data={weekTrainingData} />
+            )}
+          </div>
+          <div className="mt-3">
+            <LegendChips keys={['Field','Gym','Match']} />
           </div>
         </Card>
 
