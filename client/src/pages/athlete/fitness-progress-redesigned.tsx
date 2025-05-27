@@ -5,7 +5,7 @@ import { useLocation } from "wouter";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip, ResponsiveContainer, Line, ComposedChart,
-  PieChart, Pie, Cell, ReferenceArea
+  PieChart, Pie, Cell, ReferenceArea, ReferenceLine
 } from "recharts";
 import { format, parseISO } from "date-fns";
 
@@ -154,6 +154,22 @@ export default function FitnessProgressRedesigned() {
                   stroke="none"
                   fill="#22c55e"
                   fillOpacity={0.08}
+                />
+                <ReferenceLine
+                  yAxisId="acwr"
+                  y={0.8}
+                  stroke="#22c55e"
+                  strokeWidth={1}
+                  strokeOpacity={0.6}
+                  strokeDasharray="2 2"
+                />
+                <ReferenceLine
+                  yAxisId="acwr"
+                  y={1.3}
+                  stroke="#22c55e"
+                  strokeWidth={1}
+                  strokeOpacity={0.6}
+                  strokeDasharray="2 2"
                 />
               </ComposedChart>
             </ResponsiveContainer>
