@@ -21,9 +21,8 @@ export default function LoadInsights() {
   
   // Default to current ISO week (Week 22)
   const weekOpts = buildWeekOptions();
-  const currentWeekStart = "2025-05-26"; // Week 22 start date
   const [weekStart, setWeekStart] = useState<string>(
-    weekOpts.find(o => o.value === currentWeekStart)?.value ?? weekOpts[0].value
+    weekOpts.find(o => o.isCurrent)?.value ?? weekOpts[0].value
   );
   
   // Get athletes
@@ -132,7 +131,7 @@ export default function LoadInsights() {
         </div>
 
         {/* Weekly Training Load Card */}
-        <Card className="bg-zinc-800/90 px-4 py-4 mb-6">
+        <Card className="bg-zinc-800/90 px-4 py-4 mb-12">
           <h2 className="chart-title mb-1">Weekly Training Load</h2>
           <p className="chart-meta mb-3">
             {weekMeta.label} │ Total AU: {weeklyMetrics.totalAU} │ Sessions: {weeklyMetrics.sessions} │ Avg ACWR: {weeklyMetrics.avgAcwr}
@@ -143,7 +142,7 @@ export default function LoadInsights() {
         </Card>
 
         {/* ACWR Chart - Always Last 30 Days */}
-        <Card className="bg-zinc-800/90 px-4 py-4 mb-6">
+        <Card className="bg-zinc-800/90 px-4 py-4 mb-12">
           <h2 className="chart-title mb-1">ACWR – Acute:Chronic Workload Ratio (Last 30 Days)</h2>
           <p className="chart-meta mb-3">Risk monitoring and training load balance</p>
           <div className="h-80">

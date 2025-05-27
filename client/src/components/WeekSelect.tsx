@@ -9,9 +9,10 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const buildWeekOptions = () => {
+  const today = new Date();
   const weeks = eachWeekOfInterval({
     start: endOfISOWeek(new Date(Date.now() - 1000*60*60*24*90)), // 13 weeks back
-    end  : new Date()
+    end  : today
   }).reverse();
 
   return weeks.map(ws => {
@@ -21,7 +22,7 @@ export const buildWeekOptions = () => {
     return {
       value: format(s,'yyyy-MM-dd'),
       label: `Week ${weekNo} (${format(s,'dd.MM')} – ${format(e,'dd.MM')})`,
-      isCurrent: isSameISOWeek(new Date(), ws)
+      isCurrent: isSameISOWeek(today, s)
     };
   });
 };
