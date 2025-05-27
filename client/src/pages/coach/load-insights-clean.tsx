@@ -18,16 +18,20 @@ import { format, parseISO } from 'date-fns';
 export default function LoadInsights() {
   const [, navigate] = useLocation();
   const [athleteId, setAthleteId] = useState<string>("all");
-  const [weekStart, setWeekStart] = useState<string>(buildWeekOptions()[0].value);
+  
+  // Default to current ISO week (Week 22)
+  const weekOpts = buildWeekOptions();
+  const [weekStart, setWeekStart] = useState<string>(
+    weekOpts.find(o => o.isCurrent)?.value ?? weekOpts[0].value
+  );
   
   // Get athletes
   const { data: athletes = [] } = useQuery({
     queryKey: ["/api/athletes"],
   });
 
-  // Get current week options for display
-  const weekOptions = buildWeekOptions();
-  const selectedWeekLabel = weekOptions.find(w => w.value === weekStart)?.label || weekOptions[0].label;
+  // Get current week metadata for display
+  const weekMeta = weekOpts.find(o => o.value === weekStart) || weekOpts[0];
 
   // Use existing training load data
   const { data: trainingLoadData = [] } = useQuery({
@@ -130,7 +134,7 @@ export default function LoadInsights() {
         <Card className="bg-zinc-800/90 px-4 py-4 mb-6">
           <h2 className="chart-title mb-1">Weekly Training Load</h2>
           <p className="chart-meta mb-3">
-            {selectedWeekLabel} │ Total AU: {weeklyMetrics.totalAU} │ Sessions: {weeklyMetrics.sessions} │ Avg ACWR: {weeklyMetrics.avgAcwr}
+            {weekMeta.label} │ Total AU: {weeklyMetrics.totalAU} │ Sessions: {weeklyMetrics.sessions} │ Avg ACWR: {weeklyMetrics.avgAcwr}
           </p>
           <div className="h-64">
             <TrainingLoadColumns data={weekTrainingData} />

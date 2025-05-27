@@ -1,19 +1,27 @@
-import { eachWeekOfInterval, format, getISOWeek, startOfISOWeek, endOfISOWeek } from 'date-fns';
+import {
+  eachWeekOfInterval,
+  getISOWeek,
+  startOfISOWeek,
+  endOfISOWeek,
+  format,
+  isSameISOWeek
+} from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const buildWeekOptions = () => {
   const weeks = eachWeekOfInterval({
-    start: endOfISOWeek(new Date(Date.now() - 60*24*60*60*1000)), // ≈ 8 weeks back
+    start: endOfISOWeek(new Date(Date.now() - 1000*60*60*24*90)), // 13 weeks back
     end  : new Date()
-  }).reverse();                                                   // newest first
+  }).reverse();
 
-  return weeks.map(wStart => {
-    const weekNo = getISOWeek(wStart);
-    const s = startOfISOWeek(wStart);
-    const e = endOfISOWeek(wStart);
+  return weeks.map(ws => {
+    const weekNo = getISOWeek(ws);
+    const s = startOfISOWeek(ws);
+    const e = endOfISOWeek(ws);
     return {
-      value : format(s,'yyyy-MM-dd'),
-      label : `Week ${weekNo} (${format(s,'MM.dd')} – ${format(e,'MM.dd')})`
+      value: format(s,'yyyy-MM-dd'),
+      label: `Week ${weekNo} (${format(s,'dd.MM')} – ${format(e,'dd.MM')})`,
+      isCurrent: isSameISOWeek(new Date(), ws)
     };
   });
 };
