@@ -130,6 +130,41 @@ export const insertCoachFeedbackSchema = createInsertSchema(coachFeedback).omit(
   createdAt: true,
 });
 
+// Training Sessions table - stores calculated session load
+export const trainingSessions = pgTable("training_sessions", {
+  id: serial("id").primaryKey(),
+  sessionDate: timestamp("session_date").notNull(),
+  type: text("type", { enum: ["Field", "Gym", "Match"] }).notNull(),
+  sessionNumber: integer("session_number").default(1),
+  durationMinutes: integer("duration_minutes").default(60),
+  sessionLoad: real("session_load").default(0), // Calculated AU value
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertTrainingSessionSchema = createInsertSchema(trainingSessions).omit({
+  id: true,
+  sessionLoad: true, // Calculated by trigger
+  createdAt: true,
+  updatedAt: true,
+});
+
+// RPE submissions table - links athletes to training sessions
+export const rpeSubmissions = pgTable("rpe_submissions", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").notNull().references(() => trainingSessions.id),
+  athleteId: integer("athlete_id").notNull().references(() => users.id),
+  rpe: integer("rpe").notNull(),
+  emotionalLoad: real("emotional_load").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertRpeSubmissionSchema = createInsertSchema(rpeSubmissions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
@@ -147,6 +182,12 @@ export type HealthReport = typeof healthReports.$inferSelect;
 
 export type InsertCoachFeedback = z.infer<typeof insertCoachFeedbackSchema>;
 export type CoachFeedback = typeof coachFeedback.$inferSelect;
+
+export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
+export type TrainingSession = typeof trainingSessions.$inferSelect;
+
+export type InsertRpeSubmission = z.infer<typeof insertRpeSubmissionSchema>;
+export type RpeSubmission = typeof rpeSubmissions.$inferSelect;
 
 // Password reset schemas
 export const requestResetSchema = z.object({
