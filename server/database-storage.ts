@@ -1014,100 +1014,41 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string; fieldTraining?: number; gymTraining?: number; matchGame?: number; athleteId?: number }[]> {
-    // Get all training entries with session numbers - we'll filter in memory to make sure we have data
-    const allEntries = await db
+    console.log(`DB single source: Getting training load analytics using session_load for athlete ${athleteId || 'all'}`);
+    
+    // Query training_sessions table using stored session_load values (no more calculations!)
+    const sessions = await db
       .select({
-        trainingType: trainingEntries.trainingType,
-        date: trainingEntries.date,
-        effortLevel: trainingEntries.effortLevel,
-        trainingLoad: trainingEntries.trainingLoad,
-        userId: trainingEntries.userId,
-        sessionNumber: trainingEntries.sessionNumber,
-        emotionalLoad: trainingEntries.emotionalLoad
+        sessionDate: trainingSessions.sessionDate,
+        type: trainingSessions.type,
+        sessionLoad: trainingSessions.sessionLoad,
       })
-      .from(trainingEntries)
-      .orderBy(trainingEntries.date);
-      
-    // If no entries found for this athlete, return actual data instead of empty array
-    // This helps maintain data consistency across the application
-    
-    // Filter by athlete ID if provided
-    const filteredEntries = athleteId !== undefined
-      ? allEntries.filter(entry => entry.userId === athleteId)
-      : allEntries;
-      
-    // If no data for the specific athlete, return empty array
-    if (filteredEntries.length === 0 && athleteId !== undefined) {
-      return [];
-    }
-    
-    // Group entries by date and training type
-    const entriesByDateAndType: Record<string, Record<string, any[]>> = {};
-    
-    filteredEntries.forEach(entry => {
-      const dateString = entry.date.toISOString().split('T')[0];
-      
-      if (!entriesByDateAndType[dateString]) {
-        entriesByDateAndType[dateString] = {};
-      }
-      
-      if (!entriesByDateAndType[dateString][entry.trainingType]) {
-        entriesByDateAndType[dateString][entry.trainingType] = [];
-      }
-      
-      entriesByDateAndType[dateString][entry.trainingType].push(entry);
-    });
-    
-    // Calculate load for each date and training type with session breakdown
+      .from(trainingSessions)
+      .orderBy(trainingSessions.sessionDate);
+
+    console.log(`Found ${sessions.length} training sessions from DB`);
+
+    // Group sessions by date and sum session_load by type
     const loadByDateAndType: Record<string, Record<string, number>> = {};
     
-    Object.entries(entriesByDateAndType).forEach(([dateString, trainingTypes]) => {
+    sessions.forEach(session => {
+      const dateString = new Date(session.sessionDate).toISOString().split('T')[0];
+      const sessionLoad = Math.round(session.sessionLoad || 0);
+      
       if (!loadByDateAndType[dateString]) {
         loadByDateAndType[dateString] = {};
       }
       
-      Object.entries(trainingTypes).forEach(([trainingType, entries]) => {
-        // Group by session number for the same training type on the same date
-        const sessionGroups: Record<number, any[]> = {};
-        entries.forEach(entry => {
-          const sessionNum = entry.sessionNumber || 1;
-          if (!sessionGroups[sessionNum]) sessionGroups[sessionNum] = [];
-          sessionGroups[sessionNum].push(entry);
-        });
-        
-        // Initialize total load for this training type on this date
-        if (!loadByDateAndType[dateString][trainingType]) {
-          loadByDateAndType[dateString][trainingType] = 0;
-        }
-        
-        // Process each session separately (Session 1, Session 2, etc.)
-        Object.entries(sessionGroups).forEach(([sessionNumStr, sessionEntries]) => {
-          const sessionNumber = parseInt(sessionNumStr);
-          const uniqueAthletes = new Set(sessionEntries.map(entry => entry.userId)).size;
-          const totalAthletes = 8; // Use same athlete count as Training Log for consistency
-          
-          if (uniqueAthletes >= Math.ceil(totalAthletes * 0.5)) {
-            // Valid session: 50%+ participation
-            // Calculate average RPE, emotional load for the session
-            const avgRPE = sessionEntries.reduce((sum, entry) => sum + entry.effortLevel, 0) / sessionEntries.length;
-            const avgEmotional = sessionEntries.reduce((sum, entry) => sum + (entry.emotionalLoad || 3), 0) / sessionEntries.length;
-            
-            // Use same session detection logic as Training Log for consistency
-            const sessionKey = `${dateString}-${trainingType}-${sessionNumber}`;
-            const duration = this.sessionDurationOverrides.get(sessionKey) || 60; // Use duration overrides
-            
-            // Calculate session AU: Average RPE × Duration × Emotional Multiplier × Type Weight
-            const emotionalMultiplier = this.getEmotionalMultiplier(Math.round(avgEmotional));
-            const typeMultiplier = this.getTrainingTypeMultiplier(trainingType);
-            const sessionLoad = avgRPE * duration * emotionalMultiplier * typeMultiplier;
-            
-            console.log(`Load Insights calc for ${trainingType} (Session ${sessionNumber}): RPE=${avgRPE.toFixed(1)}, Duration=${duration}, AvgEmotional=${avgEmotional.toFixed(2)}, Rounded=${Math.round(avgEmotional)}, Emotional=${emotionalMultiplier}, Type=${typeMultiplier}, Total=${Math.round(sessionLoad)} AU`);
-            
-            // ADD session load to the total for this training type (to handle multiple sessions)
-            loadByDateAndType[dateString][trainingType] += Math.round(sessionLoad);
-          }
-        });
-      });
+      // Map to frontend training type names
+      const frontendType = session.type === 'Field' ? 'Field Training' :
+                          session.type === 'Gym' ? 'Gym Training' : 'Match/Game';
+      
+      if (!loadByDateAndType[dateString][frontendType]) {
+        loadByDateAndType[dateString][frontendType] = 0;
+      }
+      
+      loadByDateAndType[dateString][frontendType] += sessionLoad;
+      console.log(`DB session_load: ${sessionLoad} AU for ${frontendType} on ${dateString}`);
     });
     
     // Format the data for frontend consumption
