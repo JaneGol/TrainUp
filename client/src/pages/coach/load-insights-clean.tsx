@@ -124,14 +124,25 @@ export default function LoadInsights() {
             <Label className="text-sm font-medium text-zinc-300 mb-2 block">
               Week
             </Label>
-            <div className="w-full">
-              <WeekSelect value={weekStart} onChange={setWeekStart} />
-            </div>
+            <Select value={weekStart} onValueChange={setWeekStart} className="w-full">
+              <SelectTrigger className="bg-zinc-800 border-zinc-700">
+                <SelectValue>
+                  {weekMeta.label}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {weekOpts.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         {/* Weekly Training Load Card */}
-        <Card className="bg-zinc-800/90 px-4 py-4 mb-20">
+        <Card className="bg-zinc-800/90 px-4 py-4">
           <h2 className="chart-title mb-1">Weekly Training Load</h2>
           <p className="chart-meta mb-3">
             {weekMeta.label} │ Total AU: {weeklyMetrics.totalAU} │ Sessions: {weeklyMetrics.sessions} │ Avg ACWR: {weeklyMetrics.avgAcwr}
@@ -141,8 +152,10 @@ export default function LoadInsights() {
           </div>
         </Card>
 
+        <div className="mt-8"></div>
+
         {/* ACWR Chart - Always Last 30 Days */}
-        <Card className="bg-zinc-800/90 px-4 py-4 mb-20">
+        <Card className="bg-zinc-800/90 px-4 py-4">
           <h2 className="chart-title mb-1">ACWR – Acute:Chronic Workload Ratio (Last 30 Days)</h2>
           <p className="chart-meta mb-3">Risk monitoring and training load balance</p>
           <div className="h-80">
@@ -183,6 +196,8 @@ export default function LoadInsights() {
             <LegendChips keys={['ACWR']} acwrLine />
           </div>
         </Card>
+
+        <div className="mt-8"></div>
 
         {/* Weekly Work-Load (10 weeks) */}
         <Card className="bg-zinc-800/90 px-4 py-4">
