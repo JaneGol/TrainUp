@@ -1320,26 +1320,26 @@ export class DatabaseStorage implements IStorage {
     console.log(`Week range: ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`);
 
     const whereClause = athleteId === 'all' 
-      ? gte(trainingSessions.date, startDate)
+      ? gte(trainingEntries.date, startDate)
       : and(
-          gte(trainingSessions.date, startDate),
-          eq(trainingSessions.userId, parseInt(athleteId))
+          gte(trainingEntries.date, startDate),
+          eq(trainingEntries.userId, parseInt(athleteId))
         );
 
     const sessions = await db
       .select()
-      .from(trainingSessions)
+      .from(trainingEntries)
       .where(
         and(
           whereClause,
-          lte(trainingSessions.date, endDate)
+          lte(trainingEntries.date, endDate)
         )
       )
-      .orderBy(trainingSessions.date);
+      .orderBy(trainingEntries.date);
 
     console.log(`Found ${sessions.length} sessions for the week`);
 
-    // Group by date and calculate daily totals using authentic training load formula
+    // Group by date and calculate daily totals using authentic training load
     const dailyData: { [key: string]: { Field: number; Gym: number; Match: number; total: number } } = {};
     
     // Initialize all 7 days with zero values
@@ -1350,57 +1350,17 @@ export class DatabaseStorage implements IStorage {
       dailyData[dateStr] = { Field: 0, Gym: 0, Match: 0, total: 0 };
     }
 
-    // Get diary entries for emotional factors
-    const diaryEntries = await db
-      .select()
-      .from(morningDiaries)
-      .where(
-        and(
-          gte(morningDiaries.date, startDate),
-          lte(morningDiaries.date, endDate),
-          athleteId !== 'all' ? eq(morningDiaries.userId, parseInt(athleteId)) : undefined
-        ).filter(Boolean)
-      );
-
-    // Aggregate session data using authentic training load calculation
+    // Aggregate session data using the authentic training load that's already calculated
     sessions.forEach(session => {
       const dateStr = new Date(session.date).toISOString().split('T')[0];
       
       if (dailyData[dateStr]) {
-        // Find diary entry for emotional factor
-        const diaryEntry = diaryEntries.find(d => 
-          new Date(d.date).toISOString().split('T')[0] === dateStr && 
-          d.userId === session.userId
-        );
-
-        // Calculate emotional factor (same as training load calculation)
-        let emotionalFactor = 1.25; // Default if no diary
-        if (diaryEntry) {
-          const avgEmotional = (
-            (diaryEntry.stressLevel || 3) + 
-            (diaryEntry.motivationLevel || 3) + 
-            (diaryEntry.sleepQuality || 3)
-          ) / 3;
-          
-          const roundedEmotional = Math.round(avgEmotional);
-          emotionalFactor = roundedEmotional <= 2 ? 1.125 : 
-                          roundedEmotional === 3 ? 1.25 : 1.375;
-        }
-
-        // Type weight factors
-        const typeWeights = {
-          field: 1.25,
-          gym: 1.0,
-          match: 1.5
-        };
-
-        const type = session.trainingType === 'field' ? 'Field' : 
-                    session.trainingType === 'gym' ? 'Gym' : 'Match';
+        const type = session.trainingType === 'Field Training' ? 'Field' : 
+                    session.trainingType === 'Gym Training' ? 'Gym' : 'Match';
         
-        const typeWeight = typeWeights[session.trainingType as keyof typeof typeWeights] || 1.0;
-        const load = Math.round(session.rpeScore * session.duration * emotionalFactor * typeWeight);
+        const load = Math.round(session.trainingLoad); // Use the pre-calculated training load
         
-        console.log(`Load calc for ${type} Training: RPE=${session.rpeScore}, Duration=${session.duration}, Emotional=${emotionalFactor}, Type=${typeWeight}, Total=${load} AU`);
+        console.log(`Weekly load for ${type}: ${load} AU on ${dateStr}`);
         
         dailyData[dateStr][type] += load;
         dailyData[dateStr].total += load;
@@ -1416,7 +1376,7 @@ export class DatabaseStorage implements IStorage {
         Gym: Math.round(data.Gym),
         Match: Math.round(data.Match),
         total: Math.round(data.total),
-        acwr: data.total > 0 ? 1.0 : 0 // Placeholder ACWR calculation
+        acwr: data.total > 0 ? 1.0 : 0
       }));
 
     console.log(`Returning ${result.length} days of data:`, result.map(d => `${d.date}: ${d.total} AU`));
