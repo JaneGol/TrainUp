@@ -130,9 +130,8 @@ export default function FitnessProgressRedesigned() {
                 <YAxis 
                   yAxisId="acwr"
                   orientation="right"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                  domain={[0, 2]}
+                  hide
                 />
                 <Tooltip 
                   contentStyle={{ 
