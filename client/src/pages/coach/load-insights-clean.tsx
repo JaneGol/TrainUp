@@ -13,6 +13,7 @@ import Card from "@/components/ui/card-improved";
 import TrainingLoadColumns from "@/components/TrainingLoadColumns";
 import WeekSelect, { buildWeekOptions } from "@/components/WeekSelect";
 import LegendChips from "@/components/LegendChips";
+import { useWeekLoad } from "@/hooks/useWeekLoad";
 import { format, parseISO } from 'date-fns';
 
 export default function LoadInsights() {
@@ -34,54 +35,27 @@ export default function LoadInsights() {
   // Get current week metadata for display
   const weekMeta = weekOpts.find(o => o.value === weekStart) || weekOpts[0];
 
-  // Use existing training load data
-  const { data: trainingLoadData = [] } = useQuery({
-    queryKey: ["/api/analytics/training-load"],
-  });
+  // Use the proper weekly load data hook for 7-day detailed view
+  const { data: weeklyLoadData = [], isLoading: weeklyLoadLoading } = useWeekLoad(athleteId, weekStart);
 
-  // Calculate weekly metrics from training load data
+  // Calculate weekly metrics from the weekly load data
   const weeklyMetrics = useMemo(() => {
-    const weekStartDate = new Date(weekStart);
-    const weekEndDate = new Date(weekStartDate);
-    weekEndDate.setDate(weekStartDate.getDate() + 6);
+    const totalAU = weeklyLoadData.reduce((sum, entry) => sum + (entry.total || 0), 0);
+    const sessions = weeklyLoadData.filter(entry => entry.total > 0).length;
+    const avgAcwr = weeklyLoadData.length > 0 
+      ? (weeklyLoadData.reduce((sum, entry) => sum + (entry.acwr || 0), 0) / weeklyLoadData.length)
+      : 0;
     
-    const weekData = (trainingLoadData as any[]).filter(entry => {
-      const entryDate = new Date(entry.date);
-      return entryDate >= weekStartDate && entryDate <= weekEndDate;
-    });
-    
-    const totalAU = weekData.reduce((sum: number, entry: any) => sum + (entry.load || 0), 0);
-    const sessions = weekData.filter(entry => entry.load > 0).length;
-    const avgAcwr = sessions > 0 ? 1.12 : 0;
-    
-    return { totalAU, sessions, avgAcwr };
-  }, [trainingLoadData, weekStart]);
+    return { totalAU, sessions, avgAcwr: avgAcwr.toFixed(2) };
+  }, [weeklyLoadData]);
 
   // Get ACWR data (always last 30 days)
   const { data: acwrData = [] } = useQuery({
     queryKey: ["/api/analytics/acwr"],
   });
 
-  // Filter and transform training load data for the selected week
-  const weekTrainingData = useMemo(() => {
-    const weekStartDate = new Date(weekStart);
-    const weekEndDate = new Date(weekStartDate);
-    weekEndDate.setDate(weekStartDate.getDate() + 6);
-    
-    const weekData = (trainingLoadData as any[]).filter(entry => {
-      const entryDate = new Date(entry.date);
-      return entryDate >= weekStartDate && entryDate <= weekEndDate;
-    });
-    
-    // Transform data to match TrainingLoadColumns expected format
-    return weekData.map(entry => ({
-      date: entry.date,
-      Field: entry.fieldTraining || 0,
-      Gym: entry.gymTraining || 0,
-      Match: entry.matchGame || 0,
-      total: entry.load || 0
-    }));
-  }, [trainingLoadData, weekStart]);
+  // Use the weekly load data directly - it already contains all 7 days
+  const weekTrainingData = weeklyLoadData;
 
   return (
     <div className="min-h-screen bg-zinc-900 text-white p-6">
