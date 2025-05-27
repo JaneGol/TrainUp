@@ -12,7 +12,7 @@ export const buildWeekOptions = () => {
   const today = new Date();
   const weeks = eachWeekOfInterval({
     start: endOfISOWeek(new Date(Date.now() - 1000*60*60*24*90)), // 13 weeks back
-    end  : today
+    end  : new Date(Date.now() + 1000*60*60*24*7) // Include next week to ensure current week is available
   }).reverse();
 
   return weeks.map(ws => {
