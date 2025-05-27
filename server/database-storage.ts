@@ -1355,6 +1355,8 @@ export class DatabaseStorage implements IStorage {
       // For "all athletes" view, group by date+type+session and take average across athletes
       const sessionGroups: { [key: string]: { loads: number[], count: number } } = {};
       
+      console.log(`Processing "All Athletes" view with ${sessions.length} total sessions`);
+      
       sessions.forEach(session => {
         const dateStr = new Date(session.date).toISOString().split('T')[0];
         const type = session.trainingType === 'Field Training' ? 'Field' : 
@@ -1367,14 +1369,18 @@ export class DatabaseStorage implements IStorage {
         
         sessionGroups[sessionKey].loads.push(Math.round(session.trainingLoad));
         sessionGroups[sessionKey].count++;
+        
+        console.log(`Grouping session: ${sessionKey} with load ${Math.round(session.trainingLoad)} AU`);
       });
+
+      console.log(`Found ${Object.keys(sessionGroups).length} unique session groups`);
 
       // Calculate representative load per session type
       Object.entries(sessionGroups).forEach(([sessionKey, group]) => {
-        const [dateStr, type] = sessionKey.split('-');
+        const [dateStr, type, sessionNum] = sessionKey.split('-');
         const avgLoad = Math.round(group.loads.reduce((sum, load) => sum + load, 0) / group.loads.length);
         
-        console.log(`Weekly load for ${type}: ${avgLoad} AU on ${dateStr} (avg of ${group.count} athletes)`);
+        console.log(`Team avg for ${type} Session ${sessionNum}: ${avgLoad} AU on ${dateStr} (avg of ${group.count} athletes with loads: ${group.loads.join(', ')})`);
         
         if (dailyData[dateStr]) {
           dailyData[dateStr][type as 'Field' | 'Gym' | 'Match'] += avgLoad;
