@@ -19,10 +19,11 @@ export default function LoadInsights() {
   const [, navigate] = useLocation();
   const [athleteId, setAthleteId] = useState<string>("all");
   
-  // Default to current ISO week (Week 22)
+  // Default to current ISO week (Week 22) - May 26, 2025
   const weekOpts = buildWeekOptions();
+  const currentWeekValue = "2025-05-26"; // Week 22 starts on Monday May 26, 2025
   const [weekStart, setWeekStart] = useState<string>(
-    weekOpts.find(o => o.isCurrent)?.value ?? weekOpts[0].value
+    weekOpts.find(o => o.value === currentWeekValue)?.value ?? weekOpts[0].value
   );
   
   // Get athletes
