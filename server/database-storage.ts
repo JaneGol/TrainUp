@@ -1340,14 +1340,14 @@ export class DatabaseStorage implements IStorage {
     console.log(`Found ${sessions.length} sessions for the week`);
 
     // Group by date and calculate daily totals using authentic training load
-    const dailyData: { [key: string]: { Field: number; Gym: number; Match: number; total: number } } = {};
+    const dailyData: { [key: string]: { Field: number; Gym: number; Match: number; total: number; sessionCount: number } } = {};
     
     // Initialize all 7 days with zero values
     for (let i = 0; i < 7; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
       const dateStr = date.toISOString().split('T')[0];
-      dailyData[dateStr] = { Field: 0, Gym: 0, Match: 0, total: 0 };
+      dailyData[dateStr] = { Field: 0, Gym: 0, Match: 0, total: 0, sessionCount: 0 };
     }
 
     // Aggregate session data using the authentic training load that's already calculated
@@ -1360,10 +1360,12 @@ export class DatabaseStorage implements IStorage {
         
         const load = Math.round(session.trainingLoad); // Use the pre-calculated training load
         
-        console.log(`Weekly load for ${type}: ${load} AU on ${dateStr}`);
+        console.log(`Weekly load for ${type}: ${load} AU on ${dateStr} (Session ${session.sessionNumber || 1})`);
         
+        // Sum all sessions (Field 1 + Field 2, etc.)
         dailyData[dateStr][type] += load;
         dailyData[dateStr].total += load;
+        dailyData[dateStr].sessionCount += 1; // Count each individual session
       }
     });
 
@@ -1376,10 +1378,12 @@ export class DatabaseStorage implements IStorage {
         Gym: Math.round(data.Gym),
         Match: Math.round(data.Match),
         total: Math.round(data.total),
+        sessionCount: data.sessionCount,
         acwr: data.total > 0 ? 1.0 : 0
       }));
 
-    console.log(`Returning ${result.length} days of data:`, result.map(d => `${d.date}: ${d.total} AU`));
+    const totalSessionsThisWeek = Object.values(dailyData).reduce((sum, day) => sum + day.sessionCount, 0);
+    console.log(`Returning ${result.length} days of data with ${totalSessionsThisWeek} total sessions:`, result.map(d => `${d.date}: ${d.total} AU (${d.sessionCount} sessions)`));
     return result;
   }
 }

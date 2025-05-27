@@ -62,7 +62,7 @@ export default function LoadInsights() {
   // Calculate weekly metrics from the weekly load data
   const weeklyMetrics = useMemo(() => {
     const totalAU = weeklyLoadData.reduce((sum, entry) => sum + (entry.total || 0), 0);
-    const sessions = weeklyLoadData.filter(entry => entry.total > 0).length;
+    const sessions = weeklyLoadData.reduce((sum, entry) => sum + (entry.sessionCount || 0), 0); // Sum all individual sessions
     const avgAcwr = weeklyLoadData.length > 0 
       ? (weeklyLoadData.reduce((sum, entry) => sum + (entry.acwr || 0), 0) / weeklyLoadData.length)
       : 0;
