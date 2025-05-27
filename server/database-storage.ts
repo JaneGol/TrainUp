@@ -5,7 +5,10 @@ import {
   FitnessMetrics, InsertFitnessMetrics,
   HealthReport, InsertHealthReport,
   CoachFeedback, InsertCoachFeedback,
-  users, trainingEntries, morningDiary, fitnessMetrics, healthReports, coachFeedback
+  TrainingSession, InsertTrainingSession,
+  RpeSubmission, InsertRpeSubmission,
+  users, trainingEntries, morningDiary, fitnessMetrics, healthReports, coachFeedback,
+  trainingSessions, rpeSubmissions
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -383,13 +386,57 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTrainingSessionDuration(sessionId: string, duration: number): Promise<any> {
-    // For now, return a mock updated session since we don't have a sessions table
-    // This would normally update the database and return the updated session
-    return {
-      id: sessionId,
-      duration: duration,
-      updated: true
-    };
+    try {
+      // Parse the sessionId to extract database session info
+      // sessionId format: "2025-05-27-Field Training-1"
+      const parts = sessionId.split('-');
+      const date = `${parts[0]}-${parts[1]}-${parts[2]}`;
+      const typeWithTraining = parts.slice(3).join('-'); // "Field Training" or "Gym Training"
+      const sessionNumber = parseInt(parts[parts.length - 1]);
+      
+      // Convert type back to database format
+      const type = typeWithTraining.replace(' Training', '');
+      
+      // Find the training session in the database
+      const sessions = await db
+        .select()
+        .from(trainingSessions)
+        .where(
+          and(
+            eq(trainingSessions.sessionDate, new Date(`${date}T00:00:00Z`)),
+            sql`${trainingSessions.type} = ${type}`,
+            eq(trainingSessions.sessionNumber, sessionNumber)
+          )
+        );
+      
+      if (sessions.length === 0) {
+        throw new Error(`Training session not found: ${sessionId}`);
+      }
+      
+      const session = sessions[0];
+      
+      // Update the duration - this will trigger the database function to recalculate session_load
+      const [updatedSession] = await db
+        .update(trainingSessions)
+        .set({ 
+          durationMinutes: duration,
+          updatedAt: new Date()
+        })
+        .where(eq(trainingSessions.id, session.id))
+        .returning();
+      
+      console.log(`Updated session ${sessionId}: duration=${duration}min, new session_load=${updatedSession.sessionLoad} AU`);
+      
+      return {
+        id: sessionId,
+        duration: duration,
+        sessionLoad: updatedSession.sessionLoad,
+        updated: true
+      };
+    } catch (error) {
+      console.error(`Error updating session duration for ${sessionId}:`, error);
+      throw error;
+    }
   }
   
   // Morning diary methods
@@ -523,94 +570,68 @@ export class DatabaseStorage implements IStorage {
 
   async getDetectedTrainingSessions(): Promise<any[]> {
     try {
-      // Get all training entries from the last 30 days
+      // Get all training sessions from the last 30 days with their RPE submissions
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
-      const entries = await db
-        .select()
-        .from(trainingEntries)
-        .where(gte(trainingEntries.date, thirtyDaysAgo))
-        .orderBy(desc(trainingEntries.date));
+      const sessions = await db
+        .select({
+          id: trainingSessions.id,
+          sessionDate: trainingSessions.sessionDate,
+          type: trainingSessions.type,
+          sessionNumber: trainingSessions.sessionNumber,
+          durationMinutes: trainingSessions.durationMinutes,
+          sessionLoad: trainingSessions.sessionLoad,
+        })
+        .from(trainingSessions)
+        .where(gte(trainingSessions.sessionDate, thirtyDaysAgo))
+        .orderBy(desc(trainingSessions.sessionDate));
       
-      console.log(`Found ${entries.length} training entries in last 30 days`);
+      console.log(`Found ${sessions.length} training sessions in last 30 days from DB`);
       
       // Get total number of athletes
       const totalAthletes = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, 'athlete'));
       const athleteCount = totalAthletes[0]?.count || 1;
       
-      console.log(`Total athletes: ${athleteCount}`);
-      
-      // Group entries by date, training type, and session number
-      const sessionMap = new Map<string, any>();
-      
-      entries.forEach(entry => {
-        const dateStr = new Date(entry.date).toISOString().split('T')[0];
-        const sessionNumber = entry.sessionNumber || 1; // Default to 1 if null/undefined
-        const sessionKey = `${dateStr}-${entry.trainingType}-${sessionNumber}`;
+      // For each session, get RPE submission stats
+      const detectedSessions = await Promise.all(sessions.map(async (session) => {
+        const submissions = await db
+          .select({
+            athleteId: rpeSubmissions.athleteId,
+            rpe: rpeSubmissions.rpe,
+            emotionalLoad: rpeSubmissions.emotionalLoad,
+          })
+          .from(rpeSubmissions)
+          .where(eq(rpeSubmissions.sessionId, session.id));
         
-        if (!sessionMap.has(sessionKey)) {
-          sessionMap.set(sessionKey, {
-            date: dateStr,
-            type: entry.trainingType,
-            sessionNumber: sessionNumber,
-            duration: 60, // Default duration
-            submissions: [],
-            uniqueAthletes: new Set() // Track unique athlete IDs
-          });
-        }
+        // Calculate average RPE from submissions
+        const avgRPE = submissions.length > 0 
+          ? submissions.reduce((sum, sub) => sum + sub.rpe, 0) / submissions.length 
+          : 0;
         
-        const session = sessionMap.get(sessionKey);
-        session.submissions.push(entry);
-        session.uniqueAthletes.add(entry.userId); // Add athlete ID to set (automatically deduplicates)
-      });
+        const sessionKey = `${new Date(session.sessionDate).toISOString().split('T')[0]}-${session.type} Training-${session.sessionNumber}`;
+        
+        return {
+          id: sessionKey,
+          date: new Date(session.sessionDate).toISOString().split('T')[0],
+          type: `${session.type} Training`,
+          sessionNumber: session.sessionNumber,
+          avgRPE: Number(avgRPE.toFixed(1)),
+          participants: submissions.length, // Number of athletes who submitted RPE
+          totalAthletes: athleteCount,
+          duration: session.durationMinutes,
+          calculatedAU: Math.round(session.sessionLoad || 0) // Use stored session_load directly
+        };
+      }));
       
-      // Filter sessions where >50% of athletes participated and calculate metrics
-      const detectedSessions = Array.from(sessionMap.values())
-        .filter(session => (session.uniqueAthletes.size / athleteCount) > 0.5)
-        .map(session => {
-          const sessionKey = `${session.date}-${session.type}-${session.sessionNumber || 1}`;
-          
-          // Use stored duration override if available, otherwise default
-          const sessionDuration = this.sessionDurationOverrides.get(sessionKey) || session.duration;
-          
-          // Calculate average RPE
-          const totalRPE = session.submissions.reduce((sum: number, entry: any) => sum + (entry.effortLevel || 0), 0);
-          const avgRPE = session.submissions.length > 0 ? totalRPE / session.submissions.length : 0;
-          
-          // Calculate average emotional load
-          const totalEmotional = session.submissions.reduce((sum: number, entry: any) => sum + (entry.emotionalLoad || 3), 0);
-          const avgEmotional = session.submissions.length > 0 ? totalEmotional / session.submissions.length : 3;
-          
-          // Calculate AU (RPE × Duration × Emotional Multiplier × Type Weight)
-          const emotionalMultiplier = this.getEmotionalMultiplier(Math.round(avgEmotional));
-          const typeMultiplier = this.getTrainingTypeMultiplier(session.type);
-          const calculatedAU = Math.round(avgRPE * sessionDuration * emotionalMultiplier * typeMultiplier);
-          
-          console.log(`Training Log calc for ${session.type}: RPE=${avgRPE.toFixed(1)}, Duration=${sessionDuration}, AvgEmotional=${avgEmotional.toFixed(2)}, Rounded=${Math.round(avgEmotional)}, Emotional=${emotionalMultiplier}, Type=${typeMultiplier}, Total=${calculatedAU} AU`);
-          
-          return {
-            id: sessionKey,
-            date: session.date,
-            type: session.type,
-            sessionNumber: session.sessionNumber || 1,
-            avgRPE: Number(avgRPE.toFixed(1)),
-            participants: session.uniqueAthletes.size, // Use unique athlete count
-            totalAthletes: athleteCount,
-            duration: sessionDuration,
-            calculatedAU: calculatedAU
-          };
-        })
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      
-      console.log(`Detected ${detectedSessions.length} valid sessions:`);
+      console.log(`Using stored session_load values from DB (single source of truth):`);
       detectedSessions.forEach(session => {
-        console.log(`Session ${session.id}: ${session.participants}/${session.totalAthletes} participants, RPE: ${session.avgRPE}, AU: ${session.calculatedAU}`);
+        console.log(`Session ${session.id}: ${session.participants}/${session.totalAthletes} participants, RPE: ${session.avgRPE}, AU: ${session.calculatedAU} (from DB)`);
       });
       
-      return detectedSessions;
+      return detectedSessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } catch (error) {
-      console.error("Error detecting training sessions:", error);
+      console.error("Error fetching training sessions from DB:", error);
       return [];
     }
   }
