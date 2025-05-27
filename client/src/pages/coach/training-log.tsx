@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Clock, Users, Save } from "lucide-react";
@@ -10,6 +10,7 @@ import SessionSheet from "@/components/SessionSheet";
 import { useUpdateDuration } from "@/hooks/useUpdateDuration";
 import CoachDashboardLayout from "@/components/layout/coach-dashboard-layout";
 import { bucketByWeek, weekLabel } from "@/utils/weekHelpers";
+import { format, parseISO } from "date-fns";
 
 interface TrainingSession {
   id: string;
@@ -28,6 +29,7 @@ export default function TrainingLog() {
   const [, navigate] = useLocation();
   const [selectedSession, setSelectedSession] = useState<TrainingSession | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [summary, setSummary] = useState(false); // false = session rows, true = daily summary
   
   // Get training sessions based on RPE submissions
   const { data: trainingSessions = [], isLoading: sessionsLoading } = useQuery<any[]>({
@@ -50,6 +52,31 @@ export default function TrainingLog() {
     duration: session.duration,
     emotionalLoad: 1.25 // Default emotional load
   }));
+
+  // Build daily summary for "All Athletes" view
+  const dailySummary = useMemo(() => {
+    const grouped = transformedSessions.reduce((acc, session) => {
+      const dateKey = session.date;
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(session);
+      return acc;
+    }, {} as Record<string, TrainingSession[]>);
+
+    return Object.entries(grouped).map(([date, sessions]) => {
+      const totalAU = sessions.reduce((sum, s) => sum + s.load, 0);
+      const avgRpe = sessions.reduce((sum, s) => sum + s.rpe, 0) / sessions.length;
+      
+      return {
+        date,
+        avgRpe: Number(avgRpe.toFixed(1)),
+        totalAU,
+        sessions: sessions.length,
+        labelDate: format(parseISO(date), 'dd.MM'),
+      };
+    }).sort((a, b) => b.date.localeCompare(a.date)); // newest first
+  }, [transformedSessions]);
 
   // Group sessions by ISO week
   const sessionsByWeek: Record<string, TrainingSession[]> = bucketByWeek(transformedSessions);
@@ -108,6 +135,16 @@ export default function TrainingLog() {
           </div>
         </div>
 
+        {/* Toggle button for daily summary (only show for "All Athletes" view) */}
+        <div className="mb-4 flex justify-end">
+          <button
+            onClick={() => setSummary(!summary)}
+            className="text-[12px] underline underline-offset-2 text-zinc-400 hover:text-white"
+          >
+            {summary ? 'Show sessions' : 'Show daily summary'}
+          </button>
+        </div>
+
         {/* Mobile-first row list */}
         <div className="md:hidden space-y-6">
           {transformedSessions.length === 0 ? (
@@ -115,7 +152,20 @@ export default function TrainingLog() {
               <Clock className="h-8 w-8 mx-auto mb-2" />
               <p>No training sessions found</p>
             </div>
+          ) : summary ? (
+            /* Daily summary view */
+            <div className="space-y-3">
+              {dailySummary.map(day => (
+                <div key={day.date} className="flex justify-between items-center px-4 py-3 bg-zinc-800 rounded-lg">
+                  <span className="text-sm font-medium text-white">{day.labelDate}</span>
+                  <span className="text-sm text-zinc-300">RPE {day.avgRpe}</span>
+                  <span className="text-sm font-medium text-white">{day.totalAU} AU</span>
+                  <span className="text-[11px] text-zinc-400">{day.sessions} sess.</span>
+                </div>
+              ))}
+            </div>
           ) : (
+            /* Individual session view */
             orderedWeeks.map(wKey => (
               <div key={wKey}>
                 {/* Week header */}
