@@ -1311,6 +1311,7 @@ export class DatabaseStorage implements IStorage {
 
   async getWeeklyLoadData(athleteId: string, weekStart: string): Promise<any[]> {
     console.log(`Getting weekly load data for athlete ${athleteId}, week starting ${weekStart}`);
+    console.log(`DEBUG: athleteId value is "${athleteId}" and type is ${typeof athleteId}`);
     
     // Calculate the week's date range (7 days from weekStart)
     const startDate = new Date(weekStart);
