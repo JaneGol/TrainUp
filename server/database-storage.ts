@@ -624,12 +624,18 @@ export class DatabaseStorage implements IStorage {
         };
       }));
       
+      // Apply 40% participation threshold filter
+      const filteredSessions = detectedSessions.filter(session => {
+        const participationRate = session.participants / session.totalAthletes;
+        return participationRate >= 0.4; // 40% threshold
+      });
+      
       console.log(`Using stored session_load values from DB (single source of truth):`);
-      detectedSessions.forEach(session => {
+      filteredSessions.forEach(session => {
         console.log(`Session ${session.id}: ${session.participants}/${session.totalAthletes} participants, RPE: ${session.avgRPE}, AU: ${session.calculatedAU} (from DB)`);
       });
       
-      return detectedSessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      return filteredSessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } catch (error) {
       console.error("Error fetching training sessions from DB:", error);
       return [];

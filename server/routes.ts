@@ -908,7 +908,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
-      // Use the same data source as Training Log: training_sessions table
+      // Use the exact same data source as Training Log: /api/training-sessions endpoint
       const sessions = await storage.getDetectedTrainingSessions();
       
       // Filter sessions for this week and sum by date and type  
