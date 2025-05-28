@@ -589,6 +589,45 @@ export class DatabaseStorage implements IStorage {
 
       console.log(`Found ${sessions.length} training sessions in last 30 days from DB`);
       
+      // TEMPORARY FIX: Return database sessions directly without virtual bridging
+      if (sessions.length > 0) {
+        console.log("TEMP FIX: Using database sessions directly");
+        
+        // Get total number of athletes
+        const athletes = await db.select({ id: users.id }).from(users).where(eq(users.role, 'athlete'));
+        const athleteCount = athletes.length;
+        
+        const finalSessions = await Promise.all(sessions.map(async (session) => {
+          // Get RPE submissions for this session
+          const submissions = await db
+            .select({ rpe: rpeSubmissions.rpe })
+            .from(rpeSubmissions)
+            .where(eq(rpeSubmissions.sessionId, session.id));
+          
+          // Calculate average RPE from submissions
+          const avgRPE = submissions.length > 0 
+            ? submissions.reduce((sum, sub) => sum + sub.rpe, 0) / submissions.length 
+            : 0;
+          
+          const sessionKey = `${new Date(session.sessionDate).toISOString().split('T')[0]}-${session.type} Training-${session.sessionNumber}`;
+          
+          return {
+            id: sessionKey,
+            date: new Date(session.sessionDate).toISOString().split('T')[0],
+            type: `${session.type} Training`,
+            sessionNumber: session.sessionNumber,
+            avgRPE: Number(avgRPE.toFixed(1)),
+            participants: submissions.length,
+            totalAthletes: athleteCount,
+            duration: session.durationMinutes,
+            calculatedAU: Math.round(session.sessionLoad || 0)
+          };
+        }));
+        
+        console.log("TEMP FIX sessions:", finalSessions.map(s => `${s.id}: ${s.calculatedAU} AU`));
+        return finalSessions;
+      }
+      
       // Also get athlete training entries to create virtual team sessions
       console.log(`BRIDGE: Fetching athlete training entries from last 30 days...`);
       const athleteEntries = await db
