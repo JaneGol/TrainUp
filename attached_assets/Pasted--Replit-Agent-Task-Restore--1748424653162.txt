@@ -1,0 +1,155 @@
+# -------------------------------------------------------------------
+# Replit-Agent Task · Restore coach’s Training Log & Weekly Load
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+# -------------------------------------------------------------------
+
+## 0 · Gather context
+We know:
+• Athlete `/api/athlete/weekly-load` now returns today’s Field/Gym loads.
+• Coach `/api/training/week` and `/api/load/week` still show no rows/bars.
+
+Goal: Make coach endpoints *exactly mirror* the athlete’s data, aggregated at team-level.
+
+────────────────────────────────────────────────────────────────────
+1 ▸ DATABASE VERIFICATION
+────────────────────────────────────────────────────────────────────
+```sql
+-- A) Confirm today’s sessions exist and are marked complete for team_id=1
+SELECT id, team_id, session_date, type, session_load, is_complete
+FROM training_sessions
+WHERE session_date::date = current_date;
+Expected: 2 rows with team_id=1, is_complete = TRUE, and session_load > 0.
+
+────────────────────────────────────────────────────────────────────
+2 ▸ COACH API LOGS
+────────────────────────────────────────────────────────────────────
+
+bash
+Copy
+Edit
+# 2.1  Training log
+curl -b cookies.txt "http://localhost:5000/api/training/week?team=1&weekStart=$(date +%F --date='monday this week')" | jq .
+
+# 2.2  Weekly load
+curl -b cookies.txt "http://localhost:5000/api/load/week?team=1&weekStart=$(date +%F --date='monday this week')" | jq .
+Log both outputs. They should list today’s sessions; if empty, note the HTTP status and response body.
+
+────────────────────────────────────────────────────────────────────
+3 ▸ PATCH COACH QUERIES
+────────────────────────────────────────────────────────────────────
+If DB rows exist but API returns empty, adjust the coach SQL / Prisma queries to match the athlete helper:
+
+3.1 /api/training/week (coach log)
+diff
+Copy
+Edit
+- SELECT * FROM training_sessions
+- WHERE team_id = $1
+-   AND is_complete = TRUE
+-   AND date_trunc('week', session_date) = $2
++ SELECT
++   id, session_date, type, session_no, session_load, participant_cnt
++ FROM training_sessions
++ WHERE team_id = $1
++   AND is_complete = TRUE
++   AND date_trunc('week', session_date AT TIME ZONE $3) = :weekStart::date
++ ORDER BY session_date DESC;
+Pass X-TZ header as $3.
+
+3.2 /api/load/week (coach chart)
+Use exactly the same SUM(session_load) grouping as the athlete helper:
+
+sql
+Copy
+Edit
+WITH days AS (
+  SELECT generate_series($2::date, $2::date + 6, '1 day') AS day
+)
+SELECT
+  d.day,
+  COALESCE(SUM(CASE WHEN type='Field' THEN session_load END),0) AS "Field",
+  COALESCE(SUM(CASE WHEN type='Gym'   THEN session_load END),0) AS "Gym",
+  COALESCE(SUM(CASE WHEN type='Match' THEN session_load END),0) AS "Match",
+  COALESCE(SUM(session_load),0)                          AS total
+FROM days d
+LEFT JOIN training_sessions t
+  ON date_trunc('day', t.session_date AT TIME ZONE $3) = d.day
+ AND t.team_id = $1
+ AND t.is_complete = TRUE
+GROUP BY d.day
+ORDER BY d.day;
+────────────────────────────────────────────────────────────────────
+4 ▸ FRONT-END HOOKS & QUERY KEYS
+────────────────────────────────────────────────────────────────────
+Ensure the coach hooks include team, weekStart, and tz:
+
+diff
+Copy
+Edit
+- useQuery(['weekLoad', teamId], fetchCoachWeekLoad)
++ useQuery(['weekLoad', teamId, weekStart, tz], () =>
+    fetchCoachWeekLoad(teamId, weekStart, tz)
+  );
+And similarly for the training-log hook:
+
+diff
+Copy
+Edit
+- useQuery(['trainingWeek', teamId], fetchCoachLog)
++ useQuery(['trainingWeek', teamId, weekStart, tz], () =>
+    fetchCoachLog(teamId, weekStart, tz)
+  );
+────────────────────────────────────────────────────────────────────
+5 ▸ CACHE INVALIDATION
+────────────────────────────────────────────────────────────────────
+After RPE submit or duration edit (in both athlete & coach form handlers):
+
+ts
+Copy
+Edit
+onSuccess: () => {
+  queryClient.invalidateQueries(['trainingWeek', teamId, weekStart, tz]);
+  queryClient.invalidateQueries(['weekLoad',      teamId, weekStart, tz]);
+}
+────────────────────────────────────────────────────────────────────
+6 ▸ FINAL SMOKE TEST
+────────────────────────────────────────────────────────────────────
+
+Athlete submits RPE for today.
+
+Trigger fires; DB flags is_complete = TRUE; session_load set.
+
+Coach reloads /training/week → sees today’s entries.
+
+Coach reloads /load/week → sees today’s bars under dd.MM.
+
+────────────────────────────────────────────────────────────────────
+7 ▸ COMMIT MESSAGE
+────────────────────────────────────────────────────────────────────
+
+sql
+Copy
+Edit
+fix(coach-view): align coach endpoints with athlete 14-day logic; add TZ grouping; sum session_load; invalidate cache
+End of task
+yaml
+Copy
+Edit
+
+---
+
+**Run this** and both your coach Training Log **and** Weekly Training Load chart will spring to life with today’s Field & Gym data.
+
+
+
+
+
+
+
+
+
+
+Tools
+
+
+
