@@ -871,8 +871,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Getting coach weekly load data for week ${weekStart}`);
       
-      // Use the same working approach as athlete endpoint - get entries for user 1 (Gen) who has the data
-      const entries = await storage.getTrainingEntriesByUserId(1);
+      // Get training entries for all athletes to show team totals
+      const allAthleteIds = [1, 12, 13, 14, 15, 16]; // All athlete IDs
+      let allEntries: any[] = [];
+      
+      for (const athleteId of allAthleteIds) {
+        const athleteEntries = await storage.getTrainingEntriesByUserId(athleteId);
+        allEntries.push(...athleteEntries);
+      }
       
       // Calculate week date range
       const startDate = new Date(weekStart as string);
@@ -880,7 +886,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       endDate.setDate(startDate.getDate() + 6);
       
       // Filter entries for this week
-      const weekEntries = entries.filter((entry: any) => {
+      const weekEntries = allEntries.filter((entry: any) => {
         const entryDate = new Date(entry.date);
         return entryDate >= startDate && entryDate <= endDate;
       });
