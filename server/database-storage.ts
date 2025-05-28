@@ -587,7 +587,10 @@ export class DatabaseStorage implements IStorage {
         .where(gte(trainingSessions.sessionDate, thirtyDaysAgo))
         .orderBy(desc(trainingSessions.sessionDate));
 
+      console.log(`Found ${sessions.length} training sessions in last 30 days from DB`);
+      
       // Also get athlete training entries to create virtual team sessions
+      console.log(`BRIDGE: Fetching athlete training entries from last 30 days...`);
       const athleteEntries = await db
         .select({
           userId: trainingEntries.userId,
@@ -598,10 +601,9 @@ export class DatabaseStorage implements IStorage {
           trainingLoad: trainingEntries.trainingLoad,
         })
         .from(trainingEntries)
-        .where(sql`DATE(${trainingEntries.date}) >= DATE(${thirtyDaysAgo.toISOString().split('T')[0]})`);
+        .where(gte(trainingEntries.date, thirtyDaysAgo));
       
-      console.log(`Found ${sessions.length} training sessions in last 30 days from DB`);
-      console.log(`Found ${athleteEntries.length} athlete training entries to sync`);
+      console.log(`BRIDGE: Found ${athleteEntries.length} athlete training entries to sync`);
       
       // Get total number of athletes
       const totalAthletes = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, 'athlete'));
