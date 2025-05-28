@@ -2,6 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
+import { db } from "./db";
+import { trainingSessions } from "@shared/schema";
+import { and, gte, lte } from "drizzle-orm";
 import { setupPasswordResetRoutes } from "./password-reset-routes";
 import { setupSheetExportRoutes } from "./sheets-export-routes";
 import { HealthRecommendationService } from "./ai-health";
@@ -908,26 +911,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
-      // Use the exact same data source as Training Log: /api/training-sessions endpoint
-      const sessions = await storage.getDetectedTrainingSessions();
+      // Get real-time data directly from training_sessions table
+      const weeklyLoadData = await storage.getWeeklyLoadData("all", weekStart);
       
-      // Filter sessions for this week and sum by date and type  
-      sessions.forEach((session: any) => {
-        const sessionDate = new Date(session.date);
-        if (sessionDate >= startDate && sessionDate <= endDate) {
-          const dateStr = sessionDate.toISOString().split('T')[0];
-          const load = Math.round(session.calculatedAU || 0);
-          
-          if (dailyData[dateStr]) {
-            if (session.type === 'Field Training') {
-              dailyData[dateStr].Field += load;
-            } else if (session.type === 'Gym Training') {
-              dailyData[dateStr].Gym += load;
-            } else if (session.type === 'Match/Game') {
-              dailyData[dateStr].Match += load;
-            }
-            dailyData[dateStr].total += load;
-          }
+      // Sum the data by date and type
+      weeklyLoadData.forEach((day: any) => {
+        const dateStr = day.date;
+        if (dailyData[dateStr]) {
+          dailyData[dateStr].Field = day.Field || 0;
+          dailyData[dateStr].Gym = day.Gym || 0;
+          dailyData[dateStr].Match = day.Match || 0;
+          dailyData[dateStr].total = day.total || 0;
         }
       });
 
