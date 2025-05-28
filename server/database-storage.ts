@@ -1360,7 +1360,6 @@ export class DatabaseStorage implements IStorage {
       .from(trainingSessions)
       .where(
         and(
-          eq(trainingSessions.athleteId, userId),
           gte(trainingSessions.sessionDate, startDate),
           lte(trainingSessions.sessionDate, endDate)
         )
