@@ -656,7 +656,7 @@ export class DatabaseStorage implements IStorage {
           avgRPE: Number(avgRPE.toFixed(1)),
           participants: vSession.participants.length,
           totalAthletes: athleteCount,
-          duration: 90, // Default duration for virtual sessions
+          duration: 60, // Default duration for virtual sessions
           calculatedAU: Math.round(vSession.totalLoad)
         };
       });

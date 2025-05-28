@@ -516,14 +516,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { sessionId } = req.params;
     const { duration } = req.body;
     
+    console.log(`Updating session ${sessionId} to duration ${duration} minutes`);
+    
     // Validate duration with proper bounds
     if (!duration || typeof duration !== 'number' || duration < 15 || duration > 240) {
       return res.status(400).json({ error: "Duration must be between 15 and 240 minutes" });
     }
     
     try {
-      await storage.updateSessionDuration(sessionId, duration);
-      res.json({ success: true });
+      const result = await storage.updateSessionDuration(sessionId, duration);
+      console.log(`Successfully updated session duration: ${JSON.stringify(result)}`);
+      res.json({ success: true, session: result });
     } catch (error) {
       console.error("Error updating session duration:", error);
       res.status(500).json({ error: "Failed to update session duration" });
