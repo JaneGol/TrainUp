@@ -31,7 +31,8 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
   const chartData = useMemo(() => {
     return data.map(item => ({
       ...item,
-      date: format(parseISO(item.date), 'dd.MM')
+      originalDate: item.date,
+      displayDate: format(parseISO(item.date), 'dd.MM')
     }));
   }, [data]);
 
@@ -43,7 +44,7 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
       >
         <CartesianGrid strokeOpacity={0.15} />
         <XAxis 
-          dataKey="date" 
+          dataKey="displayDate" 
           tick={CHART_STYLES.axis}
           axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
           tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
