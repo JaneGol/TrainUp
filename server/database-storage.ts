@@ -622,7 +622,7 @@ export class DatabaseStorage implements IStorage {
         
         // Debug logging for May 28th Field Training entries
         if (dateStr === '2025-05-28' && entry.trainingType === 'Field Training') {
-          console.log(`DEBUG: Field Training entry - Session ${entry.sessionNumber}, Key: ${sessionKey}`);
+          console.log(`DEBUG: Field Training entry - Session ${entry.sessionNumber}, Raw entry:`, entry);
         }
         
         if (!virtualSessions.has(sessionKey)) {
