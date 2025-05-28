@@ -29,11 +29,14 @@ interface TrainingLoadColumnsProps {
 export default function TrainingLoadColumns({ data, isLoading, isError }: TrainingLoadColumnsProps) {
   // Memoize processed data to avoid unnecessary recalculations
   const chartData = useMemo(() => {
-    return data.map(item => ({
+    console.log('TrainingLoadColumns received data:', data);
+    const processed = data.map(item => ({
       ...item,
       originalDate: item.date,
       displayDate: format(parseISO(item.date), 'dd.MM')
     }));
+    console.log('TrainingLoadColumns processed data:', processed);
+    return processed;
   }, [data]);
 
   return (
@@ -61,7 +64,7 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
             borderRadius: '8px',
             color: 'white'
           }}
-          labelFormatter={(value) => format(parseISO(value as string), 'd MMM yyyy')}
+          labelFormatter={(value) => value}
         />
         
         {(['Field', 'Gym', 'Match'] as const).map((type) => (
