@@ -1,0 +1,14 @@
+Update DB Trigger for Session Load: Modify the SQL function for trg_session_load to handle the 'Match' training type. For example, add a CASE branch or if-condition so that when NEW.type = 'Match', a coefficient of 1.5 is used in the session load formula
+file-ptmp5smqnyg3m2cbsc7bek
+. Ensure this trigger still runs after avg_rpe and avg_emo_coeff are updated, so it uses the latest values
+file-ptmp5smqnyg3m2cbsc7bek
+.
+Ensure Participant Count Updates: Verify that trg_update_session_avg is set to fire on every insert/update to rpe_submissions and correctly recomputes participant_cnt
+file-ptmp5smqnyg3m2cbsc7bek
+. If not, alter the trigger definition accordingly (including handling of OLD on deletions). This ensures the training_sessions row knows 5 athletes contributed on May 28 (instead of a lower number).
+Adjust Weekly Load Query Filtering: In the Express API code for the coach’s weekly load and training log endpoints, adjust any filtering logic to require participant_cnt >= 3 (for an 8-athlete team) rather than a higher threshold
+file-cobkgaydswvs85vkffvhjc
+. If the code was implicitly relying on session_load > 0 as a filter, that will be handled once triggers set the correct non-zero load for qualifying sessions. Just make sure the logic does not inadvertently exclude the current day – the query’s date range should include today’s date if the coach is viewing the current week.
+Apply and Test: After deploying the trigger changes (e.g. via a database migration script or Supabase SQL editor) and updating the API logic, use Replit’s development environment to run the app. Submit a test RPE for a Match session or specifically re-submit one of the May 28 entries. Then check the coach’s dashboard: the May 28 training session should now appear in the Training Log with the correct session load value (in AU) and show up as a stacked bar on the Weekly Training Load chart (with the red color for a Match session)
+file-cobkgaydswvs85vkffvhjc
+. This will confirm that the issue is resolved.

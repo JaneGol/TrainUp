@@ -624,10 +624,9 @@ export class DatabaseStorage implements IStorage {
         };
       }));
       
-      // Apply 40% participation threshold filter
+      // Apply 40% participation threshold filter (3+ athletes for 8-athlete team)
       const filteredSessions = detectedSessions.filter(session => {
-        const participationRate = session.participants / session.totalAthletes;
-        return participationRate >= 0.4; // 40% threshold
+        return session.participants >= 3; // At least 3 participants required
       });
       
       console.log(`Using stored session_load values from DB (single source of truth):`);
