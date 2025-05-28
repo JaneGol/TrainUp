@@ -1,0 +1,101 @@
+Below is a **precise Replit-Agent Task List** that applies only the six improvement areas we discussed—**do not** alter any other code, components, styling or functionality. Paste **everything** between the lines into your **Ask AI** panel on Replit and hit **Send**.
+
+---
+
+````txt
+# ------------------------------------------------------------------
+# Replit-Agent Task – Implement code-quality & performance improvements
+# Repo: https://replit.com/@e89030922661/FormTrack
+# NOTE: Only apply the changes below—do not modify any other files.
+# ------------------------------------------------------------------
+
+## 1 · Centralize Coefficients
+- Create `shared/constants/loadCoeffs.ts` with:
+  ```ts
+  export const TYPE_COEFF = { Field:1.2, Gym:1.0, Match:1.5 } as const;
+  export const EMO_STEP = 0.125; // emotional_load 1→1.0, 2→1.125, etc.
+````
+
+* Replace all hard-coded coeffs in triggers, SQL, and client utils to import from this module.
+
+## 2 · Merge DB Triggers into One
+
+* Drop the separate `trg_update_session_avg` and `trg_session_load`.
+* Create a single `AFTER INSERT OR UPDATE OR DELETE` trigger on `rpe_submissions`:
+
+  1. Recompute `avg_rpe`, `avg_emo_coeff`, `participant_cnt`.
+  2. Immediately compute & update `session_load` on `training_sessions`.
+* Ensure `duration_minutes` and `type` changes also fire the same logic.
+
+## 3 · Add Indexes & Materialized View
+
+* In your Postgres migrations (or Drizzle schema):
+
+  ```sql
+  CREATE INDEX ON training_sessions (session_date);
+  CREATE INDEX ON rpe_submissions (session_id);
+  ```
+* Create a nightly-refreshed materialized view `weekly_totals`:
+
+  ```sql
+  CREATE MATERIALIZED VIEW IF NOT EXISTS weekly_totals AS
+    SELECT
+      date_trunc('week', session_date) AS week_start,
+      athlete_id, team_id,
+      SUM(session_load) AS total_au,
+      SUM(CASE WHEN type='Field'  THEN session_load END) AS field_au,
+      …,
+      /* calculate acute, chronic, acwr here or in separate view */
+    FROM training_sessions
+    GROUP BY week_start, athlete_id, team_id;
+  ```
+
+## 4 · Strongly-Typed API Responses
+
+* For each server route (all `/load/*`, `/acwr/*`, `/training-sessions`), define a TypeScript interface:
+
+  ```ts
+  interface WeeklyLoadRow { date: string; Field: number; Gym: number; Match: number; total: number; }
+  ```
+* In Express handlers, ensure responses are typed `Promise<WeeklyLoadRow[]>`, etc.
+* Update all front-end hooks to consume those types.
+
+## 5 · BaseChart Abstraction & React Memoization
+
+* Create `client/src/components/BaseChart.tsx` that:
+
+  * Sets common `<CartesianGrid>`, axis styles, tick fonts.
+  * Accepts children (`<Bar>`, `<Line>`, `<ReferenceArea>`) to compose each chart.
+* Refactor `WeeklyLoadColumns`, `AcwrChart`, `TenWeekChart` to use `<BaseChart>`.
+* Wrap any array-derived data (e.g. zero-fill logic) in `useMemo` keyed on dependencies.
+
+## 6 · Loading + Error States & Caching
+
+* In every chart component, show a spinner (`<Loader />`) while `isLoading`.
+* On `isError`, render `<ErrorMessage>Failed to load data</ErrorMessage>`.
+* For `/load/tenweeks` endpoint, add HTTP header `Cache-Control: max-age=300`.
+
+---
+
+**Commit message:**
+
+```
+refactor(core): central coeffs, merge triggers, add indexes & mat view; strong types for API; BaseChart + useMemo; loading & error states; tenweeks cache
+```
+
+# End of task
+
+```
+
+---
+
+Once this runs, you’ll have:
+1. One constants file for all coeffs.  
+2. A single, bullet-proof DB trigger.  
+3. Indexed tables and a materialized view for speed.  
+4. Full TS typing on API responses.  
+5. A shared `<BaseChart>` component with memoized data.  
+6. Graceful loading/error UIs and a 5-min cache on the 10-week query.
+
+Nothing else in the UI or logic will be touched.
+```
