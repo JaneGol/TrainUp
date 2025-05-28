@@ -189,6 +189,9 @@ export default function LoadInsights() {
                 <ReferenceArea y1={0.8} y2={1.3} stroke="none" fill="#10b981" fillOpacity={0.08} />
                 <ReferenceArea y1={1.3} y2={2} stroke="none" fill="#f87171" fillOpacity={0.05} />
                 <ReferenceArea y1={0} y2={0.8} stroke="none" fill="#38bdf8" fillOpacity={0.05} />
+                {/* Clear boundary lines */}
+                <ReferenceLine y={0.8} stroke="#3b82f6" strokeWidth={2} strokeOpacity={0.8} strokeDasharray="3 3" />
+                <ReferenceLine y={1.3} stroke="#ef4444" strokeWidth={2} strokeOpacity={0.8} strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="date" 
                   tickFormatter={(d) => format(parseISO(d), 'dd.MM')}
