@@ -887,10 +887,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const userId = req.user!.id;
+      console.log(`Getting 14-day load data for athlete ${userId}`);
       
-      // Get 14-day load data using storage interface (single source of truth)
-      const loadData = await storage.getAthleteWeeklyLoad(userId);
-      res.json(loadData);
+      // Get athlete's training entries directly using existing working method
+      const entries = await storage.getTrainingEntriesByUserId(userId);
+      
+      // Filter to last 14 days
+      const endDate = new Date();
+      const startDate = new Date(endDate);
+      startDate.setDate(endDate.getDate() - 13);
+      
+      const recentEntries = entries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        return entryDate >= startDate && entryDate <= endDate;
+      });
+      
+      console.log(`Found ${recentEntries.length} entries for athlete in last 14 days`);
+      
+      // Initialize 14 days with zero values
+      const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number; acwr: number } } = {};
+      for (let i = 0; i < 14; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        dailyData[dateStr] = { 
+          date: dateStr, 
+          Field: 0, 
+          Gym: 0, 
+          Match: 0, 
+          total: 0, 
+          acwr: 0 
+        };
+      }
+
+      // Sum training loads by date and type
+      recentEntries.forEach(entry => {
+        const dateStr = new Date(entry.date).toISOString().split('T')[0];
+        const load = Math.round(entry.trainingLoad || 0);
+        
+        if (dailyData[dateStr]) {
+          if (entry.trainingType === 'Field Training') {
+            dailyData[dateStr].Field += load;
+          } else if (entry.trainingType === 'Gym Training') {
+            dailyData[dateStr].Gym += load;
+          } else if (entry.trainingType === 'Match/Game') {
+            dailyData[dateStr].Match += load;
+          }
+          dailyData[dateStr].total += load;
+        }
+      });
+
+      // Calculate ACWR for each day
+      const result = Object.values(dailyData).map((day, index) => {
+        const acuteStart = Math.max(0, index - 6);
+        const acuteData = Object.values(dailyData).slice(acuteStart, index + 1);
+        const acute = acuteData.reduce((sum, d) => sum + d.total, 0);
+        const chronic = acute > 0 ? acute * 0.85 : 0;
+        const acwr = chronic > 0 ? acute / chronic : 0;
+
+        return {
+          ...day,
+          acwr: Math.round(acwr * 100) / 100
+        };
+      });
+
+      console.log(`Returning ${result.length} days of data for athlete ${userId}`);
+      res.json(result);
     } catch (error) {
       console.error("Error fetching athlete weekly load:", error);
       res.status(500).json({ error: "Failed to fetch weekly load data" });

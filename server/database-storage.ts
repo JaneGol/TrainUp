@@ -1346,28 +1346,21 @@ export class DatabaseStorage implements IStorage {
   async getAthleteWeeklyLoad(userId: number): Promise<any[]> {
     console.log(`Getting 14-day athlete weekly load using training entries for athlete ${userId}`);
     
-    // Get last 14 days of training entries from database for this specific athlete
+    // Use the existing training entries method to get athlete's training data
+    const entries = await this.getTrainingEntriesByUserId(userId);
+    
+    // Get last 14 days
     const endDate = new Date();
     const startDate = new Date(endDate);
     startDate.setDate(endDate.getDate() - 13); // 14 days total
     
-    const entries = await db
-      .select({
-        date: trainingEntries.date,
-        trainingType: trainingEntries.trainingType,
-        trainingLoad: trainingEntries.trainingLoad,
-      })
-      .from(trainingEntries)
-      .where(
-        and(
-          eq(trainingEntries.userId, userId),
-          gte(trainingEntries.date, startDate),
-          lte(trainingEntries.date, endDate)
-        )
-      )
-      .orderBy(trainingEntries.date);
+    // Filter to last 14 days
+    const recentEntries = entries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= startDate && entryDate <= endDate;
+    });
 
-    console.log(`Found ${entries.length} training entries for athlete ${userId} in last 14 days`);
+    console.log(`Found ${recentEntries.length} training entries for athlete ${userId} in last 14 days`);
 
     // Initialize 14 days with zero values
     const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number; acwr: number } } = {};
@@ -1386,7 +1379,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Sum training loads by date and type
-    entries.forEach(entry => {
+    recentEntries.forEach(entry => {
       const dateStr = new Date(entry.date).toISOString().split('T')[0];
       const load = Math.round(entry.trainingLoad || 0);
       
