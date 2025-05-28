@@ -620,6 +620,11 @@ export class DatabaseStorage implements IStorage {
         // Include session number to properly separate multiple sessions of same type on same day
         const sessionKey = `${dateStr}-${entry.trainingType}-${entry.sessionNumber || 1}`;
         
+        // Debug logging for May 28th Field Training entries
+        if (dateStr === '2025-05-28' && entry.trainingType === 'Field Training') {
+          console.log(`DEBUG: Field Training entry - Session ${entry.sessionNumber}, Key: ${sessionKey}`);
+        }
+        
         if (!virtualSessions.has(sessionKey)) {
           virtualSessions.set(sessionKey, {
             date: dateStr,
