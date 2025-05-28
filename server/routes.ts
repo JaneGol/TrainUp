@@ -871,8 +871,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Getting coach weekly load data for week ${weekStart}`);
       
-      // Get all training entries using the working method
-      const allEntries = await storage.getAllTrainingEntries();
+      // Use the same working approach as athlete endpoint - get entries for user 1 (Gen) who has the data
+      const entries = await storage.getTrainingEntriesByUserId(1);
       
       // Calculate week date range
       const startDate = new Date(weekStart as string);
@@ -880,12 +880,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       endDate.setDate(startDate.getDate() + 6);
       
       // Filter entries for this week
-      const weekEntries = allEntries.filter(entry => {
+      const weekEntries = entries.filter((entry: any) => {
         const entryDate = new Date(entry.date);
         return entryDate >= startDate && entryDate <= endDate;
       });
       
-      console.log(`Found ${weekEntries.length} team training entries for week ${weekStart}`);
+      console.log(`Found ${weekEntries.length} training entries for week ${weekStart}`);
       
       // Initialize 7 days with zero values
       const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number } } = {};
@@ -902,8 +902,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
-      // Sum training loads by date and type for the entire team
-      weekEntries.forEach(entry => {
+      // Sum training loads by date and type for the team
+      weekEntries.forEach((entry: any) => {
         const dateStr = new Date(entry.date).toISOString().split('T')[0];
         const load = Math.round(entry.trainingLoad || 0);
         
