@@ -1344,29 +1344,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAthleteWeeklyLoad(userId: number): Promise<any[]> {
-    console.log(`Getting 14-day athlete weekly load using DB session_load for athlete ${userId}`);
+    console.log(`Getting 14-day athlete weekly load using training entries for athlete ${userId}`);
     
-    // Get last 14 days of training sessions from database (single source of truth)
+    // Get last 14 days of training entries from database for this specific athlete
     const endDate = new Date();
     const startDate = new Date(endDate);
     startDate.setDate(endDate.getDate() - 13); // 14 days total
     
-    const sessions = await db
+    const entries = await db
       .select({
-        sessionDate: trainingSessions.sessionDate,
-        type: trainingSessions.type,
-        sessionLoad: trainingSessions.sessionLoad,
+        date: trainingEntries.date,
+        trainingType: trainingEntries.trainingType,
+        trainingLoad: trainingEntries.trainingLoad,
       })
-      .from(trainingSessions)
+      .from(trainingEntries)
       .where(
         and(
-          gte(trainingSessions.sessionDate, startDate),
-          lte(trainingSessions.sessionDate, endDate)
+          eq(trainingEntries.userId, userId),
+          gte(trainingEntries.date, startDate),
+          lte(trainingEntries.date, endDate)
         )
       )
-      .orderBy(trainingSessions.sessionDate);
+      .orderBy(trainingEntries.date);
 
-    console.log(`Found ${sessions.length} training sessions for athlete in last 14 days`);
+    console.log(`Found ${entries.length} training entries for athlete ${userId} in last 14 days`);
 
     // Initialize 14 days with zero values
     const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number; acwr: number } } = {};
@@ -1384,14 +1385,21 @@ export class DatabaseStorage implements IStorage {
       };
     }
 
-    // Sum session_load values by date and type
-    sessions.forEach(session => {
-      const dateStr = new Date(session.sessionDate).toISOString().split('T')[0];
-      const sessionLoad = Math.round(session.sessionLoad || 0);
+    // Sum training loads by date and type
+    entries.forEach(entry => {
+      const dateStr = new Date(entry.date).toISOString().split('T')[0];
+      const load = Math.round(entry.trainingLoad || 0);
       
       if (dailyData[dateStr]) {
-        dailyData[dateStr][session.type as 'Field' | 'Gym' | 'Match'] += sessionLoad;
-        dailyData[dateStr].total += sessionLoad;
+        // Map training types to chart categories
+        if (entry.trainingType === 'Field Training') {
+          dailyData[dateStr].Field += load;
+        } else if (entry.trainingType === 'Gym Training') {
+          dailyData[dateStr].Gym += load;
+        } else if (entry.trainingType === 'Match/Game') {
+          dailyData[dateStr].Match += load;
+        }
+        dailyData[dateStr].total += load;
       }
     });
 
@@ -1403,7 +1411,6 @@ export class DatabaseStorage implements IStorage {
       const acute = acuteData.reduce((sum, d) => sum + d.total, 0);
 
       // Get chronic load (average of 4 weeks prior to acute period)
-      // For simplicity, we'll calculate based on available data
       const chronic = acute > 0 ? acute * 0.85 : 0; // Simplified for now
       const acwr = chronic > 0 ? acute / chronic : 0;
 
