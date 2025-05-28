@@ -596,7 +596,7 @@ export class DatabaseStorage implements IStorage {
           userId: trainingEntries.userId,
           date: trainingEntries.date,
           trainingType: trainingEntries.trainingType,
-          sessionNumber: trainingEntries.sessionNumber,
+          sessionNumber: sql<number>`${trainingEntries.sessionNumber}`,
           effortLevel: trainingEntries.effortLevel,
           emotionalLoad: trainingEntries.emotionalLoad,
           trainingLoad: trainingEntries.trainingLoad,
@@ -700,8 +700,21 @@ export class DatabaseStorage implements IStorage {
         };
       }));
 
-      // Merge virtual sessions with detected sessions
-      const allSessions = [...detectedSessions, ...virtualSessionList];
+      // Filter out virtual sessions that conflict with existing real sessions
+      const filteredVirtualSessions = virtualSessionList.filter(vSession => {
+        // Check if there's already a real session for this date/type/session combination
+        const hasRealSession = detectedSessions.some(rSession => 
+          rSession.date === vSession.date && 
+          rSession.type === vSession.type &&
+          rSession.sessionNumber === vSession.sessionNumber
+        );
+        return !hasRealSession;
+      });
+      
+      console.log(`Filtered virtual sessions (removing conflicts):`, filteredVirtualSessions.map(s => s.id));
+      
+      // Merge detected sessions with non-conflicting virtual sessions
+      const allSessions = [...detectedSessions, ...filteredVirtualSessions];
       
       // Remove duplicates by keeping the session with more participants for the same date/type
       const sessionMap = new Map<string, any>();
