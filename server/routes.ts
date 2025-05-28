@@ -869,12 +869,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "weekStart parameter required" });
       }
 
-      const weeklyLoad = await storage.getWeeklyLoadData(
-        ath as string || 'all', 
-        weekStart as string
-      );
+      console.log(`Getting coach weekly load data for week ${weekStart}`);
       
-      res.json(weeklyLoad);
+      // Get all training entries using the working method
+      const allEntries = await storage.getAllTrainingEntries();
+      
+      // Calculate week date range
+      const startDate = new Date(weekStart as string);
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+      
+      // Filter entries for this week
+      const weekEntries = allEntries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        return entryDate >= startDate && entryDate <= endDate;
+      });
+      
+      console.log(`Found ${weekEntries.length} team training entries for week ${weekStart}`);
+      
+      // Initialize 7 days with zero values
+      const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number } } = {};
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        dailyData[dateStr] = { 
+          date: dateStr, 
+          Field: 0, 
+          Gym: 0, 
+          Match: 0, 
+          total: 0
+        };
+      }
+
+      // Sum training loads by date and type for the entire team
+      weekEntries.forEach(entry => {
+        const dateStr = new Date(entry.date).toISOString().split('T')[0];
+        const load = Math.round(entry.trainingLoad || 0);
+        
+        if (dailyData[dateStr]) {
+          if (entry.trainingType === 'Field Training') {
+            dailyData[dateStr].Field += load;
+          } else if (entry.trainingType === 'Gym Training') {
+            dailyData[dateStr].Gym += load;
+          } else if (entry.trainingType === 'Match/Game') {
+            dailyData[dateStr].Match += load;
+          }
+          dailyData[dateStr].total += load;
+        }
+      });
+
+      const result = Object.values(dailyData);
+      console.log(`Returning ${result.length} days of coach weekly load data`);
+      res.json(result);
     } catch (error) {
       console.error("Error fetching weekly load data:", error);
       res.status(500).json({ error: "Failed to fetch weekly load data" });
