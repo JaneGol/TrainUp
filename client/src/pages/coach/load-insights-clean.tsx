@@ -229,7 +229,7 @@ export default function LoadInsights() {
           </div>
         </Card>
 
-        <div className="mt-8"></div>
+        <div className="mt-12"></div>
 
         {/* Weekly Work-Load (10 weeks) */}
         <Card className="bg-zinc-800/90 px-4 py-4">
