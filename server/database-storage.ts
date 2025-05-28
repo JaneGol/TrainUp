@@ -598,7 +598,7 @@ export class DatabaseStorage implements IStorage {
           trainingLoad: trainingEntries.trainingLoad,
         })
         .from(trainingEntries)
-        .where(gte(trainingEntries.date, thirtyDaysAgo));
+        .where(sql`DATE(${trainingEntries.date}) >= DATE(${thirtyDaysAgo.toISOString().split('T')[0]})`);
       
       console.log(`Found ${sessions.length} training sessions in last 30 days from DB`);
       console.log(`Found ${athleteEntries.length} athlete training entries to sync`);
@@ -611,7 +611,9 @@ export class DatabaseStorage implements IStorage {
       const virtualSessions = new Map<string, any>();
       
       athleteEntries.forEach(entry => {
-        const dateStr = new Date(entry.date).toISOString().split('T')[0];
+        // Handle both date-only and timestamp formats
+        const entryDate = new Date(entry.date);
+        const dateStr = entryDate.toISOString().split('T')[0];
         const sessionKey = `${dateStr}-${entry.trainingType}`;
         
         if (!virtualSessions.has(sessionKey)) {
@@ -636,6 +638,8 @@ export class DatabaseStorage implements IStorage {
         session.totalRPE += entry.effortLevel || 0;
         session.totalEmotional += entry.emotionalLoad || 0;
       });
+      
+      console.log(`Virtual sessions created from athlete entries:`, Array.from(virtualSessions.keys()));
       
       // Convert virtual sessions to the same format as real sessions
       const virtualSessionList = Array.from(virtualSessions.entries()).map(([key, vSession]) => {
