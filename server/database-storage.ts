@@ -596,6 +596,7 @@ export class DatabaseStorage implements IStorage {
           userId: trainingEntries.userId,
           date: trainingEntries.date,
           trainingType: trainingEntries.trainingType,
+          sessionNumber: trainingEntries.sessionNumber,
           effortLevel: trainingEntries.effortLevel,
           emotionalLoad: trainingEntries.emotionalLoad,
           trainingLoad: trainingEntries.trainingLoad,
@@ -616,12 +617,14 @@ export class DatabaseStorage implements IStorage {
         // Handle both date-only and timestamp formats
         const entryDate = new Date(entry.date);
         const dateStr = entryDate.toISOString().split('T')[0];
-        const sessionKey = `${dateStr}-${entry.trainingType}`;
+        // Include session number to properly separate multiple sessions of same type on same day
+        const sessionKey = `${dateStr}-${entry.trainingType}-${entry.sessionNumber || 1}`;
         
         if (!virtualSessions.has(sessionKey)) {
           virtualSessions.set(sessionKey, {
             date: dateStr,
             type: entry.trainingType,
+            sessionNumber: entry.sessionNumber || 1,
             participants: [],
             totalLoad: 0,
             totalRPE: 0,
@@ -652,7 +655,7 @@ export class DatabaseStorage implements IStorage {
           id: `virtual-${key}`,
           date: vSession.date,
           type: `${sessionType} Training`,
-          sessionNumber: 1,
+          sessionNumber: vSession.sessionNumber,
           avgRPE: Number(avgRPE.toFixed(1)),
           participants: vSession.participants.length,
           totalAthletes: athleteCount,
