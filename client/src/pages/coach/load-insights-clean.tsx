@@ -218,6 +218,11 @@ export default function LoadInsights() {
               </LineChart>
             </ResponsiveContainer>
             <LegendChips keys={['ACWR']} acwrLine />
+            {/* ACWR Zone Explanation */}
+            <p className="mt-3 text-[11px] text-zinc-400 text-center">
+              Green band = optimal ACWR&nbsp;(0.8 – 1.3).<br className="sm:hidden"/>
+              Below 🟦 0.8 ⇒ under-training, above 🟥 1.3 ⇒ elevated injury risk.
+            </p>
           </div>
         </Card>
 
