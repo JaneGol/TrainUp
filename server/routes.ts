@@ -908,20 +908,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
-      // Sum training loads by date and type for the team
-      weekEntries.forEach((entry: any) => {
-        const dateStr = new Date(entry.date).toISOString().split('T')[0];
-        const load = Math.round(entry.trainingLoad || 0);
-        
-        if (dailyData[dateStr]) {
-          if (entry.trainingType === 'Field Training') {
-            dailyData[dateStr].Field += load;
-          } else if (entry.trainingType === 'Gym Training') {
-            dailyData[dateStr].Gym += load;
-          } else if (entry.trainingType === 'Match/Game') {
-            dailyData[dateStr].Match += load;
+      // Use the same data source as Training Log: training_sessions table
+      const sessions = await storage.getDetectedTrainingSessions();
+      
+      // Filter sessions for this week and sum by date and type  
+      sessions.forEach((session: any) => {
+        const sessionDate = new Date(session.date);
+        if (sessionDate >= startDate && sessionDate <= endDate) {
+          const dateStr = sessionDate.toISOString().split('T')[0];
+          const load = Math.round(session.calculatedAU || 0);
+          
+          if (dailyData[dateStr]) {
+            if (session.type === 'Field Training') {
+              dailyData[dateStr].Field += load;
+            } else if (session.type === 'Gym Training') {
+              dailyData[dateStr].Gym += load;
+            } else if (session.type === 'Match/Game') {
+              dailyData[dateStr].Match += load;
+            }
+            dailyData[dateStr].total += load;
           }
-          dailyData[dateStr].total += load;
         }
       });
 
