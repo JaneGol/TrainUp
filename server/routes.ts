@@ -499,7 +499,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.set('Expires', '0');
     
     try {
-      const sessions = await storage.getDetectedTrainingSessions();
+      const { getSimpleTrainingSessions } = await import('./simple-sessions');
+      const sessions = await getSimpleTrainingSessions();
       res.json(sessions);
     } catch (error) {
       console.error("Error fetching training sessions:", error);
