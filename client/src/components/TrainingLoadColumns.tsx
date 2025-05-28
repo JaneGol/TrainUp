@@ -6,11 +6,13 @@ import {
   Tooltip,
   LabelList,
   CartesianGrid,
-  ResponsiveContainer,
   Cell
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
+import { useMemo } from 'react';
+import BaseChart, { CHART_STYLES } from './BaseChart';
 import LegendChips from './LegendChips';
+import { WeeklyLoadRow } from '@shared/types/api';
 
 const colors = {
   Field: '#b5f23d',   // Bright lime green for Field Training
@@ -19,28 +21,30 @@ const colors = {
 };
 
 interface TrainingLoadColumnsProps {
-  data: Array<{
-    date: string;
-    Field: number;
-    Gym: number;
-    Match: number;
-    total: number;
-    double?: boolean;
-  }>;
+  data: WeeklyLoadRow[];
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
-export default function TrainingLoadColumns({ data }: TrainingLoadColumnsProps) {
+export default function TrainingLoadColumns({ data, isLoading, isError }: TrainingLoadColumnsProps) {
+  // Memoize processed data to avoid unnecessary recalculations
+  const chartData = useMemo(() => {
+    return data.map(item => ({
+      ...item,
+      date: format(parseISO(item.date), 'dd.MM')
+    }));
+  }, [data]);
+
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <BaseChart isLoading={isLoading} isError={isError} height={400}>
       <BarChart 
-        data={data} 
+        data={chartData} 
         margin={{ top: 10, right: 16, left: 8, bottom: 0 }}
       >
         <CartesianGrid strokeOpacity={0.15} />
         <XAxis 
           dataKey="date" 
-          tickFormatter={(d) => format(parseISO(d), 'dd.MM')}
-          tick={{ className: 'tick-font' }}
+          tick={CHART_STYLES.axis}
           axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
           tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
         />
@@ -70,6 +74,6 @@ export default function TrainingLoadColumns({ data }: TrainingLoadColumnsProps) 
           formatter={(value: number) => value > 0 ? value : ''}
         />
       </BarChart>
-    </ResponsiveContainer>
+    </BaseChart>
   );
 }
