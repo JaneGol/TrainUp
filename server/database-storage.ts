@@ -569,6 +569,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDetectedTrainingSessions(): Promise<any[]> {
+    console.log("=== DIRECT FIX: Starting getDetectedTrainingSessions ===");
     try {
       // Get all training sessions from the last 30 days with their RPE submissions
       const thirtyDaysAgo = new Date();
@@ -588,10 +589,12 @@ export class DatabaseStorage implements IStorage {
         .orderBy(desc(trainingSessions.sessionDate));
 
       console.log(`Found ${sessions.length} training sessions in last 30 days from DB`);
+      console.log("ABOUT TO CHECK TEMP FIX CONDITION");
       
       // TEMPORARY FIX: Return database sessions directly without virtual bridging
       if (sessions.length > 0) {
         console.log("TEMP FIX: Using database sessions directly");
+        console.log("TEMP FIX: Condition matched, proceeding with direct database access");
         
         // Get total number of athletes
         const athletes = await db.select({ id: users.id }).from(users).where(eq(users.role, 'athlete'));
