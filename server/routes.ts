@@ -500,7 +500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const { getSimpleTrainingSessions } = await import('./simple-sessions');
-      const sessions = await getSimpleTrainingSessions();
+      const sessions: import('@shared/types/api').TrainingSessionResponse[] = await getSimpleTrainingSessions();
       res.json(sessions);
     } catch (error) {
       console.error("Error fetching training sessions:", error);
