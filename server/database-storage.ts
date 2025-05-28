@@ -700,14 +700,20 @@ export class DatabaseStorage implements IStorage {
         };
       }));
 
+      console.log(`DETECTED SESSIONS FROM DB:`, detectedSessions.map(s => `${s.id}: ${s.calculatedAU} AU`));
+      
       // Filter out virtual sessions that conflict with existing real sessions
       const filteredVirtualSessions = virtualSessionList.filter(vSession => {
-        // Check if there's already a real session for this date/type/session combination
+        // Check if there's already a real session for this date/type combination
         const hasRealSession = detectedSessions.some(rSession => 
           rSession.date === vSession.date && 
-          rSession.type === vSession.type &&
-          rSession.sessionNumber === vSession.sessionNumber
+          rSession.type === vSession.type
         );
+        
+        if (hasRealSession) {
+          console.log(`FILTERING OUT virtual session ${vSession.id} - real session exists`);
+        }
+        
         return !hasRealSession;
       });
       
