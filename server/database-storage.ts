@@ -586,13 +586,75 @@ export class DatabaseStorage implements IStorage {
         .from(trainingSessions)
         .where(gte(trainingSessions.sessionDate, thirtyDaysAgo))
         .orderBy(desc(trainingSessions.sessionDate));
+
+      // Also get athlete training entries to create virtual team sessions
+      const athleteEntries = await db
+        .select({
+          userId: trainingEntries.userId,
+          date: trainingEntries.date,
+          trainingType: trainingEntries.trainingType,
+          effortLevel: trainingEntries.effortLevel,
+          emotionalLoad: trainingEntries.emotionalLoad,
+          trainingLoad: trainingEntries.trainingLoad,
+        })
+        .from(trainingEntries)
+        .where(gte(trainingEntries.date, thirtyDaysAgo));
       
       console.log(`Found ${sessions.length} training sessions in last 30 days from DB`);
+      console.log(`Found ${athleteEntries.length} athlete training entries to sync`);
       
       // Get total number of athletes
       const totalAthletes = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, 'athlete'));
       const athleteCount = totalAthletes[0]?.count || 1;
+
+      // Group athlete entries by date and training type to create virtual team sessions
+      const virtualSessions = new Map<string, any>();
       
+      athleteEntries.forEach(entry => {
+        const dateStr = new Date(entry.date).toISOString().split('T')[0];
+        const sessionKey = `${dateStr}-${entry.trainingType}`;
+        
+        if (!virtualSessions.has(sessionKey)) {
+          virtualSessions.set(sessionKey, {
+            date: dateStr,
+            type: entry.trainingType,
+            participants: [],
+            totalLoad: 0,
+            totalRPE: 0,
+            totalEmotional: 0
+          });
+        }
+        
+        const session = virtualSessions.get(sessionKey);
+        session.participants.push({
+          userId: entry.userId,
+          rpe: entry.effortLevel,
+          emotionalLoad: entry.emotionalLoad,
+          individualLoad: entry.trainingLoad
+        });
+        session.totalLoad += entry.trainingLoad || 0;
+        session.totalRPE += entry.effortLevel || 0;
+        session.totalEmotional += entry.emotionalLoad || 0;
+      });
+      
+      // Convert virtual sessions to the same format as real sessions
+      const virtualSessionList = Array.from(virtualSessions.entries()).map(([key, vSession]) => {
+        const avgRPE = vSession.participants.length > 0 ? vSession.totalRPE / vSession.participants.length : 0;
+        const sessionType = vSession.type.replace(' Training', '').replace('Match/Game', 'Match');
+        
+        return {
+          id: `virtual-${key}`,
+          date: vSession.date,
+          type: `${sessionType} Training`,
+          sessionNumber: 1,
+          avgRPE: Number(avgRPE.toFixed(1)),
+          participants: vSession.participants.length,
+          totalAthletes: athleteCount,
+          duration: 90, // Default duration for virtual sessions
+          calculatedAU: Math.round(vSession.totalLoad)
+        };
+      });
+
       // For each session, get RPE submission stats
       const detectedSessions = await Promise.all(sessions.map(async (session) => {
         const submissions = await db
@@ -623,15 +685,33 @@ export class DatabaseStorage implements IStorage {
           calculatedAU: Math.round(session.sessionLoad || 0) // Use stored session_load directly
         };
       }));
+
+      // Merge virtual sessions with detected sessions
+      const allSessions = [...detectedSessions, ...virtualSessionList];
+      
+      // Remove duplicates by keeping the session with more participants for the same date/type
+      const sessionMap = new Map<string, any>();
+      allSessions.forEach(session => {
+        const key = `${session.date}-${session.type}`;
+        const existing = sessionMap.get(key);
+        
+        if (!existing || session.participants > existing.participants) {
+          sessionMap.set(key, session);
+        }
+      });
+      
+      const mergedSessions = Array.from(sessionMap.values());
       
       // Apply 40% participation threshold filter (3+ athletes for 8-athlete team)
-      const filteredSessions = detectedSessions.filter(session => {
+      const filteredSessions = mergedSessions.filter(session => {
         return session.participants >= 3; // At least 3 participants required
       });
       
+      console.log(`Bridge: Combined ${detectedSessions.length} team sessions + ${virtualSessionList.length} virtual sessions`);
       console.log(`Using stored session_load values from DB (single source of truth):`);
       filteredSessions.forEach(session => {
-        console.log(`Session ${session.id}: ${session.participants}/${session.totalAthletes} participants, RPE: ${session.avgRPE}, AU: ${session.calculatedAU} (from DB)`);
+        const sourceType = session.id.startsWith('virtual-') ? '(from athlete entries)' : '(from DB)';
+        console.log(`Session ${session.id}: ${session.participants}/${session.totalAthletes} participants, RPE: ${session.avgRPE}, AU: ${session.calculatedAU} ${sourceType}`);
       });
       
       return filteredSessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
