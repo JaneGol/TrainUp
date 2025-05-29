@@ -29,14 +29,11 @@ interface TrainingLoadColumnsProps {
 export default function TrainingLoadColumns({ data, isLoading, isError }: TrainingLoadColumnsProps) {
   // Memoize processed data to avoid unnecessary recalculations
   const chartData = useMemo(() => {
-    console.log('TrainingLoadColumns received data:', data);
-    const processed = data.map(item => ({
+    return data.map(item => ({
       ...item,
       originalDate: item.date,
       displayDate: format(parseISO(item.date), 'dd.MM')
     }));
-    console.log('TrainingLoadColumns processed data:', processed);
-    return processed;
   }, [data]);
 
   return (
@@ -44,6 +41,7 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
       <BarChart 
         data={chartData} 
         margin={{ top: 10, right: 16, left: 8, bottom: 0 }}
+        barCategoryGap="20%"
       >
         <CartesianGrid strokeOpacity={0.15} />
         <XAxis 
@@ -54,8 +52,9 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
         />
         <YAxis 
           tickLine={false}
-          tick={{ className: 'tick-font' }}
+          tick={CHART_STYLES.axis}
           axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+          domain={[0, 'dataMax']}
         />
         <Tooltip 
           contentStyle={{
