@@ -960,6 +960,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       console.log(`Found ${recentEntries.length} entries for athlete in last 14 days`);
+      console.log('Recent entries:', recentEntries.map(e => `${e.id}: ${e.trainingType} - ${e.trainingLoad} AU on ${e.date.toISOString().split('T')[0]}`));
       
       // Initialize 14 days with zero values
       const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number; acwr: number } } = {};
