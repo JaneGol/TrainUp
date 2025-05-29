@@ -20,6 +20,7 @@ import { useWeekLoad } from "@/hooks/useWeekLoad";
 export default function LoadInsights() {
   const [, navigate] = useLocation();
   const [athleteId, setAthleteId] = useState<string>("all");
+  const [timeRange, setTimeRange] = useState<string>("7");
   const [weekStart, setWeekStart] = useState<string>(buildWeekOptions()[0].value);
   
   // Get athletes
@@ -134,10 +135,13 @@ export default function LoadInsights() {
   
   // Filter data based on selected athlete and time range
   const filteredTrainingLoad = Array.isArray(trainingLoad) ? trainingLoad.filter((item: TrainingLoadItem) => {
-    // Only filter by date when we have data to filter
-    const dateFiltered = new Date(item.date) >= new Date(Date.now() - parseInt(timeRange) * 24 * 60 * 60 * 1000);
-    // Individual athlete or team-level data
-    return dateFiltered && (selectedAthlete === "all" || (item.athleteId !== undefined && parseInt(selectedAthlete) === item.athleteId));
+    // 1. filter by date based on timeRange (in days)
+    const cutoff = Date.now() - parseInt(timeRange, 10) * 24 * 60 * 60 * 1000;
+    const dateOk = new Date(item.date).getTime() >= cutoff;
+    // 2. filter by athleteId (use the real state var, not a phantom one)
+    const athleteOk = athleteId === "all"
+      || (item.athleteId !== undefined && athleteId === item.athleteId.toString());
+    return dateOk && athleteOk;
   }) : [];
 
   // Process data for stacked columns with double session detection
@@ -164,10 +168,11 @@ export default function LoadInsights() {
   const columnData = processedLoadData();
   
   const filteredAcwr = Array.isArray(acwrData) ? acwrData.filter((item: AcwrItem) => {
-    // Only filter by date when we have data to filter
-    const dateFiltered = new Date(item.date) >= new Date(Date.now() - parseInt(timeRange) * 24 * 60 * 60 * 1000);
-    // Individual athlete or team-level data
-    return dateFiltered && (selectedAthlete === "all" || (item.athleteId !== undefined && parseInt(selectedAthlete) === item.athleteId));
+    const cutoff = Date.now() - parseInt(timeRange, 10) * 24 * 60 * 60 * 1000;
+    const dateOk = new Date(item.date).getTime() >= cutoff;
+    const athleteOk = athleteId === "all"
+      || (item.athleteId !== undefined && athleteId === item.athleteId.toString());
+    return dateOk && athleteOk;
   }) : [];
 
   // Calculate weekly summary data with accurate ISO week
