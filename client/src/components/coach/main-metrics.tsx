@@ -37,12 +37,18 @@ export default function MainMetrics() {
           onClick={() => navigate('/coach/athlete-status')}
         >
           <div className="flex items-center gap-3">
-            <Gauge value={keyMetrics.avgRecovery} max={5} size={48} />
+            <Gauge value={keyMetrics.isPendingData ? 0 : keyMetrics.avgRecovery} max={5} size={48} />
             <div>
               <p className="text-xs uppercase text-white/60 mb-1">Recovery</p>
               <p className="text-lg font-bold">
-                {keyMetrics.avgRecovery.toFixed(1)}
-                <span className="text-xs text-white/60">/5</span>
+                {keyMetrics.isPendingData ? (
+                  <span className="text-zinc-400">Awaiting data</span>
+                ) : (
+                  <>
+                    {keyMetrics.avgRecovery.toFixed(1)}
+                    <span className="text-xs text-white/60">/5</span>
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -54,11 +60,15 @@ export default function MainMetrics() {
           onClick={() => navigate('/coach/athlete-status')}
         >
           <div className="flex items-center gap-3">
-            <Gauge value={keyMetrics.avgReadiness} max={100} size={48} />
+            <Gauge value={keyMetrics.isPendingData ? 0 : keyMetrics.avgReadiness} max={100} size={48} />
             <div>
               <p className="text-xs uppercase text-white/60 mb-1">Readiness</p>
               <p className="text-lg font-bold">
-                {keyMetrics.avgReadiness.toFixed(0)}%
+                {keyMetrics.isPendingData ? (
+                  <span className="text-zinc-400">Awaiting data</span>
+                ) : (
+                  `${keyMetrics.avgReadiness.toFixed(0)}%`
+                )}
               </p>
             </div>
           </div>

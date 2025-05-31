@@ -995,6 +995,10 @@ export class DatabaseStorage implements IStorage {
     // Get all athletes
     const athletes = await this.getAthletes();
     
+    // Get today's date in local timezone
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+    
     // For each athlete, get their latest morning diary
     const result = await Promise.all(athletes.map(async (athlete) => {
       const diaries = await this.getMorningDiariesByUserId(athlete.id);
@@ -1010,8 +1014,25 @@ export class DatabaseStorage implements IStorage {
         };
       }
       
-      // Get latest diary
-      const latestDiary = diaries[0];
+      // Check if we have data from today
+      const todaysEntries = diaries.filter(diary => {
+        const diaryDate = new Date(diary.date).toISOString().split('T')[0];
+        return diaryDate === todayString;
+      });
+      
+      if (todaysEntries.length === 0) {
+        // No data from today - this should trigger daily reset behavior
+        return {
+          athleteId: athlete.id,
+          name: `${athlete.firstName} ${athlete.lastName}`,
+          readinessScore: 0,
+          trend: 'neutral',
+          issues: ['No data from today']
+        };
+      }
+      
+      // Get latest diary (should be from today)
+      const latestDiary = todaysEntries[0];
       
       // Get the diary from the day before (if any)
       const previousDiary = diaries.length > 1 ? diaries[1] : null;
