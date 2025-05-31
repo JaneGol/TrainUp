@@ -25,9 +25,12 @@ export default function TrainingLog() {
   const [editingSession, setEditingSession] = useState<string | null>(null);
   const [sessionDurations, setSessionDurations] = useState<Record<string, number>>({});
   
-  // Get training sessions based on RPE submissions
+  // Get training sessions with real-time updates
   const { data: trainingSessions = [], isLoading: sessionsLoading, refetch } = useQuery<DetectedSession[]>({
     queryKey: ["/api/training-sessions"],
+    staleTime: 30_000, // 30 seconds
+    refetchInterval: 60_000, // Refresh every minute
+    refetchOnWindowFocus: true,
   });
 
   // Mutation to update session duration
@@ -44,6 +47,10 @@ export default function TrainingLog() {
         title: "Success",
         description: "Session duration updated successfully",
       });
+      // Invalidate multiple related queries for real-time updates
+      queryClient.invalidateQueries({ queryKey: ["/api/training-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/load/week"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/team-wellness-trends"] });
       refetch(); // Refresh the sessions data
       setEditingSession(null);
     },
@@ -104,7 +111,11 @@ export default function TrainingLog() {
         title: "Thank you",
         description: "Training has been added",
       });
+      // Invalidate multiple related queries to ensure real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/training-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/training-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/athlete-recovery-readiness"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/load/week"] });
       
       // Redirect to coach dashboard after successful submission
       setTimeout(() => {

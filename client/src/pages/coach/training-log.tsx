@@ -31,9 +31,12 @@ export default function TrainingLog() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [summary, setSummary] = useState(false); // false = session rows, true = daily summary
   
-  // Get training sessions based on RPE submissions
+  // Get training sessions with real-time updates
   const { data: trainingSessions = [], isLoading: sessionsLoading } = useQuery<any[]>({
     queryKey: ["/api/training-sessions"],
+    staleTime: 30_000, // 30 seconds
+    refetchInterval: 60_000, // Refresh every minute
+    refetchOnWindowFocus: true,
   });
 
   // Use the duration update hook
