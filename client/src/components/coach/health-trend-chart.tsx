@@ -139,7 +139,7 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
               margin={{
                 top: 5,
                 right: 35,
-                left: -20,
+                left: 20,
                 bottom: 5,
               }}
             >

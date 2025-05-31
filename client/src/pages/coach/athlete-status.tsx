@@ -140,7 +140,7 @@ export default function AthleteStatusPage() {
                                 {athlete.issues?.length > 0 ? (
                                   <>
                                     <span className="text-red-400">🌡️</span>
-                                    <span className="text-xs text-zinc-300">
+                                    <span className="text-[11px] text-zinc-300 leading-tight">
                                       {athlete.issues.slice(0, 2).join(", ")}
                                       {athlete.issues.length > 2 && "..."}
                                     </span>
@@ -148,7 +148,7 @@ export default function AthleteStatusPage() {
                                 ) : (
                                   <>
                                     <span className="text-green-400">✅</span>
-                                    <span className="text-xs text-zinc-300">Healthy</span>
+                                    <span className="text-[11px] text-zinc-300 leading-tight">Healthy</span>
                                   </>
                                 )}
                               </div>
