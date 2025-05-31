@@ -1,25 +1,20 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { DownloadCloud, FileSpreadsheet, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { DownloadCloud, FileText, CheckCircle, Info } from "lucide-react";
 import CoachDashboardLayout from "@/components/layout/coach-dashboard-layout";
 
 export default function DataExportPage() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [spreadsheetId, setSpreadsheetId] = useState("");
   const [currentTab, setCurrentTab] = useState("wellness");
-  const [lastExportResults, setLastExportResults] = useState<any>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Mutation for exporting wellness data
   const exportWellnessMutation = useMutation({

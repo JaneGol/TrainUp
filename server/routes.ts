@@ -6,7 +6,7 @@ import { db } from "./db";
 import { trainingSessions } from "@shared/schema";
 import { and, gte, lte } from "drizzle-orm";
 import { setupPasswordResetRoutes } from "./password-reset-routes";
-import { setupSheetExportRoutes } from "./sheets-export-routes";
+import { setupCsvExportRoutes } from "./csv-export-routes";
 import { HealthRecommendationService } from "./ai-health";
 import { TrainingRecommendationService } from "./training-recommendations";
 import { 
@@ -43,8 +43,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up password reset routes
   setupPasswordResetRoutes(app);
   
-  // Set up Google Sheets export routes
-  setupSheetExportRoutes(app);
+  // Set up CSV export routes (replacing Google Sheets)
+  setupCsvExportRoutes(app);
   
   // Initialize health recommendation service
   const healthRecommendationService = new HealthRecommendationService(storage);
