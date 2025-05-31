@@ -59,15 +59,42 @@ export default function LoadInsights() {
   // Use the proper weekly load data hook for 7-day detailed view
   const { data: weeklyLoadData = [], isLoading: weeklyLoadLoading } = useWeekLoad(athleteId, weekStart);
 
-  // Calculate weekly metrics from the weekly load data
+  // Calculate enhanced weekly metrics from the weekly load data
   const weeklyMetrics = useMemo(() => {
     const totalAU = weeklyLoadData.reduce((sum, entry) => sum + (entry.total || 0), 0);
-    const sessions = weeklyLoadData.reduce((sum, entry) => sum + (entry.sessionCount || 0), 0); // Sum all individual sessions
+    const sessions = weeklyLoadData.reduce((sum, entry) => sum + (entry.sessionCount || 0), 0);
     const avgAcwr = weeklyLoadData.length > 0 
       ? (weeklyLoadData.reduce((sum, entry) => sum + (entry.acwr || 0), 0) / weeklyLoadData.length)
       : 0;
     
-    return { totalAU, sessions, avgAcwr: avgAcwr.toFixed(2) };
+    // Calculate training monotony (coefficient of variation)
+    const activeDays = weeklyLoadData.filter(day => day.total > 0);
+    const avgLoad = activeDays.length > 0 ? totalAU / activeDays.length : 0;
+    const variance = activeDays.length > 1 
+      ? activeDays.reduce((sum, day) => sum + Math.pow(day.total - avgLoad, 2), 0) / (activeDays.length - 1)
+      : 0;
+    const stdDev = Math.sqrt(variance);
+    const monotony = avgLoad > 0 ? (stdDev / avgLoad) : 0;
+    
+    // Calculate training strain (total load * monotony)
+    const strain = totalAU * (1 + monotony);
+    
+    // Calculate workload distribution
+    const fieldLoad = weeklyLoadData.reduce((sum, entry) => sum + (entry.Field || 0), 0);
+    const gymLoad = weeklyLoadData.reduce((sum, entry) => sum + (entry.Gym || 0), 0);
+    const matchLoad = weeklyLoadData.reduce((sum, entry) => sum + (entry.Match || 0), 0);
+    
+    return { 
+      totalAU, 
+      sessions, 
+      avgAcwr: avgAcwr.toFixed(2),
+      monotony: monotony.toFixed(2),
+      strain: strain.toFixed(0),
+      fieldLoad,
+      gymLoad,
+      matchLoad,
+      activeDays: activeDays.length
+    };
   }, [weeklyLoadData]);
 
   // Get ACWR data with real-time updates
@@ -164,7 +191,7 @@ export default function LoadInsights() {
             )}
           </div>
           <p className="chart-meta mb-3">
-            {weekMeta.label} │ Total AU: {weeklyMetrics.totalAU} │ Sessions: {weeklyMetrics.sessions} │ Avg ACWR: {weeklyMetrics.avgAcwr}
+            {weekMeta.label} │ Total AU: {weeklyMetrics.totalAU} │ Sessions: {weeklyMetrics.sessions} │ Active Days: {weeklyMetrics.activeDays}
           </p>
           <div className={compact ? "space-y-1" : "h-64"}>
             {compact ? (
@@ -184,6 +211,78 @@ export default function LoadInsights() {
           </div>
           <div className="mt-3">
             <LegendChips keys={['Field','Gym','Match']} />
+          </div>
+        </Card>
+
+        {/* Advanced Workload Metrics */}
+        <Card className="bg-zinc-800/90 px-4 py-4 mt-6">
+          <h2 className="chart-title mb-1">Advanced Workload Metrics</h2>
+          <p className="chart-meta mb-4">Training load analysis and distribution patterns</p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Training Monotony */}
+            <div className="bg-zinc-900 rounded-lg p-3">
+              <div className="text-xs text-zinc-400 mb-1">Training Monotony</div>
+              <div className="text-lg font-bold text-white">{weeklyMetrics.monotony}</div>
+              <div className="text-xs text-zinc-500">Variability Index</div>
+            </div>
+            
+            {/* Training Strain */}
+            <div className="bg-zinc-900 rounded-lg p-3">
+              <div className="text-xs text-zinc-400 mb-1">Training Strain</div>
+              <div className="text-lg font-bold text-white">{weeklyMetrics.strain}</div>
+              <div className="text-xs text-zinc-500">Load × (1 + Monotony)</div>
+            </div>
+            
+            {/* ACWR Average */}
+            <div className="bg-zinc-900 rounded-lg p-3">
+              <div className="text-xs text-zinc-400 mb-1">Avg ACWR</div>
+              <div className="text-lg font-bold text-white">{weeklyMetrics.avgAcwr}</div>
+              <div className="text-xs text-zinc-500">Acute:Chronic Ratio</div>
+            </div>
+            
+            {/* Load Distribution */}
+            <div className="bg-zinc-900 rounded-lg p-3">
+              <div className="text-xs text-zinc-400 mb-1">Primary Type</div>
+              <div className="text-lg font-bold text-white">
+                {weeklyMetrics.fieldLoad >= weeklyMetrics.gymLoad && weeklyMetrics.fieldLoad >= weeklyMetrics.matchLoad 
+                  ? 'Field' 
+                  : weeklyMetrics.gymLoad >= weeklyMetrics.matchLoad 
+                    ? 'Gym' 
+                    : 'Match'}
+              </div>
+              <div className="text-xs text-zinc-500">
+                {Math.round((Math.max(weeklyMetrics.fieldLoad, weeklyMetrics.gymLoad, weeklyMetrics.matchLoad) / weeklyMetrics.totalAU) * 100)}% of load
+              </div>
+            </div>
+          </div>
+          
+          {/* Load Distribution Bar */}
+          <div className="mt-4">
+            <div className="text-xs text-zinc-400 mb-2">Training Type Distribution</div>
+            <div className="flex h-3 rounded-full overflow-hidden bg-zinc-900">
+              {weeklyMetrics.totalAU > 0 && (
+                <>
+                  <div 
+                    className="bg-[#b5f23d]" 
+                    style={{ width: `${(weeklyMetrics.fieldLoad / weeklyMetrics.totalAU) * 100}%` }}
+                  />
+                  <div 
+                    className="bg-[#547aff]" 
+                    style={{ width: `${(weeklyMetrics.gymLoad / weeklyMetrics.totalAU) * 100}%` }}
+                  />
+                  <div 
+                    className="bg-[#ff6b6b]" 
+                    style={{ width: `${(weeklyMetrics.matchLoad / weeklyMetrics.totalAU) * 100}%` }}
+                  />
+                </>
+              )}
+            </div>
+            <div className="flex justify-between text-xs text-zinc-500 mt-1">
+              <span>Field: {weeklyMetrics.fieldLoad} AU</span>
+              <span>Gym: {weeklyMetrics.gymLoad} AU</span>
+              <span>Match: {weeklyMetrics.matchLoad} AU</span>
+            </div>
           </div>
         </Card>
 
