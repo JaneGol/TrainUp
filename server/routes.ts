@@ -774,11 +774,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .sort((a, b) => a.week.localeCompare(b.week))
         .slice(-10); // Last 10 weeks
 
+      // Ensure we always have exactly 10 weeks (pad missing weeks with zeros)
+      const paddedWeeks: any[] = [];
+      const today = new Date();
+      
+      for (let i = 9; i >= 0; i--) {
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() - (i * 7));
+        const year = targetDate.getFullYear();
+        const weekNum = getISOWeek(targetDate);
+        const weekKey = `${year}-W${weekNum.toString().padStart(2, '0')}`;
+        
+        const existingWeek = weeks.find(w => w.week === weekKey);
+        if (existingWeek) {
+          paddedWeeks.push(existingWeek);
+        } else {
+          paddedWeeks.push({
+            week: weekKey,
+            field: 0,
+            gym: 0,
+            match: 0,
+            total: 0
+          });
+        }
+      }
+
       // Calculate ACWR for each week
-      const result = weeks.map((week, index) => {
+      const result = paddedWeeks.map((week, index) => {
         // Calculate chronic load (average of previous 4 weeks)
         const startIndex = Math.max(0, index - 3);
-        const chronicWeeks = weeks.slice(startIndex, index + 1);
+        const chronicWeeks = paddedWeeks.slice(startIndex, index + 1);
         const chronic = chronicWeeks.length > 0 
           ? chronicWeeks.reduce((sum, w) => sum + w.total, 0) / chronicWeeks.length 
           : 0;

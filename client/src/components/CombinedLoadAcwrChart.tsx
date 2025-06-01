@@ -12,6 +12,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { TenWeekComboData } from '@/hooks/useTenWeekCombo';
+import Card from '@/components/ui/card-improved';
 
 interface CombinedLoadAcwrChartProps {
   data: TenWeekComboData[];
@@ -19,14 +20,10 @@ interface CombinedLoadAcwrChartProps {
 
 export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartProps) {
   return (
-    <div className="bg-zinc-800/90 rounded-lg p-4">
-      <h3 className="text-base font-semibold text-center mb-1 text-white">
-        Weekly Load & ACWR (Last 10 Weeks)
-      </h3>
-      <p className="text-xs text-zinc-400 text-center mb-4">
-        Bars = weekly load; line = ACWR. Green band = optimal 0.8–1.3
-      </p>
-      <div className="h-64">
+    <Card className="bg-zinc-800/90 px-4 py-4">
+      <h2 className="chart-title mb-1">Weekly Load & ACWR (Last 10 Weeks)</h2>
+      <p className="chart-meta mb-4">Bars = weekly load; line = ACWR. Green band = optimal 0.8–1.3</p>
+      <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
             data={data}
@@ -127,6 +124,6 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
           </ComposedChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </Card>
   );
 }
