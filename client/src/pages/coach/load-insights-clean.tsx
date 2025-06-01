@@ -61,6 +61,9 @@ export default function LoadInsights() {
   // Use the proper weekly load data hook for 7-day detailed view
   const { data: weeklyLoadData = [], isLoading: weeklyLoadLoading } = useWeekLoad(athleteId, weekStart);
 
+  // Get combined 10-week data for the unified chart
+  const { data: tenWeekComboData = [], isLoading: tenWeekComboLoading } = useTenWeekCombo(athleteId);
+
   // Calculate enhanced weekly metrics from the weekly load data
   const weeklyMetrics = useMemo(() => {
     const totalAU = weeklyLoadData.reduce((sum, entry) => sum + (entry.total || 0), 0);
@@ -107,8 +110,7 @@ export default function LoadInsights() {
     refetchOnWindowFocus: true,
   });
 
-  // Get combined 10-week load and ACWR data
-  const { data: tenWeekComboData = [] } = useTenWeekCombo(athleteId);
+
 
   // Use the weekly load data directly - it already contains all 7 days
   const weekTrainingData = weeklyLoadData;
@@ -291,14 +293,18 @@ export default function LoadInsights() {
 
         <div className="h-8"></div>{/* 32-px spacer */}
 
-        {/* Combined Weekly Load & ACWR Chart - Coming Soon */}
-        <Card className="bg-zinc-800/90 px-4 py-4">
-          <h2 className="chart-title mb-1">Combined Weekly Load & ACWR (Last 10 Weeks)</h2>
-          <p className="chart-meta mb-4">Unified view of training volume and injury risk trends</p>
-          <div className="h-80 flex items-center justify-center">
-            <div className="text-zinc-400">Combined chart implementation in progress...</div>
-          </div>
-        </Card>
+        {/* Combined Weekly Load & ACWR Chart */}
+        {tenWeekComboLoading ? (
+          <Card className="bg-zinc-800/90 px-4 py-4">
+            <h2 className="chart-title mb-1">Combined Weekly Load & ACWR (Last 10 Weeks)</h2>
+            <p className="chart-meta mb-4">Unified view of training volume and injury risk trends</p>
+            <div className="h-80 flex items-center justify-center">
+              <div className="text-zinc-400">Loading combined chart...</div>
+            </div>
+          </Card>
+        ) : (
+          <CombinedLoadAcwrChart data={tenWeekComboData} />
+        )}
 
         {/* Legacy ACWR Chart - Temporarily Hidden */}
         <div style={{display: 'none'}}>
