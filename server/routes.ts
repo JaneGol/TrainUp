@@ -1005,17 +1005,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
-      // Get real-time data directly from training_sessions table
-      const weeklyLoadData = await storage.getWeeklyLoadData("all", weekStart);
+      console.log("=== WEEKLY LOAD: Using unified coach session summary ===");
       
-      // Sum the data by date and type
-      weeklyLoadData.forEach((day: any) => {
-        const dateStr = day.date;
-        if (dailyData[dateStr]) {
-          dailyData[dateStr].Field = day.Field || 0;
-          dailyData[dateStr].Gym = day.Gym || 0;
-          dailyData[dateStr].Match = day.Match || 0;
-          dailyData[dateStr].total = day.total || 0;
+      // Use the same unified coach session summary as the Training Log
+      const allSessions = await storage.getUnifiedSessionsForCoach();
+      console.log(`WEEKLY LOAD: Found ${allSessions.length} sessions from unified data source`);
+      
+      // Filter sessions for this week and aggregate by date and type
+      allSessions.forEach((session: any) => {
+        const sessionDate = new Date(session.sessionDate);
+        const dateStr = sessionDate.toISOString().split('T')[0];
+        
+        // Check if this session falls within the week range
+        if (sessionDate >= startDate && sessionDate <= endDate && dailyData[dateStr]) {
+          const sessionLoad = Math.round(session.sessionLoad || 0);
+          const sessionType = session.type; // 'Field', 'Gym', or 'Match'
+          
+          console.log(`WEEKLY LOAD: Adding ${sessionLoad} AU for ${sessionType} on ${dateStr}`);
+          
+          if (sessionType === 'Field') {
+            dailyData[dateStr].Field += sessionLoad;
+          } else if (sessionType === 'Gym') {
+            dailyData[dateStr].Gym += sessionLoad;
+          } else if (sessionType === 'Match') {
+            dailyData[dateStr].Match += sessionLoad;
+          }
+          
+          dailyData[dateStr].total += sessionLoad;
         }
       });
 
