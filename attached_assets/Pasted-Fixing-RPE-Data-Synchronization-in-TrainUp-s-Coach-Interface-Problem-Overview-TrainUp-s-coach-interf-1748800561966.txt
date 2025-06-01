@@ -1,0 +1,177 @@
+Fixing RPE Data Synchronization in TrainUp’s Coach Interface
+Problem Overview
+TrainUp’s coach interface is not reflecting athlete RPE submissions in real-time. Coaches see “0 RPE participants” in the Training Log for recent sessions (e.g. sessions since May 30), even when athletes have submitted RPEs. Likewise, the Weekly Training Load chart shows 0 AU (arbitrary units) for sessions (e.g. a June 1 gym training) despite confirmed RPE entries. This means the ACWR (acute:chronic workload ratio) chart is also inaccurate, since it relies on weekly load data. These errors prevent coaches from seeing updated training load metrics and participant counts when athletes report their exertion. The root cause is that the backend isn’t updating aggregated session data after athlete inputs or coach edits. In particular:
+RPE participant counts in the Training Log remain at 0 because submissions aren’t triggering an update.
+Session load calculations (in AU) are not recalculated or included in charts until much later (or not at all) due to a missing or faulty threshold logic.
+When coaches adjust a session’s duration, the change isn’t propagating to recalculate the session’s load, so charts stay outdated.
+We need to fix the backend/database logic so that coaches see accurate, immediate updates once enough athletes respond or when session details change. Below we outline the required fixes to triggers, queries, and data flow to achieve this.
+Key Issues and Causes
+Missing Real-Time Update on RPE Submissions: The system currently shows “0 RPE participants” until a certain condition is met (intended to be when >40% of athletes have submitted). However, due to a bug in the logic or database trigger, the count is never updated (often stuck at 0). This could be caused by an incorrect threshold check (e.g. using integer division or a wrong comparison) or not updating the session record at all until a higher threshold is reached. As a result, even sessions with some RPE entries appear as if no one responded.
+Session Load Not Recomputed: The training load (AU) for each session is not being calculated or displayed once athletes submit RPEs. In theory, session load should be computed from RPE submissions (using the given formula) when enough data is available. If this calculation isn’t triggered at the 40% submission threshold (or if the formula omits factors like participant count), the Weekly Training Load chart will show 0 for that session. This affects the ACWR chart as well, since ACWR uses the weekly totals. Essentially, the backend isn’t marking the session as “ready” or updating its load, so the coach’s charts treat it as if no load occurred.
+No Update on Session Duration Change: When a coach edits the session’s duration, the training load should change (longer or shorter session -> higher or lower load). Currently, changing the duration doesn’t immediately recalc the load in the coach interface. The likely cause is that the duration update endpoint or database operation doesn’t trigger a recomputation of the session’s load. Thus, the Training Log and charts remain showing the old load (or 0 if it was never set), until some manual refresh or overnight job (if any) updates it – which is unacceptable for “instant” feedback.
+Inconsistent Data Flow/Triggers: It appears that the logic to aggregate RPE data might be handled by a database trigger or background job, but it isn’t firing at the right times. Possibly the trigger only runs under certain conditions or was configured incorrectly (e.g., threshold set to 50% or a rounding issue causing >40% to never evaluate true). It may also be that one part of the system updates data (e.g., a nightly batch computing weekly loads) while the immediate path does not, leading to temporary zeros. We need to unify this so that any relevant change (RPE submission or duration edit) immediately updates the stored values that the coach’s interface uses.
+Solution Approach
+To resolve these issues, we will implement and fix database triggers and server-side logic for real-time updates. The goal is to automatically recalculate and propagate session metrics whenever athletes submit RPEs or coaches modify session details. We will also ensure the RPE calculation formula is applied correctly and consistently across all updates. Importantly, no changes will be made to the UI or athlete app – the fixes are all in the backend data handling.
+1. Real-Time Trigger on RPE Submission
+We will create or fix a database trigger on the table that stores athlete RPE submissions (for example, a SessionRPE or SessionFeedback table). This trigger will fire after each insert (or update) of an RPE entry and update the corresponding session’s record. The trigger logic will:
+Update RPE Participant Count: Increment or recalculate the count of participants for that session who have submitted RPE. This ensures the session’s participant count is always accurate. Even if the session hasn’t hit the threshold, the count field (e.g., session.rpe_participants) will reflect the true number of responses. The Training Log can then display “X RPE participants” instead of 0. For example, if 3 out of 10 athletes have submitted, the session’s participant count should be 3 (not 0). We will store this in the session record for quick retrieval.
+Check 40% Threshold: After updating the count, the trigger will check if the number of responses now exceeds 40% of the total athletes for that session. (Total athletes might be a stored field in the session or derived from the team roster for that session’s group.) If participants / total_athetes > 0.4, we consider the RPE data “sufficient” to calculate a reliable session load. We will be careful to calculate this as a floating-point comparison, not integer division. For instance, if 4 of 10 athletes responded, 4/10 = 0.4 (40% exactly, which is not more than 40% yet), but if 5 of 10 respond, that’s 50% which triggers the update. Using a float or multiplying before dividing will avoid any rounding errors (e.g., in SQL: IF (cast(count as decimal)/cast(total as decimal)) > 0.4 THEN ...). This fixes any bug where the threshold condition might have been failing due to integer math.
+Compute Session Load (AU): Once the 40% threshold is reached (on that insert), the trigger will compute the session training load using the provided formula. We will aggregate the RPE values from all submitted athletes (most likely by using the average RPE of the submissions, since a single session load should represent the group). Then apply:
+Session Load
+=
+(
+Average RPE
+)
+×
+(
+Emotional Coefficient
+)
+×
+(
+Duration
+)
+×
+(
+Type Coefficient
+)
+×
+Participants
+Total Athletes
+ 
+.
+Session Load=(Average RPE)×(Emotional Coefficient)×(Duration)×(Type Coefficient)× 
+Total Athletes
+Participants
+​
+ .
+This formula extends the standard session RPE calculation (RPE × Duration) by accounting for emotional stress and session type, then scaling by the fraction of the team that the data represents. For example, in practice a session RPE is often calculated as RPE × minutes to get an “AU” load
+firefighternation.com
+. In our case, if an athlete rates RPE 7 for a 60-minute session, that single submission equates to 420 AU (7×60). With multiple athletes, we’d typically sum or average their RPEs. The formula above effectively takes the average RPE and then multiplies by the number of participants (via the fraction) – which is equivalent to summing all individual RPE×Duration loads and then scaling to the team size. We will ensure we retrieve the correct Emotional Coefficient (likely a value between 1.0 and 1.5 set for the session or the day’s mood) and Type Coefficient (a factor for training type intensity) from the database (these might be stored in the session record or a lookup table). Using those factors and the session’s latest duration, we compute the load.
+Update Session Record: The trigger will then update the session’s entry with the newly calculated load (e.g., set session.load = X AU). It will also mark any other relevant fields (perhaps an “RPE collected” flag or update the average RPE if stored separately). By writing the computed session load back to the database, it becomes immediately available to all coach interface components:
+The Training Log can now show the number of participants (already updated) and possibly the average RPE or load if needed.
+The Weekly Training Load chart will include this session’s load in the sum for that week.
+The ACWR chart, which uses weekly totals, will reflect the updated week’s load.
+Immediate Effect: Because this is a database trigger on each insert, as soon as the threshold is crossed on that submission, the session’s load and participant count are updated within the transaction. The next time the coach refreshes the Training Log or load charts (or if the app live-updates via API), they will see the changes. There is no more delay or manual step needed. If multiple athletes keep submitting after the threshold, the trigger can recalculate the session load each time to refine the accuracy. Each additional submission will slightly change the average RPE and participants fraction. We will allow the trigger to update the load on every insert after the threshold as well, so that the load becomes more accurate as more data comes in. (If performance is a concern for very large teams, we could optionally only recompute on threshold crossing and perhaps on the final submission, but for consistency it’s simplest to update on each new RPE if threshold is already met.)
+In summary, the RPE submission trigger ensures the Training Log’s “RPE participants” count is always correct and that once enough athletes ( >40%) have responded, the session’s training load is calculated and saved immediately. This directly addresses the first two issues: coaches will no longer see 0 RPE participants for a session that has responses, and the Weekly Load chart will no longer show a 0 value for sessions that have crossed the threshold of responses.
+2. Updating Weekly Load and ACWR Calculations
+With session loads being stored and updated timely, we need to ensure the Weekly Training Load and ACWR charts pull in this data without additional delays:
+Weekly Training Load Chart: If the chart is generated by summing all session loads in a given week, it should now automatically include the new values once the session’s load field is updated. We should verify that the query or API endpoint that provides weekly load data is using the session load from the database (e.g., summing session.load for sessions in that week). If previously the logic was skipping sessions with incomplete RPE (possibly treating them as 0), we can now include sessions once their load is non-zero. In practice, that means as soon as the trigger computes a load for a session, any call to fetch weekly totals should reflect it. No additional trigger is strictly needed for weekly sums if we compute on the fly each time. However, if performance considerations led to caching weekly totals or ACWR in the database, we should also update those caches:
+We could implement another trigger on session load update (i.e., when session.load is set by the RPE trigger) to update a “weekly load” aggregate table. For example, an AFTER UPDATE ON sessions trigger could sum up all session loads for that week and store it in a WeeklyLoad table for quick access. This would ensure the weekly total is instantly updated as well. Alternatively, we update the weekly load in the same RPE trigger function (i.e., after computing the session’s load, also do UPDATE WeeklyLoad SET total = total + this_session_load ...). This ensures the Weekly Load chart has the new total without waiting.
+If we choose to compute weekly loads on-the-fly via query, we just need to make sure the front-end requests are querying fresh data. Since we are updating the base session records, a live query will naturally get the new sums. In that case, no separate weekly trigger is required.
+ACWR Chart: The ACWR (Acute:Chronic Workload Ratio) is typically derived from the recent one-week load vs a longer-term (4-week) average. As long as the weekly load data is up-to-date, ACWR can be calculated either in the front-end or back-end easily. We need to ensure that when the weekly load for the current week changes (because a session load was added or changed), the ACWR calculation uses the new value. If ACWR is computed on the backend (for example, an endpoint might return the ACWR value or the data points for an ACWR graph), we should recalc it whenever weekly or chronic load changes. This could mean:
+If we updated a WeeklyLoad table via triggers, we could also update an ACWR value or table. For instance, recalc current_week_load / rolling_4_week_avg after updating the weekly load. This can be part of the same trigger chain.
+If ACWR is computed on request (no stored value), then no special trigger is needed: as soon as the weekly load and previous weeks are correct, the front-end’s request or calculation will yield a correct ACWR. The front-end readiness-chart.tsx (for ACWR) likely either gets a list of weekly loads or an already computed ratio. We just need to be sure the data source is updated. Given that we will have corrected all session loads (including past days like since May 30), the chronic (28-day) average will also update as those sessions now count.
+In short, by fixing the session-level data via triggers, the higher-level metrics (weekly totals and ACWR) will naturally correct themselves. We may implement additional triggers or ensure our API queries aggregate the latest data, but no coach action is needed beyond refreshing their view. The Weekly Training Load chart will no longer flatline at 0 for a session that has RPE data, and any ACWR spikes or changes based on that session’s load will be immediately visible, helping coaches make decisions with current information.
+3. Trigger on Session Duration Updates
+We also must handle the case where a coach edits the session after it’s created – especially changes to session duration, which directly affects load. To achieve this, we will implement an AFTER UPDATE trigger on the sessions table (or incorporate logic in the session update API) focusing on the duration field:
+Detect Duration Changes: The trigger should fire when the duration field of a session is updated by the coach. (If needed, we can restrict it to when NEW.duration <> OLD.duration to avoid unnecessary recalcs on unrelated edits.)
+Recalculate Session Load: When the duration changes, we should recompute that session’s load using the same formula as above. Importantly, we should use the most recent RPE data for that session:
+We’ll retrieve the current count of RPE participants and the average RPE from the submissions (or if we stored an average or total RPE in the session, use that). These values were last updated when athletes submitted RPEs.
+Using the existing Emotional and Type coefficients for that session, plug in the new Duration value. Essentially, we recalc:
+new_load = avg_RPE × EmotionalCoeff × (new Duration) × TypeCoeff × (participants / total).
+Since only Duration changed, this will scale the previous load proportionally to the new duration.
+Update the session’s load field with this new_load. This ensures the session’s Training Load is immediately adjusted in the database.
+Conditional on RPE Data Availability: We likely only want to perform this recalculation if the session already had RPE data submitted (especially if threshold was reached). Two scenarios:
+If no RPE submissions exist yet (participants = 0), then changing duration doesn’t require any load update (the load would still be 0 or not calculated). The trigger can detect if session.rpe_participants = 0 and do nothing in that case.
+If some RPE submissions exist but below threshold (participants > 0 but <40%), the session load was probably not calculated yet (still 0). In this scenario, even after changing duration, we likely still keep load at 0 (because we are not showing partial loads until threshold). However, to be safe, we might recalc a “partial” load internally. The decision is: do we update the load field even if threshold isn’t met? It might be better not to (to adhere to the rule of not showing load until enough data). We can simply leave session.load as 0 in those cases. Or we could calculate it but still suppress it until threshold – however, since our trigger on RPE will handle it once threshold is reached, it’s fine to skip now.
+If the session already had a load computed (i.e. threshold was met previously, or possibly even all athletes submitted), we definitely recalc using the new duration. This will immediately update the Training Log’s displayed load and the weekly total. The trigger should handle this seamlessly. For example, if a coach extends a session from 60 to 90 minutes after 50% of athletes gave an RPE of 5 (with coeffs =1), the load will increase from 5×60×(0.5) to 5×90×(0.5) = from 150 AU to 225 AU. The charts will reflect this new value.
+Cascade to Weekly Load/ACWR: Similar to the RPE submission trigger, after updating the session’s load, we should propagate that change to any aggregates:
+If using a WeeklyLoad cached value, adjust that week’s total by adding the difference (new_load – old_load).
+ACWR (if stored) should be recalculated as well, since the week’s acute load changed.
+If computed on the fly, no additional action is needed—any new request for the weekly/ACWR data will pick up the updated session load.
+By implementing the duration update trigger, we ensure coaches see the impact of their changes immediately. The moment a coach edits and saves a session’s duration, the Training Log entry updates (load recalculated, if applicable) and the charts adjust to reflect the new load. This eliminates any inconsistency where a coach might have changed a session from, say, 60 to 45 minutes but still saw the old load in their metrics. Now, the data will stay in sync with the session’s actual parameters.
+4. Unified Calculation Logic and Data Flow
+It’s critical that both the RPE submission trigger and the duration update trigger (or their equivalent in the application logic) use the same formula and data sources for consistency. To achieve this, we can refactor the calculation into a single stored procedure or function that both triggers call. For example, we might create a SQL function compute_session_load(session_id) that:
+Queries the number of RPE respondents (n), total athletes (N), and average RPE for the session with id session_id.
+Retrieves the session’s emotional coefficient, type coefficient, and duration.
+Applies the formula:
+load = avgRPE * emotionalCoeff * duration * typeCoeff * (n / N).
+Returns that load (and possibly the participant count, though we can get count directly too).
+The function can also directly perform the UPDATE sessions SET load = new_load, rpe_participants = n, ... WHERE id = session_id to encapsulate the whole operation.
+Using this approach, whenever an athlete’s RPE comes in or a relevant session field changes, we just call compute_session_load(session_id) inside the trigger. This ensures both triggers always calculate load the same way, preventing any divergence (for instance, we won’t accidentally apply the formula in one place but forget the (participants/total) factor in another). Additionally, having a single function means if the formula or coefficients change in the future, we update it in one place. It also reduces code duplication and potential errors. The triggers themselves become simple: “after insert on RPE -> call compute_session_load(session_id); after update on session (duration) -> call compute_session_load(id)”. On the API/endpoint side, we should verify that the data served to the front-end uses the fields we’re updating. Likely, the Training Log API already fetches session.rpe_participants and session.load (or similar fields). We must ensure it does not override or recalc these in a different way. If previously the API was calculating load or filtering sessions itself, we can simplify it now to trust the database fields. For example:
+The Training Log endpoint can simply return the stored rpe_participants count for each session (which our triggers keep accurate). No need for it to always join with the RPE submissions table or apply its own 40% logic – the heavy lifting is done in the DB. This likely improves performance as well.
+The Weekly Load/ACWR endpoint or service should likewise use the updated session.load values (or the WeeklyLoad table if we maintain one). If any code was excluding sessions until a certain flag, we should remove that filter or ensure the flag is set at threshold. In our case, since session.load will be zero until threshold, one simple approach is: include all sessions in the weekly sum – those still below threshold contribute 0 load anyway, so it doesn’t harm. As soon as one gets a positive load, it’s automatically included. This way the logic is straightforward.
+If the ACWR is computed in the front-end from weekly data, no change is needed except that now the data will be current. If it’s computed in backend, ensure the endpoint calculates the ratio using up-to-date weekly loads. Possibly recalc like acwr = this_week_total / (avg of last 4 week totals) whenever sending data.
+5. Verification and Consistency
+After implementing these fixes, the system should behave as follows:
+As soon as an athlete submission pushes the session’s response rate above 40%, the coach’s Training Log will update. The “RPE Participants” count will show the actual number of athletes who responded (no more stuck at 0), and if this crossed the threshold, the session’s Training Load (in AU) will be calculated. The coach can thus see, in the Training Log or elsewhere, that the session now has a load value (instead of blank or 0). The Weekly Load chart bar for that session’s week will instantly rise by the correct amount, and the ACWR point will adjust accordingly. Coaches get timely insight into training load without waiting.
+RPE Participant Counts are accurate at all times. Even before the 40% threshold is reached, the Training Log will show the number of responses (e.g. “3 RPE participants (30%)”) so the coach knows some athletes have submitted. (If the UI displays the fraction or percentage, it can be derived from participants/total easily now that both are known.) This addresses confusion when some athletes had in fact reported RPE but the interface showed 0 – that scenario will no longer occur.
+Session load remains hidden (zero) until threshold, if that is the intended design, but behind the scenes we still update participant counts. Once the threshold is passed, the load appears. (If the product decision is to even display a partial load scaled by responses, we could choose to show whatever the formula yields at any time, since the formula inherently scales by participants/total. However, based on the requirements, it seems they only want to display/load data after >40% responses, likely to ensure data reliability. We have adhered to that: no load is set until the threshold is exceeded.)
+If a coach updates the session duration, the change is reflected immediately:
+The session’s load is recalculated with the new duration. The next time the coach looks at the Training Log or weekly chart (or immediately, if the interface is designed to pull fresh data on save), they will see the load adjusted. There’s no discrepancy between the session details (e.g., “Duration: 90 min”) and the reported load.
+The recalculation uses the same logic as the initial calculation. So if a session already had, say, 50 AU load and the coach doubles the duration, the load will roughly double (assuming the same RPE data). This makes intuitive sense to the coach and keeps the data consistent.
+All related aggregates (weekly total, ACWR) update in lockstep.
+Consistent ACWR and Load Insights: By fixing these data flows, the ACWR chart will consistently reflect the actual training strain. For example, if previously a high-intensity session wasn’t counted (due to the bug) and ACWR looked deceptively low, now that session’s load counts once enough athletes report their RPE. The ACWR ratio might jump or increase, correctly alerting the coach to a spike in acute load. This consistency helps with injury risk management and training decisions.
+We will not have altered anything on the athlete side – athletes still submit RPE in the same way – nor changed any UI components. The interface changes are purely the numbers getting updated, which is the desired outcome. We also won’t touch design or styling; all improvements are under the hood. From the coach’s perspective, the app will simply start showing the right numbers shortly after athletes input their data.
+6. Implementation Details
+To implement the above, the development team should make the following specific changes:
+Database Trigger for RPE Inserts: Create an AFTER INSERT trigger on the RPE submission table. In SQL pseudocode, for example:
+sql
+Copy
+Edit
+CREATE OR REPLACE FUNCTION update_session_metrics() ... 
+BEGIN 
+    -- calculate participants count
+    SELECT COUNT(*) INTO participant_count 
+    FROM SessionRPE WHERE session_id = NEW.session_id;
+    SELECT total_athletes INTO total FROM Sessions WHERE id = NEW.session_id;
+    SELECT AVG(rpe_value) INTO avg_rpe FROM SessionRPE WHERE session_id = NEW.session_id;
+    -- update participant count field
+    UPDATE Sessions SET rpe_participants = participant_count WHERE id = NEW.session_id;
+    -- if threshold passed, compute load
+    IF participant_count::DECIMAL / total::DECIMAL > 0.4 THEN 
+        SELECT emotional_coeff, type_coeff, duration INTO emo, typeC, dur FROM Sessions WHERE id = NEW.session_id;
+        -- Compute new load
+        new_load = avg_rpe * emo * typeC * dur * (participant_count::DECIMAL / total::DECIMAL);
+        UPDATE Sessions SET load = new_load WHERE id = NEW.session_id;
+    END IF;
+END;
+Then attach it:
+sql
+Copy
+Edit
+CREATE TRIGGER on_rpe_insert
+AFTER INSERT ON SessionRPE
+FOR EACH ROW EXECUTE FUNCTION update_session_metrics();
+This is a simplified sketch – in practice we might combine queries or use a single UPDATE with sub-selects to be atomic. The key is that whenever a new RPE row comes in, we update the session’s rpe_participants and load accordingly. We would also create a similar trigger for AFTER UPDATE on the RPE table if athletes can edit their submissions, or handle deletes if we allow removing an RPE (to keep counts accurate).
+Trigger for Session Updates (Duration): Create an AFTER UPDATE OF duration ON Sessions trigger that calls a function to recalc load:
+sql
+Copy
+Edit
+CREATE OR REPLACE FUNCTION recalc_session_load_on_duration() ...
+BEGIN
+    IF NEW.duration <> OLD.duration THEN
+        -- Only recalc if there's existing RPE data (to avoid unnecessary zero calc)
+        SELECT rpe_participants, total_athletes, emotional_coeff, type_coeff, 
+               (SELECT AVG(rpe_value) FROM SessionRPE WHERE session_id = NEW.id)
+        INTO p_count, total, emo, typeC, avg_rpe
+        FROM Sessions WHERE id = NEW.id;
+        
+        IF p_count > 0 THEN
+            IF p_count::DECIMAL / total::DECIMAL > 0.4 THEN
+                -- Compute adjusted load with NEW.duration
+                new_load = avg_rpe * emo * typeC * NEW.duration * (p_count::DECIMAL / total::DECIMAL);
+            ELSE 
+                -- If still below threshold, maybe keep load at 0 (or optionally compute partial)
+                new_load = 0;
+            END IF;
+            UPDATE Sessions SET load = new_load WHERE id = NEW.id;
+            -- (Also update WeeklyLoad table or other aggregates if applicable)
+        END IF;
+    END IF;
+END;
+CREATE TRIGGER on_session_update
+AFTER UPDATE OF duration ON Sessions
+FOR EACH ROW EXECUTE FUNCTION recalc_session_load_on_duration();
+This ensures any change in duration triggers the logic. We include the threshold check to decide if load should be non-zero or remain zero. If the session already had a load (p_count/total > 0.4), it gets adjusted. If not, we keep it at 0 until enough responses are in.
+API Endpoints: Update any relevant API code to remove outdated logic:
+The endpoint that returns Training Log data should trust the Sessions table values for rpe_participants and load. If previously it always computed those on the fly or only after a certain time, that can be simplified. For instance, if there was code like “if session.rpe_participants < 0.4*total then display 0”, we should remove that – because the database now ensures rpe_participants is actual count and load will be 0 or actual appropriately. The API can just serialize those fields directly. This makes the Training Log API lighter and consistent.
+The endpoint for Weekly Load and ACWR (sometimes combined as a “load insights” or “readiness” API) should similarly use the updated data. If a separate service was summing loads, ensure it runs at request time or after triggers. Given our triggers, it might be easiest to just do a SQL query for the last 7 days of sessions summing their load. The ACWR can be calculated by another query or in code by grabbing the last 28 days. The key is no longer ignoring sessions with incomplete data—because incomplete ones have load = 0 anyway, including them won’t skew anything. And once a session’s load is set, it automatically counts.
+If any caching layer or in-memory store was used (for example, to store ACWR values), consider invalidating or updating it when triggers fire. However, since we’re doing everything in the database, usually the simplest approach is to query fresh data when the coach opens the app or refreshes the page.
+Testing the Fixes: After implementation, we will test scenarios to ensure the issue is resolved:
+Athlete Submissions: Create a session with known total athletes (say 10). Have 1–3 athletes submit RPEs. Confirm that the Training Log now shows “1 RPE participant”, “2 RPE participants”, etc., instead of 0. The Weekly Load chart should still show 0 load (since threshold not met). Once the 4th athlete submits (crossing 40% to 40% exactly – which is equal, not yet “>40%”) the count should update to 4 but load still 0 (assuming strict “>40%”). When the 5th athlete submits (50%), check that immediately the session’s load is calculated and now a value appears in the Weekly Load chart bar. Verify the numeric correctness of the load (maybe also check that it matches manual calculation). The ACWR chart should update – likely showing an acute load increase for that week.
+Additional Submissions: If more athletes (6th, 7th, etc.) submit RPE after the threshold, ensure the session load recalculates each time (the load might change slightly if their RPEs differ from the earlier average). The participant count should increment each time. The charts should reflect the slight load adjustments (these might be minor, but should be noticeable if differences are large).
+Duration Change: After some RPE submissions (threshold met or not), edit the session’s duration as a coach. For example, if threshold was met at 5 submissions and load was computed, change the duration from 60 to 120 minutes. Confirm that immediately after this update, the session’s load doubled (or updated proportionally) in the Training Log and Weekly Load chart. If threshold was not met (e.g., only 3 submissions, and coach changes duration), verify that the participant count remains (3) and load remains 0 (still incomplete data) – the trigger should not mistakenly assign a load in that case. Once enough submissions come in later, it should then use the new duration for the calculation.
+Edge Cases: Try cases like exactly 40% submissions (e.g., 4 out of 10) to ensure the “>40%” condition is handled (should not calculate load at 4/10, only at 5/10). Also, if an athlete’s submission is updated or removed, ensure the counts adjust (this may require an AFTER UPDATE or AFTER DELETE on the RPE table similarly, if those actions are allowed).
+Multiple Sessions & Weeks: Ensure that one session updating doesn’t affect others, and weekly sums are correct when multiple sessions in the same week have loads. The ACWR should use the sum of all sessions in the last 7 days vs 28 days as intended.
+By implementing the above changes, we preserve the intended behavior (hiding very incomplete RPE data from coaches) while fixing the errors in data flow. Coaches will get immediate, accurate feedback: the number of athletes who have submitted RPEs for each session and the resulting training load (AU) appear as soon as enough data is available, and all charts (Training Load and ACWR) update accordingly. All of this is done without any changes to the user interface or the athlete submission process, focusing solely on backend triggers, calculations, and ensuring the data is consistent across the application.
