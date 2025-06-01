@@ -292,8 +292,10 @@ export default function LoadInsights() {
           </div>
         </Card>
 
+        <div className="h-8"></div>{/* 32-px spacer */}
+
         {/* ACWR Chart - Always Last 30 Days */}
-        <Card className="bg-zinc-800/90 px-4 py-4 mt-6">
+        <Card className="bg-zinc-800/90 px-4 py-4">
           <h2 className="chart-title mb-1">ACWR – Acute:Chronic Workload Ratio (Last 30 Days)</h2>
           <p className="chart-meta mb-3">Risk monitoring and training load balance</p>
           <div className="h-80">
