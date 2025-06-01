@@ -33,16 +33,16 @@ export async function getSimpleTrainingSessions() {
     const result = {
       id: sessionKey,
       date: dateStr,
-      type: `${session.type} Training`,
+      trainingType: session.type,
       sessionNumber: 1,
-      avgRPE: session.avg_rpe,
-      participants: session.participants,
+      rpe: session.avg_rpe,
+      participantCount: session.participants,
       totalAthletes: athleteCount,
       duration: 60, // Default duration from view calculation
-      calculatedAU: Math.round(session.session_load)
+      load: Math.round(session.session_load)
     };
     
-    console.log(`UNIFIED: ${result.id} = ${result.calculatedAU} AU (${result.participants} athletes)`);
+    console.log(`UNIFIED: ${result.id} = ${result.load} AU (${result.participantCount} athletes)`);
     return result;
   });
   
