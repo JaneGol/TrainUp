@@ -84,14 +84,15 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
             labelFormatter={(value) => value}
           />
           
-          <Bar dataKey="Field" stackId="a" fill={colors.Field}>
-            <LabelList dataKey="Field" position="top" formatter={(v: number) => v ? `${v}` : ''} />
-          </Bar>
-          <Bar dataKey="Gym" stackId="a" fill={colors.Gym}>
-            <LabelList dataKey="Gym" position="top" formatter={(v: number) => v ? `${v}` : ''} />
-          </Bar>
+          <Bar dataKey="Field" stackId="a" fill={colors.Field} />
+          <Bar dataKey="Gym" stackId="a" fill={colors.Gym} />
           <Bar dataKey="Match" stackId="a" fill={colors.Match}>
-            <LabelList dataKey="Match" position="top" formatter={(v: number) => v ? `${v}` : ''} />
+            <LabelList 
+              dataKey="total" 
+              position="top"
+              className="text-[9px] fill-zinc-100 font-medium"
+              formatter={(value: number) => value > 0 ? value : ''}
+            />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
