@@ -601,16 +601,25 @@ export class DatabaseStorage implements IStorage {
         const athleteCount = athletes.length;
         
         const finalSessions = await Promise.all(sessions.map(async (session) => {
-          // Get RPE submissions for this session
+          // Get RPE submissions for this session - properly handle empty results
           const submissions = await db
-            .select({ rpe: rpeSubmissions.rpe })
+            .select({ 
+              rpe: rpeSubmissions.rpe,
+              emotionalLoad: rpeSubmissions.emotionalLoad 
+            })
             .from(rpeSubmissions)
             .where(eq(rpeSubmissions.sessionId, session.id));
           
-          // Calculate average RPE from submissions
+          // Calculate average RPE from actual submissions only (fix for 0/8 issue)
           const avgRPE = submissions.length > 0 
             ? submissions.reduce((sum, sub) => sum + sub.rpe, 0) / submissions.length 
             : 0;
+          
+          // Calculate session load using RPE formula with proper duration default
+          const duration = session.durationMinutes || 60;
+          const calculatedLoad = avgRPE > 0 && submissions.length > 0
+            ? Math.round(avgRPE * (1 + (submissions[0].emotionalLoad - 1) * 0.125) * duration)
+            : session.sessionLoad || 0;
           
           const sessionKey = `${new Date(session.sessionDate).toISOString().split('T')[0]}-${session.type} Training-${session.sessionNumber}`;
           
@@ -619,11 +628,11 @@ export class DatabaseStorage implements IStorage {
             date: new Date(session.sessionDate).toISOString().split('T')[0],
             type: `${session.type} Training`,
             sessionNumber: session.sessionNumber,
-            avgRPE: Number(avgRPE.toFixed(1)),
-            participants: submissions.length,
+            avgRPE: submissions.length > 0 ? Number(avgRPE.toFixed(1)) : 0,
+            participants: submissions.length, // Actual participant count
             totalAthletes: athleteCount,
-            duration: session.durationMinutes,
-            calculatedAU: Math.round(session.sessionLoad || 0)
+            duration: duration,
+            calculatedAU: Math.round(calculatedLoad)
           };
         }));
         
