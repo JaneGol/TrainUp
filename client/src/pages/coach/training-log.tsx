@@ -46,11 +46,11 @@ export default function TrainingLog() {
   const transformedSessions: TrainingSession[] = trainingSessions.map((session: any) => ({
     id: session.id,
     date: session.date,
-    trainingType: session.type,
+    trainingType: session.trainingType,
     sessionNumber: session.sessionNumber,
-    rpe: session.avgRPE,
-    load: session.calculatedAU,
-    participantCount: session.participants,
+    rpe: session.rpe,
+    load: session.load,
+    participantCount: session.participantCount,
     totalAthletes: session.totalAthletes,
     duration: session.duration,
     emotionalLoad: 1.25 // Default emotional load
@@ -69,12 +69,15 @@ export default function TrainingLog() {
 
     return Object.entries(grouped).map(([date, sessions]) => {
       const totalAU = sessions.reduce((sum, s) => sum + (s.load || 0), 0);
-      const validRpeValues = sessions.filter(s => s.rpe !== null && s.rpe !== undefined).map(s => s.rpe);
-      const avgRpe = validRpeValues.length > 0 ? validRpeValues.reduce((sum, rpe) => sum + rpe, 0) / validRpeValues.length : 0;
+      const validRpeValues = sessions.filter(s => s.rpe !== null && s.rpe !== undefined && !isNaN(s.rpe)).map(s => s.rpe);
+      const avgRpe = validRpeValues.length > 0 ? validRpeValues.reduce((sum, rpe) => sum + rpe, 0) / validRpeValues.length : null;
+      
+      console.log(`DEBUG Daily Summary - Date: ${date}, Sessions:`, sessions);
+      console.log(`DEBUG - Total AU: ${totalAU}, Valid RPE values:`, validRpeValues, 'Avg RPE:', avgRpe);
       
       return {
         date,
-        avgRpe: Number(avgRpe.toFixed(1)),
+        avgRpe: avgRpe !== null ? Number(avgRpe.toFixed(1)) : 0,
         totalAU,
         sessions: sessions.length,
         labelDate: format(parseISO(date), 'dd.MM'),
