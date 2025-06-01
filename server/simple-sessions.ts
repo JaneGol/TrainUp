@@ -9,18 +9,20 @@ export async function getSimpleTrainingSessions() {
   const athletes = await db.select({ id: users.id }).from(users).where(eq(users.role, 'athlete'));
   const athleteCount = athletes.length;
   
-  // Query the unified view that aggregates authentic training entries
-  const sessionsFromEntries = await db.$queryRaw<Array<{
+  // Query the unified view using pool.query
+  const { pool } = await import("./db");
+  const queryResult = await pool.query(`
+    SELECT session_date, type, participants, avg_rpe, session_load
+    FROM session_metrics_from_entries
+    ORDER BY session_date DESC
+  `);
+  const sessionsFromEntries = queryResult.rows as Array<{
     session_date: Date,
     type: string,
     participants: number,
     avg_rpe: number,
     session_load: number
-  }>>`
-    SELECT session_date, type, participants, avg_rpe, session_load
-    FROM session_metrics_from_entries
-    ORDER BY session_date DESC
-  `;
+  }>;
   
   console.log(`UNIFIED: Found ${sessionsFromEntries.length} sessions from authentic athlete data`);
   
