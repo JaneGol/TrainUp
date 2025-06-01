@@ -68,8 +68,9 @@ export default function TrainingLog() {
     }, {} as Record<string, TrainingSession[]>);
 
     return Object.entries(grouped).map(([date, sessions]) => {
-      const totalAU = sessions.reduce((sum, s) => sum + s.load, 0);
-      const avgRpe = sessions.reduce((sum, s) => sum + s.rpe, 0) / sessions.length;
+      const totalAU = sessions.reduce((sum, s) => sum + (s.load || 0), 0);
+      const validRpeValues = sessions.filter(s => s.rpe !== null && s.rpe !== undefined).map(s => s.rpe);
+      const avgRpe = validRpeValues.length > 0 ? validRpeValues.reduce((sum, rpe) => sum + rpe, 0) / validRpeValues.length : 0;
       
       return {
         date,
