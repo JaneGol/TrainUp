@@ -214,8 +214,10 @@ export default function LoadInsights() {
           </div>
         </Card>
 
+        <div className="h-8"></div>{/* 32-px spacer */}
+
         {/* Advanced Workload Metrics */}
-        <Card className="bg-zinc-800/90 px-4 py-4 mt-6">
+        <Card className="bg-zinc-800/90 px-4 py-4">
           <h2 className="chart-title mb-1">Advanced Workload Metrics</h2>
           <p className="chart-meta mb-4">Training load analysis and distribution patterns</p>
           
@@ -231,7 +233,11 @@ export default function LoadInsights() {
             <div className="bg-zinc-900 rounded-lg p-3">
               <div className="text-xs text-zinc-400 mb-1">Training Strain</div>
               <div className="text-lg font-bold text-white">{weeklyMetrics.strain}</div>
-              <div className="text-xs text-zinc-500">Load × (1 + Monotony)</div>
+              <div className="text-xs text-zinc-500">
+                Training Strain combines weekly load<br/>
+                with monotony. 4,000-6,000 = moderate,<br/>
+                {'>'}7,500 indicates high cumulative stress.
+              </div>
             </div>
             
             {/* ACWR Average */}
