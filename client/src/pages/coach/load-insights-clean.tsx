@@ -14,6 +14,8 @@ import TrainingLoadColumns from "@/components/TrainingLoadColumns";
 import WeekSelect, { buildWeekOptions } from "@/components/WeekSelect";
 import LegendChips from "@/components/LegendChips";
 import { useWeekLoad } from "@/hooks/useWeekLoad";
+import { useTenWeekCombo } from "@/hooks/useTenWeekCombo";
+import CombinedLoadAcwrChart from "@/components/CombinedLoadAcwrChart";
 import { format, parseISO } from 'date-fns';
 
 // Mobile detection hook
@@ -105,13 +107,8 @@ export default function LoadInsights() {
     refetchOnWindowFocus: true,
   });
 
-  // Get 10-week load data with real-time updates
-  const { data: tenWeekData = [] } = useQuery({
-    queryKey: ["/api/analytics/weekly-load"],
-    staleTime: 30_000, // 30 seconds
-    refetchInterval: 60_000, // Refresh every minute
-    refetchOnWindowFocus: true,
-  });
+  // Get combined 10-week load and ACWR data
+  const { data: tenWeekComboData = [] } = useTenWeekCombo(athleteId);
 
   // Use the weekly load data directly - it already contains all 7 days
   const weekTrainingData = weeklyLoadData;
@@ -294,7 +291,11 @@ export default function LoadInsights() {
 
         <div className="h-8"></div>{/* 32-px spacer */}
 
-        {/* ACWR Chart - Always Last 30 Days */}
+        {/* Combined Weekly Load & ACWR Chart */}
+        <CombinedLoadAcwrChart data={tenWeekComboData} />
+
+        {/* Legacy ACWR Chart - Temporarily Hidden */}
+        <div style={{display: 'none'}}>
         <Card className="bg-zinc-800/90 px-4 py-4">
           <h2 className="chart-title mb-1">ACWR – Acute:Chronic Workload Ratio (Last 30 Days)</h2>
           <p className="chart-meta mb-3">Risk monitoring and training load balance</p>
@@ -380,6 +381,7 @@ export default function LoadInsights() {
             <LegendChips keys={['Field','Gym','Match']} />
           </div>
         </Card>
+        </div>
       </div>
     </div>
   );
