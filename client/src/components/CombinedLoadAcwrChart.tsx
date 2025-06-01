@@ -43,7 +43,8 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
             />
             <YAxis 
               yAxisId="load" 
-              orientation="left" 
+              orientation="left"
+              domain={[0, 3000]}
               label={{ value: 'AU', angle: -90, position: 'insideLeft' }}
               fontSize={11}
               fill="#9CA3AF"
@@ -53,7 +54,8 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
               yAxisId="acwr" 
               orientation="right" 
               domain={[0, 2]} 
-              hide 
+              tick={{ fontSize: 11, fill: '#9ca3af' }}
+              label={{ value: 'ACWR', angle: 90, position: 'insideRight' }}
             />
             
             {/* ACWR optimal zone */}
@@ -98,9 +100,16 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
               dot={{ r: 3, fill: "#facc15" }} 
               strokeWidth={2}
               name="ACWR"
+              connectNulls
             />
             
             <Legend 
+              payload={[
+                { value: 'Field', type: 'square', color: '#b5f23d' },
+                { value: 'Gym', type: 'square', color: '#547aff' },
+                { value: 'Match', type: 'square', color: '#ff6f6f' },
+                { value: 'ACWR', type: 'line', color: '#facc15' }
+              ]}
               verticalAlign="bottom" 
               height={24}
               wrapperStyle={{ color: '#fff', fontSize: '12px' }}
@@ -112,10 +121,7 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
                 borderRadius: '8px',
                 color: 'white'
               }}
-              formatter={(value, name) => [
-                `${value}${name === 'ACWR' ? '' : ' AU'}`, 
-                name
-              ]}
+              formatter={(v, name) => name === 'acwr' ? `${v}` : `${v} AU`}
               labelFormatter={(label) => `Week ${label}`}
             />
           </ComposedChart>
