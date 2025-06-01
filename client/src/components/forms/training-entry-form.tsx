@@ -31,6 +31,7 @@ import { Info } from "lucide-react";
 // Extend the schema for the form
 const trainingEntryFormSchema = insertTrainingEntrySchema.extend({
   date: z.string().min(1, { message: "Date is required" }),
+  sessionNumber: z.number().min(1).max(2).optional(),
 });
 
 // Define the type for form values
@@ -44,11 +45,13 @@ export default function TrainingEntryForm() {
   const form = useForm<TrainingEntryFormValues>({
     resolver: zodResolver(trainingEntryFormSchema),
     defaultValues: {
-      trainingType: "",
+      trainingType: "Field Training" as const,
       date: new Date().toISOString().slice(0, 16), // Format as YYYY-MM-DDThh:mm
       effortLevel: 7,
-      mood: "great",
+      emotionalLoad: 3,
+      mood: "neutral",
       notes: "",
+      sessionNumber: 1,
     },
   });
   
@@ -65,11 +68,13 @@ export default function TrainingEntryForm() {
         description: "Your training diary has been updated.",
       });
       form.reset({
-        trainingType: "",
+        trainingType: "Field Training",
         date: new Date().toISOString().slice(0, 16),
         effortLevel: 7,
-        mood: "great",
+        emotionalLoad: 3,
+        mood: "neutral",
         notes: "",
+        sessionNumber: 1,
       });
       setEffortLevel(7);
     },
@@ -109,11 +114,9 @@ export default function TrainingEntryForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Strength">Strength</SelectItem>
-                        <SelectItem value="Endurance">Endurance</SelectItem>
-                        <SelectItem value="Speed">Speed</SelectItem>
-                        <SelectItem value="Technique">Technique</SelectItem>
-                        <SelectItem value="Recovery">Recovery</SelectItem>
+                        <SelectItem value="Field Training">Field Training</SelectItem>
+                        <SelectItem value="Gym Training">Gym Training</SelectItem>
+                        <SelectItem value="Match/Game">Match/Game</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
