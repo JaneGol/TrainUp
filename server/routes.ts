@@ -817,6 +817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return {
           ...week,
           weekLabel: `W${weekNumber}`,
+          chronic: Math.round(chronic * 100) / 100,
           acwr: Math.round(acwr * 100) / 100
         };
       });
