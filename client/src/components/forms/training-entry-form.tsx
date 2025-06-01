@@ -126,18 +126,40 @@ export default function TrainingEntryForm() {
               
               <FormField
                 control={form.control}
-                name="date"
+                name="sessionNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date & Time</FormLabel>
-                    <FormControl>
-                      <Input type="datetime-local" {...field} />
-                    </FormControl>
+                    <FormLabel>Session Number</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value?.toString()}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Session" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">Session 1</SelectItem>
+                        <SelectItem value="2">Session 2</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+            
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date & Time</FormLabel>
+                  <FormControl>
+                    <Input type="datetime-local" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <FormField
               control={form.control}
@@ -167,6 +189,38 @@ export default function TrainingEntryForm() {
                   <div className="mt-1 text-center">
                     <span className="bg-primary text-white text-xs px-2 py-1 rounded-full">
                       {effortLevel}/10
+                    </span>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="emotionalLoad"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Emotional Load</FormLabel>
+                  <div className="flex justify-between px-2 text-xs text-gray-500 mb-1">
+                    <span>Very Low</span>
+                    <span>Low</span>
+                    <span>Moderate</span>
+                    <span>High</span>
+                    <span>Very High</span>
+                  </div>
+                  <FormControl>
+                    <Slider
+                      min={1}
+                      max={5}
+                      step={1}
+                      value={[field.value]}
+                      onValueChange={(vals) => field.onChange(vals[0])}
+                    />
+                  </FormControl>
+                  <div className="mt-1 text-center">
+                    <span className="bg-secondary text-foreground text-xs px-2 py-1 rounded-full">
+                      {field.value}/5
                     </span>
                   </div>
                   <FormMessage />
