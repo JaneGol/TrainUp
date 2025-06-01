@@ -21,7 +21,7 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
     <div className="rounded-xl bg-white/5 backdrop-blur p-4 md:p-6 shadow">
       <h2 className="chart-title mb-1">Weekly Load & ACWR (Last 10 Weeks)</h2>
       <p className="chart-meta mb-4">Bars = weekly load; line = ACWR. Green band = optimal 0.8–1.3</p>
-      <div className="w-full" style={{ height: '320px' }}>
+      <div className="w-full h-80">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
             data={data}
