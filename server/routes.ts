@@ -703,13 +703,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 70);
       
+      // Use the working getTrainingLoadByRPE method that accesses session_load correctly
       const allEntries = await storage.getTrainingLoadByRPE();
-      const entries = allEntries.filter((entry: any) => {
+      console.log(`Found ${allEntries.length} training load entries from DB`);
+      
+      // Convert the aggregated data into individual entries for each training type
+      const entries: any[] = [];
+      allEntries.forEach((entry: any) => {
         const entryDate = new Date(entry.date);
         const matchesDateRange = entryDate >= startDate && entryDate <= endDate;
-        const matchesAthlete = !athleteId || entry.athleteId === parseInt(athleteId as string);
-        return matchesDateRange && matchesAthlete;
+        const matchesAthlete = !athleteId || athleteId === 'all' || entry.athleteId === parseInt(athleteId as string);
+        
+        if (matchesDateRange && matchesAthlete) {
+          // Add separate entries for each training type with non-zero loads
+          if (entry.fieldTraining && entry.fieldTraining > 0) {
+            entries.push({
+              date: entry.date,
+              type: 'Field',
+              load: entry.fieldTraining
+            });
+          }
+          if (entry.gymTraining && entry.gymTraining > 0) {
+            entries.push({
+              date: entry.date,
+              type: 'Gym',
+              load: entry.gymTraining
+            });
+          }
+          if (entry.matchGame && entry.matchGame > 0) {
+            entries.push({
+              date: entry.date,
+              type: 'Match',
+              load: entry.matchGame
+            });
+          }
+        }
       });
+      
+      console.log(`Processed ${entries.length} individual training entries for weekly grouping`);
 
       // Helper function to get ISO week number
       function getISOWeek(date: Date): number {
@@ -750,19 +781,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const weekData = weeklyData.get(weekKey)!;
+        const load = entry.load || 0;
         
-        // Calculate training load using the same formula as other endpoints
-        const emotionalLevel = Math.round(entry.emotional || 3);
-        const emotionalMultiplier = [1.0, 1.125, 1.25, 1.375, 1.5][emotionalLevel - 1] || 1.25;
-        const typeMultiplier = entry.trainingType === 'Field Training' ? 1.25 : 
-                             entry.trainingType === 'Match/Game' ? 1.5 : 1.0;
-        const load = Math.round(entry.rpe * entry.duration * emotionalMultiplier * typeMultiplier);
-        
-        if (entry.trainingType === 'Field Training') {
+        // Use actual session_load from database (already calculated)
+        if (entry.type === 'Field' || entry.type === 'Field Training') {
           weekData.field += load;
-        } else if (entry.trainingType === 'Gym Training') {
+        } else if (entry.type === 'Gym' || entry.type === 'Gym Training') {
           weekData.gym += load;
-        } else if (entry.trainingType === 'Match/Game') {
+        } else if (entry.type === 'Match' || entry.type === 'Match/Game') {
           weekData.match += load;
         }
         
