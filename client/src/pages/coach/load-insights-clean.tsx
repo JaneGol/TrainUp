@@ -292,7 +292,15 @@ export default function LoadInsights() {
         <div className="h-8"></div>{/* 32-px spacer */}
 
         {/* Combined Weekly Load & ACWR Chart */}
-        <CombinedLoadAcwrChart data={tenWeekComboData} />
+        {tenWeekComboLoading ? (
+          <Card className="bg-zinc-800/90 px-4 py-4">
+            <div className="h-80 flex items-center justify-center">
+              <div className="text-zinc-400">Loading combined chart...</div>
+            </div>
+          </Card>
+        ) : (
+          <CombinedLoadAcwrChart data={tenWeekComboData} />
+        )}
 
         {/* Legacy ACWR Chart - Temporarily Hidden */}
         <div style={{display: 'none'}}>
