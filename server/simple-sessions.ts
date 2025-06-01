@@ -43,6 +43,7 @@ export async function getSimpleTrainingSessions() {
     };
     
     console.log(`UNIFIED: ${result.id} = ${result.load} AU (${result.participantCount} athletes)`);
+    console.log('DEBUG: Result object:', JSON.stringify(result, null, 2));
     return result;
   });
   
