@@ -55,8 +55,9 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
       <ResponsiveContainer width="100%" height="100%">
         <BarChart 
           data={chartData} 
-          margin={{ top: 10, right: 16, left: 8, bottom: 0 }}
-          barCategoryGap="20%"
+          margin={{ top: 20, right: 20, left: 10, bottom: 0 }}
+          barGap={2}
+          barCategoryGap="5%"
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
           <XAxis 
@@ -68,10 +69,10 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
           />
           <YAxis 
             tickLine={false}
-            fontSize={12}
+            fontSize={11}
             fill="#9CA3AF"
             axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-            domain={[0, 'dataMax']}
+            domain={[0, 3000]}
           />
           <Tooltip 
             contentStyle={{
@@ -83,16 +84,15 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
             labelFormatter={(value) => value}
           />
           
-          <Bar dataKey="Field" stackId="a" fill={colors.Field} />
-          <Bar dataKey="Gym" stackId="a" fill={colors.Gym} />
-          <Bar dataKey="Match" stackId="a" fill={colors.Match} />
-          
-          <LabelList 
-            dataKey="total" 
-            position="center"
-            className="text-[10px] fill-zinc-100 font-medium"
-            formatter={(value: number) => value > 0 ? value : ''}
-          />
+          <Bar dataKey="Field" stackId="a" fill={colors.Field}>
+            <LabelList dataKey="Field" position="top" formatter={(v: number) => v ? `${v}` : ''} />
+          </Bar>
+          <Bar dataKey="Gym" stackId="a" fill={colors.Gym}>
+            <LabelList dataKey="Gym" position="top" formatter={(v: number) => v ? `${v}` : ''} />
+          </Bar>
+          <Bar dataKey="Match" stackId="a" fill={colors.Match}>
+            <LabelList dataKey="Match" position="top" formatter={(v: number) => v ? `${v}` : ''} />
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
