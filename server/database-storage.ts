@@ -731,10 +731,10 @@ export class DatabaseStorage implements IStorage {
           .from(rpeSubmissions)
           .where(eq(rpeSubmissions.sessionId, session.id));
         
-        // Calculate average RPE from submissions
+        // Calculate average RPE from submissions - return null when no submissions
         const avgRPE = submissions.length > 0 
           ? submissions.reduce((sum, sub) => sum + sub.rpe, 0) / submissions.length 
-          : 0;
+          : null;
         
         const sessionKey = `${new Date(session.sessionDate).toISOString().split('T')[0]}-${session.type} Training-${session.sessionNumber}`;
         
@@ -743,7 +743,7 @@ export class DatabaseStorage implements IStorage {
           date: new Date(session.sessionDate).toISOString().split('T')[0],
           type: `${session.type} Training`,
           sessionNumber: session.sessionNumber,
-          avgRPE: Number(avgRPE.toFixed(1)),
+          avgRPE: avgRPE !== null ? Number(avgRPE.toFixed(1)) : null,
           participants: submissions.length, // Number of athletes who submitted RPE
           totalAthletes: athleteCount,
           duration: session.durationMinutes,
