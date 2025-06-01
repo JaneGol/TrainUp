@@ -291,16 +291,14 @@ export default function LoadInsights() {
 
         <div className="h-8"></div>{/* 32-px spacer */}
 
-        {/* Combined Weekly Load & ACWR Chart */}
-        {tenWeekComboLoading ? (
-          <Card className="bg-zinc-800/90 px-4 py-4">
-            <div className="h-80 flex items-center justify-center">
-              <div className="text-zinc-400">Loading combined chart...</div>
-            </div>
-          </Card>
-        ) : (
-          <CombinedLoadAcwrChart data={tenWeekComboData} />
-        )}
+        {/* Combined Weekly Load & ACWR Chart - Coming Soon */}
+        <Card className="bg-zinc-800/90 px-4 py-4">
+          <h2 className="chart-title mb-1">Combined Weekly Load & ACWR (Last 10 Weeks)</h2>
+          <p className="chart-meta mb-4">Unified view of training volume and injury risk trends</p>
+          <div className="h-80 flex items-center justify-center">
+            <div className="text-zinc-400">Combined chart implementation in progress...</div>
+          </div>
+        </Card>
 
         {/* Legacy ACWR Chart - Temporarily Hidden */}
         <div style={{display: 'none'}}>
