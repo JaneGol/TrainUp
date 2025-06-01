@@ -35,15 +35,14 @@ export async function getSimpleTrainingSessions() {
       date: dateStr,
       trainingType: session.type,
       sessionNumber: 1,
-      rpe: session.avg_rpe,
-      participantCount: session.participants,
+      rpe: Number(session.avg_rpe),
+      participantCount: Number(session.participants),
       totalAthletes: athleteCount,
       duration: 60, // Default duration from view calculation
       load: Math.round(session.session_load)
     };
     
     console.log(`UNIFIED: ${result.id} = ${result.load} AU (${result.participantCount} athletes)`);
-    console.log('DEBUG: Result object:', JSON.stringify(result, null, 2));
     return result;
   });
   
