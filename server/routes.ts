@@ -593,7 +593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Enhanced Coach Analytics Routes
   
-  // Get training load by RPE - FIXED CALCULATION
+  // Get training load by RPE - UNIFIED DATA SOURCE
   app.get("/api/analytics/training-load", async (req, res) => {
     if (!req.isAuthenticated() || req.user!.role !== "coach") {
       return res.sendStatus(401);
@@ -606,18 +606,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.set('Last-Modified', new Date().toUTCString());
     res.set('ETag', `"${Date.now()}"`);
     
-    // Parse athleteId from query parameter
-    let athleteId: number | undefined = undefined;
-    if (req.query.athleteId && typeof req.query.athleteId === 'string') {
-      const parsedId = parseInt(req.query.athleteId);
-      if (!isNaN(parsedId)) {
-        athleteId = parsedId;
-      }
-    }
+    console.log("=== ANALYTICS TRAINING-LOAD: Using unified coach session summary ===");
     
-    // Get fresh calculation data
-    const loadData = await storage.getTrainingLoadByRPE(athleteId);
-    res.json(loadData);
+    // Use the same unified coach session summary as the Training Log
+    const sessions = await storage.getUnifiedSessionsForCoach();
+    console.log(`ANALYTICS: Found ${sessions.length} sessions from unified data source`);
+    
+    // Transform to match the expected format for analytics charts
+    const loadData = sessions.map((session: any) => {
+      const sessionDate = new Date(session.sessionDate);
+      const dateStr = sessionDate.toISOString().split('T')[0];
+      
+      console.log(`ANALYTICS: ${session.sessionId} = ${session.avgRpe} RPE, ${session.sessionLoad} AU (${session.participantCount} athletes)`);
+      
+      return {
+        date: dateStr,
+        Field: session.type === 'Field' ? session.sessionLoad : 0,
+        Gym: session.type === 'Gym' ? session.sessionLoad : 0,
+        Match: session.type === 'Match' ? session.sessionLoad : 0,
+        total: session.sessionLoad,
+        load: session.sessionLoad,
+        acwr: 1.0 // Default ACWR value
+      };
+    });
+    
+    // Group by date and sum the loads
+    const groupedData: { [date: string]: any } = {};
+    loadData.forEach(entry => {
+      if (!groupedData[entry.date]) {
+        groupedData[entry.date] = {
+          date: entry.date,
+          Field: 0,
+          Gym: 0,
+          Match: 0,
+          total: 0,
+          load: 0,
+          acwr: 1.0
+        };
+      }
+      
+      groupedData[entry.date].Field += entry.Field;
+      groupedData[entry.date].Gym += entry.Gym;
+      groupedData[entry.date].Match += entry.Match;
+      groupedData[entry.date].total += entry.total;
+      groupedData[entry.date].load += entry.load;
+    });
+    
+    const result = Object.values(groupedData).sort((a: any, b: any) => a.date.localeCompare(b.date));
+    console.log(`ANALYTICS: Returning ${result.length} days of grouped data`);
+    
+    res.json(result);
   });
   
   // Get acute vs chronic load ratio

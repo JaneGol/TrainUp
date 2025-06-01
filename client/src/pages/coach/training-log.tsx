@@ -72,9 +72,6 @@ export default function TrainingLog() {
       const validRpeValues = sessions.filter(s => s.rpe !== null && s.rpe !== undefined && !isNaN(s.rpe)).map(s => s.rpe);
       const avgRpe = validRpeValues.length > 0 ? validRpeValues.reduce((sum, rpe) => sum + rpe, 0) / validRpeValues.length : null;
       
-      console.log(`DEBUG Daily Summary - Date: ${date}, Sessions:`, sessions);
-      console.log(`DEBUG - Total AU: ${totalAU}, Valid RPE values:`, validRpeValues, 'Avg RPE:', avgRpe);
-      
       return {
         date,
         avgRpe: avgRpe !== null ? Number(avgRpe.toFixed(1)) : 0,
