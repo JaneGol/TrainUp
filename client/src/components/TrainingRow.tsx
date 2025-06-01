@@ -6,7 +6,7 @@ interface TrainingSession {
   date: string;
   trainingType: string;
   sessionNumber?: number;
-  rpe: number;
+  rpe: number | null;
   load: number;
   participantCount: number;
   totalAthletes: number;
@@ -47,7 +47,7 @@ export default function TrainingRow({ session, onOpen }: TrainingRowProps) {
             <Users className="h-3 w-3" />
             {session.participantCount}/{session.totalAthletes}
           </span>
-          <span>RPE {session.rpe}</span>
+          <span>RPE {session.rpe === null ? '—' : session.rpe.toFixed(1)}</span>
           <span>Load {session.load} AU</span>
         </div>
       </div>

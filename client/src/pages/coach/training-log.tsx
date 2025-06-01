@@ -17,7 +17,7 @@ interface TrainingSession {
   date: string;
   trainingType: string;
   sessionNumber?: number;
-  rpe: number;
+  rpe: number | null;
   load: number;
   participantCount: number;
   totalAthletes: number;

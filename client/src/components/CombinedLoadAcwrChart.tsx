@@ -17,12 +17,25 @@ interface CombinedLoadAcwrChartProps {
 }
 
 export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartProps) {
+  // Add data validation to prevent rendering issues
+  if (!data || data.length === 0) {
+    return (
+      <div className="rounded-xl bg-white/5 backdrop-blur p-4 md:p-6 shadow">
+        <h2 className="chart-title mb-1">Weekly Load & ACWR (Last 10 Weeks)</h2>
+        <p className="chart-meta mb-4">Bars = weekly load; line = ACWR. Green band = optimal 0.8–1.3</p>
+        <div className="w-full h-80 flex items-center justify-center">
+          <div className="text-zinc-400">Loading chart data...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-xl bg-white/5 backdrop-blur p-4 md:p-6 shadow">
       <h2 className="chart-title mb-1">Weekly Load & ACWR (Last 10 Weeks)</h2>
       <p className="chart-meta mb-4">Bars = weekly load; line = ACWR. Green band = optimal 0.8–1.3</p>
-      <div className="w-full h-80">
-        <ResponsiveContainer width="100%" height="100%" minWidth={400} minHeight={300}>
+      <div className="w-full h-80" style={{ minWidth: '400px', minHeight: '300px' }}>
+        <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
             data={data}
             margin={{ top: 10, right: 30, left: 0, bottom: 0 }}

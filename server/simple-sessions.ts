@@ -28,10 +28,10 @@ export async function getSimpleTrainingSessions() {
       .from(rpeSubmissions)
       .where(eq(rpeSubmissions.sessionId, session.id));
     
-    // Calculate average RPE
+    // Calculate average RPE - return null when no submissions
     const avgRPE = submissions.length > 0 
       ? submissions.reduce((sum, sub) => sum + sub.rpe, 0) / submissions.length 
-      : 0;
+      : null;
     
     const dateStr = new Date(session.sessionDate).toISOString().split('T')[0];
     const sessionKey = `${dateStr}-${session.type} Training-${session.sessionNumber}`;
@@ -41,7 +41,7 @@ export async function getSimpleTrainingSessions() {
       date: dateStr,
       type: `${session.type} Training`,
       sessionNumber: session.sessionNumber,
-      avgRPE: Number(avgRPE.toFixed(1)),
+      avgRPE: avgRPE !== null ? Number(avgRPE.toFixed(1)) : null,
       participants: submissions.length,
       totalAthletes: athleteCount,
       duration: session.durationMinutes,
