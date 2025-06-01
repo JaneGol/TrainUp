@@ -352,10 +352,10 @@ export default function LoadInsights() {
           <p className="chart-meta mb-4">Training volume and type distribution over time</p>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={tenWeekData as any[]}>
+              <BarChart data={tenWeekComboData as any[]}>
                 <CartesianGrid strokeOpacity={0.15} />
                 <XAxis 
-                  dataKey="week" 
+                  dataKey="weekStart" 
                   tick={{ className: 'tick-font' }}
                   axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                   tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
