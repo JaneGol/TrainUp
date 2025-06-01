@@ -608,24 +608,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     console.log("=== ANALYTICS TRAINING-LOAD: Using unified coach session summary ===");
     
-    // Use the same unified coach session summary as the Training Log
-    const sessions = await storage.getUnifiedSessionsForCoach();
+    // Use the same unified data source as the Training Log
+    const { getSimpleTrainingSessions } = await import("./simple-sessions");
+    const sessions = await getSimpleTrainingSessions();
     console.log(`ANALYTICS: Found ${sessions.length} sessions from unified data source`);
     
     // Transform to match the expected format for analytics charts
     const loadData = sessions.map((session: any) => {
-      const sessionDate = new Date(session.sessionDate);
+      const sessionDate = new Date(session.date);
       const dateStr = sessionDate.toISOString().split('T')[0];
       
-      console.log(`ANALYTICS: ${session.sessionId} = ${session.avgRpe} RPE, ${session.sessionLoad} AU (${session.participantCount} athletes)`);
+      console.log(`ANALYTICS: ${session.id} = ${session.rpe} RPE, ${session.load} AU (${session.participantCount} athletes)`);
       
       return {
         date: dateStr,
-        Field: session.type === 'Field' ? session.sessionLoad : 0,
-        Gym: session.type === 'Gym' ? session.sessionLoad : 0,
-        Match: session.type === 'Match' ? session.sessionLoad : 0,
-        total: session.sessionLoad,
-        load: session.sessionLoad,
+        Field: session.trainingType === 'Field' ? session.load : 0,
+        Gym: session.trainingType === 'Gym' ? session.load : 0,
+        Match: session.trainingType === 'Match' ? session.load : 0,
+        total: session.load,
+        load: session.load,
         acwr: 1.0 // Default ACWR value
       };
     });
@@ -1007,19 +1008,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("=== WEEKLY LOAD: Using unified coach session summary ===");
       
-      // Use the same unified coach session summary as the Training Log
-      const allSessions = await storage.getUnifiedSessionsForCoach();
+      // Use the same unified data source as the Training Log
+      const { getSimpleTrainingSessions } = await import("./simple-sessions");
+      const allSessions = await getSimpleTrainingSessions();
       console.log(`WEEKLY LOAD: Found ${allSessions.length} sessions from unified data source`);
       
       // Filter sessions for this week and aggregate by date and type
       allSessions.forEach((session: any) => {
-        const sessionDate = new Date(session.sessionDate);
+        const sessionDate = new Date(session.date);
         const dateStr = sessionDate.toISOString().split('T')[0];
         
         // Check if this session falls within the week range
         if (sessionDate >= startDate && sessionDate <= endDate && dailyData[dateStr]) {
-          const sessionLoad = Math.round(session.sessionLoad || 0);
-          const sessionType = session.type; // 'Field', 'Gym', or 'Match'
+          const sessionLoad = Math.round(session.load || 0);
+          const sessionType = session.trainingType; // 'Field', 'Gym', or 'Match'
           
           console.log(`WEEKLY LOAD: Adding ${sessionLoad} AU for ${sessionType} on ${dateStr}`);
           
