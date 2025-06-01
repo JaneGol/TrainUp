@@ -21,21 +21,15 @@ export function useTenWeekCombo(athleteId: string) {
       }
       const raw = await res.json(); // Server already ensures 10 weeks
       
-      console.log('Raw API response:', raw);
-      
-      return raw.map((w: any) => {
-        const result = {
-          weekStart: w.weekLabel || w.week || 'W??', // Use weekLabel if available
-          Field: w.field || 0,
-          Gym: w.gym || 0,
-          Match: w.match || 0,
-          total: w.total || 0,
-          chronic: w.chronic || 0,
-          acwr: w.acwr || 0
-        };
-        console.log('Mapped week data:', result);
-        return result;
-      });
+      return raw.map((w: any) => ({
+        weekStart: w.weekLabel || w.week || 'W??',
+        Field: w.field || 0,
+        Gym: w.gym || 0,
+        Match: w.match || 0,
+        total: w.total || 0,
+        chronic: w.chronic || 0,
+        acwr: w.acwr || 0
+      }));
     },
     staleTime: 30_000, // 30 seconds
     refetchInterval: 60_000, // Refresh every minute
