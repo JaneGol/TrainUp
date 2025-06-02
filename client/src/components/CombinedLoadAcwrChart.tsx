@@ -68,6 +68,7 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
             <YAxis 
               yAxisId="acwr" 
               orientation="right" 
+              type="number"
               domain={[0, 2.5]} 
               tick={{ fontSize: 11, fill: '#9ca3af' }}
               label={{ value: 'ACWR', angle: 90, position: 'insideRight' }}
