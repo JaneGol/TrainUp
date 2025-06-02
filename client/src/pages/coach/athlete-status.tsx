@@ -135,14 +135,13 @@ export default function AthleteStatusPage() {
                                 {readinessDisplay}/10
                               </span>
                             </td>
-                            <td className="py-3 px-2">
-                              <div className="flex items-center gap-2">
+                            <td className="py-3 px-2" style={{ whiteSpace: 'normal', overflow: 'visible', textOverflow: 'unset', wordBreak: 'break-word' }}>
+                              <div className="flex items-start gap-2">
                                 {athlete.issues?.length > 0 ? (
                                   <>
-                                    <span className="text-red-400">🌡️</span>
+                                    <span className="text-red-400 mt-0.5">🌡️</span>
                                     <span className="text-[11px] text-zinc-300 leading-tight">
-                                      {athlete.issues.slice(0, 2).join(", ")}
-                                      {athlete.issues.length > 2 && "..."}
+                                      {athlete.issues.join(", ")}
                                     </span>
                                   </>
                                 ) : (
