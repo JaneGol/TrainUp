@@ -735,51 +735,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      const { athleteId } = req.query;
+      console.log("=== WEEKLY LOAD: Using unified session_metrics_from_entries view ===");
       
-      // Get all training entries from last 10 weeks (70 days)
+      // Use the same unified data source as other endpoints for consistency
+      const { getSimpleTrainingSessions } = await import("./simple-sessions");
+      const allSessions = await getSimpleTrainingSessions();
+      console.log(`WEEKLY LOAD: Found ${allSessions.length} sessions from unified data source`);
+      
+      // Get all sessions from last 10 weeks (70 days)
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 70);
       
-      // Use the working getTrainingLoadByRPE method that accesses session_load correctly
-      const allEntries = await storage.getTrainingLoadByRPE();
-      console.log(`Found ${allEntries.length} training load entries from DB`);
-      
-      // Convert the aggregated data into individual entries for each training type
+      // Filter and convert sessions to entries for weekly grouping
       const entries: any[] = [];
-      allEntries.forEach((entry: any) => {
-        const entryDate = new Date(entry.date);
-        const matchesDateRange = entryDate >= startDate && entryDate <= endDate;
-        const matchesAthlete = !athleteId || athleteId === 'all' || entry.athleteId === parseInt(athleteId as string);
-        
-        if (matchesDateRange && matchesAthlete) {
-          // Add separate entries for each training type with non-zero loads
-          if (entry.fieldTraining && entry.fieldTraining > 0) {
-            entries.push({
-              date: entry.date,
-              type: 'Field',
-              load: entry.fieldTraining
-            });
-          }
-          if (entry.gymTraining && entry.gymTraining > 0) {
-            entries.push({
-              date: entry.date,
-              type: 'Gym',
-              load: entry.gymTraining
-            });
-          }
-          if (entry.matchGame && entry.matchGame > 0) {
-            entries.push({
-              date: entry.date,
-              type: 'Match',
-              load: entry.matchGame
-            });
-          }
+      allSessions.forEach((session: any) => {
+        const sessionDate = new Date(session.date);
+        if (sessionDate >= startDate && sessionDate <= endDate) {
+          entries.push({
+            date: session.date,
+            type: session.trainingType, // 'Field', 'Gym', or 'Match'
+            load: Math.round(session.load || 0)
+          });
         }
       });
       
-      console.log(`Processed ${entries.length} individual training entries for weekly grouping`);
+      console.log(`WEEKLY LOAD: Processed ${entries.length} sessions for weekly grouping`);
 
       // Helper function to get ISO week number
       function getISOWeek(date: Date): number {

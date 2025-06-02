@@ -43,7 +43,11 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
             <CartesianGrid stroke="#374151" strokeDasharray="3 3" opacity={0.3} />
             <XAxis 
               dataKey="weekStart" 
-              tickFormatter={(d) => d.slice(5)}
+              tickFormatter={(iso) => {
+                const date = new Date(iso);
+                const week = Math.ceil(((date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / 86400000 + new Date(date.getFullYear(), 0, 1).getDay() + 1) / 7);
+                return `Week ${week}`;
+              }}
               fontSize={12}
               fill="#9CA3AF"
               axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
@@ -61,7 +65,7 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
             <YAxis 
               yAxisId="acwr" 
               orientation="right" 
-              domain={[0, 2]} 
+              domain={[0, 2.5]} 
               tick={{ fontSize: 11, fill: '#9ca3af' }}
               label={{ value: 'ACWR', angle: 90, position: 'insideRight' }}
             />
