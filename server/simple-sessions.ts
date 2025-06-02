@@ -12,13 +12,14 @@ export async function getSimpleTrainingSessions() {
   // Query the unified view using pool.query
   const { pool } = await import("./db");
   const queryResult = await pool.query(`
-    SELECT session_date, type, participants, avg_rpe, session_load
+    SELECT session_date, type, session_number, participants, avg_rpe, session_load
     FROM session_metrics_from_entries
-    ORDER BY session_date DESC
+    ORDER BY session_date DESC, type, session_number
   `);
   const sessionsFromEntries = queryResult.rows as Array<{
     session_date: Date,
     type: string,
+    session_number: number,
     participants: number,
     avg_rpe: number,
     session_load: number
@@ -28,13 +29,13 @@ export async function getSimpleTrainingSessions() {
   
   const results = sessionsFromEntries.map((session) => {
     const dateStr = new Date(session.session_date).toISOString().split('T')[0];
-    const sessionKey = `${dateStr}-${session.type} Training-1`;
+    const sessionKey = `${dateStr}-${session.type} Training-${session.session_number}`;
     
     const result = {
       id: sessionKey,
       date: dateStr,
       trainingType: session.type,
-      sessionNumber: 1,
+      sessionNumber: session.session_number,
       rpe: Number(session.avg_rpe),
       participantCount: Number(session.participants),
       totalAthletes: athleteCount,
