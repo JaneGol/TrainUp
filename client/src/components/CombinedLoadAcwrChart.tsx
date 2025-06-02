@@ -44,9 +44,12 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
             <XAxis 
               dataKey="weekStart" 
               tickFormatter={(iso) => {
-                const date = new Date(iso);
-                const week = Math.ceil(((date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / 86400000 + new Date(date.getFullYear(), 0, 1).getDay() + 1) / 7);
-                return `Week ${week}`;
+                // Extract week number from ISO week format (e.g., "2025-W22" -> "Week 22")
+                if (typeof iso === 'string' && iso.includes('-W')) {
+                  const weekNum = iso.split('-W')[1];
+                  return `Week ${weekNum}`;
+                }
+                return iso;
               }}
               fontSize={12}
               fill="#9CA3AF"
