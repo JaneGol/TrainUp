@@ -253,7 +253,9 @@ export default function LoadInsights() {
             <div className="bg-zinc-900 rounded-lg p-3">
               <div className="text-xs text-zinc-400 mb-1">Avg ACWR</div>
               <div className="text-lg font-bold text-white">{weeklyMetrics.avgAcwr}</div>
-              <div className="text-xs text-zinc-500">Acute:Chronic Ratio</div>
+              <div className="text-xs text-zinc-500">
+                Current ACWR → shows how loaded the athlete is right now — useful for spotting risk of overload.
+              </div>
             </div>
             
             {/* Load Distribution */}
