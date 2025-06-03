@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useLocation } from "wouter";
-import { getAcwr, formatAcwr } from "@/utils/getAcwr";
+import { getAcwrSmoothed, formatAcwrDisplay } from "@/utils/getAcwrSmoothed";
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine, ReferenceArea
@@ -82,8 +82,8 @@ export default function LoadInsights() {
     const acuteLoad = latestAcwr?.acute || 0;
     const chronicLoad = latestAcwr?.chronic || 0;
     
-    const acwrValue = getAcwr(acuteLoad, chronicLoad);
-    const avgAcwr = formatAcwr(acwrValue);
+    const acwrValue = getAcwrSmoothed(acuteLoad, chronicLoad);
+    const avgAcwr = formatAcwrDisplay(acwrValue);
     
     // Calculate training monotony (coefficient of variation)
     const activeDays = weeklyLoadData.filter(day => day.total > 0);
