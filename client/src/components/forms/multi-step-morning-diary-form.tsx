@@ -312,11 +312,6 @@ export default function MultiStepMorningDiaryForm() {
       return await res.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Morning Diary Submitted",
-        description: "Your morning control diary has been recorded successfully.",
-      });
-      
       // Invalidate relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/morning-diary"] });
       queryClient.invalidateQueries({ queryKey: ["/api/morning-diary/latest"] });
