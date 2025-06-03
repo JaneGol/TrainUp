@@ -65,7 +65,7 @@ export default function LoadInsights() {
   const { data: tenWeekComboData = [], isLoading: tenWeekComboLoading } = useTenWeekCombo(athleteId);
 
   // Get ACWR data with real-time updates
-  const { data: acwrData = [] } = useQuery({
+  const { data: acwrData = [] } = useQuery<any[]>({
     queryKey: ["/api/analytics/acwr"],
     staleTime: 30_000, // 30 seconds
     refetchInterval: 60_000, // Refresh every minute
@@ -78,7 +78,7 @@ export default function LoadInsights() {
     const sessions = weeklyLoadData.reduce((sum, entry) => sum + (entry.sessionCount || 0), 0);
     
     // Calculate ACWR using unified helper - use the actual ACWR data from API
-    const latestAcwr = acwrData && acwrData.length > 0 ? acwrData[acwrData.length - 1] : null;
+    const latestAcwr = Array.isArray(acwrData) && acwrData.length > 0 ? acwrData[acwrData.length - 1] : null;
     const acuteLoad = latestAcwr?.acute || 0;
     const chronicLoad = latestAcwr?.chronic || 0;
     
