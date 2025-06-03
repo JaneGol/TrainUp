@@ -235,7 +235,7 @@ export default function LoadInsights() {
                     <p className="max-w-xs text-xs">
                       Training Monotony measures the variability in daily training loads. 
                       Lower values (1.5-2.0) indicate good load variation, while higher values 
-                      (&gt;2.5) suggest repetitive training patterns that may increase injury risk.
+                      {'>'}2.5 suggest repetitive training patterns that may increase injury risk.
                     </p>
                   </TooltipContent>
                 </Tooltip>
