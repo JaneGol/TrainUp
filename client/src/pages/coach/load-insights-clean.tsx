@@ -1,9 +1,8 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Info } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useLocation } from "wouter";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine, ReferenceArea
@@ -225,20 +224,11 @@ export default function LoadInsights() {
             <div className="bg-zinc-900 rounded-lg p-3">
               <div className="text-xs text-zinc-400 mb-1">Training Monotony</div>
               <div className="text-lg font-bold text-white">{weeklyMetrics.monotony}</div>
-              <div className="text-xs text-zinc-500 flex items-center gap-1">
-                Variability Index
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 text-zinc-400 hover:text-zinc-200 cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs text-xs">
-                      Training Monotony measures the variability in daily training loads. 
-                      Lower values (1.5-2.0) indicate good load variation, while higher values 
-                      {'>'}2.5 suggest repetitive training patterns that may increase injury risk.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
+              <div className="text-xs text-zinc-500 mb-2">Variability Index</div>
+              <div className="text-xs text-zinc-500">
+                • 0.8 – 1.3 = desirable range – balanced variety that supports adaptation.<br/>
+                • {'<'} 0.8 = too uniform/monotonous – can build hidden fatigue.<br/>
+                • {'>'} 1.3 = highly erratic – big swings may elevate injury & illness risk.
               </div>
             </div>
             
