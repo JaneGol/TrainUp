@@ -1609,37 +1609,40 @@ export class DatabaseStorage implements IStorage {
 
   async getTodaysRpeSubmissions(userId: number, today: string): Promise<{ type: string; sessionNumber?: number }[]> {
     try {
-      // Get today's training sessions that the athlete submitted RPE for
+      // Get today's training entries (athlete's actual submissions)
       const todayStart = new Date(today);
       const todayEnd = new Date(today);
       todayEnd.setDate(todayEnd.getDate() + 1);
 
-      const submissions = await db
+      console.log(`Checking for training entries on ${today} for athlete ${userId}`);
+
+      const entries = await db
         .select({
-          sessionType: trainingSessions.type,
-          sessionNumber: trainingSessions.sessionNumber,
+          trainingType: trainingEntries.trainingType,
+          sessionNumber: trainingEntries.sessionNumber,
         })
-        .from(rpeSubmissions)
-        .innerJoin(trainingSessions, eq(rpeSubmissions.sessionId, trainingSessions.id))
+        .from(trainingEntries)
         .where(
           and(
-            eq(rpeSubmissions.athleteId, userId),
-            gte(trainingSessions.sessionDate, todayStart),
-            lte(trainingSessions.sessionDate, todayEnd)
+            eq(trainingEntries.userId, userId),
+            gte(trainingEntries.date, todayStart),
+            lte(trainingEntries.date, todayEnd)
           )
         );
+
+      console.log(`Found ${entries.length} training entries for today:`, entries);
 
       // Transform to the expected format and apply priority: Match > Gym > Field
       const uniqueTypes = new Set<string>();
       const result: { type: string; sessionNumber?: number }[] = [];
 
-      submissions.forEach(sub => {
-        const type = `${sub.sessionType} Training`;
+      entries.forEach(entry => {
+        const type = entry.trainingType;
         if (!uniqueTypes.has(type)) {
           uniqueTypes.add(type);
           result.push({
             type,
-            sessionNumber: sub.sessionNumber
+            sessionNumber: entry.sessionNumber
           });
         }
       });
@@ -1655,6 +1658,7 @@ export class DatabaseStorage implements IStorage {
         return getPriority(b.type) - getPriority(a.type);
       });
 
+      console.log(`Returning ${result.length} unique training types for today:`, result);
       return result;
     } catch (error) {
       console.error("Error fetching today's RPE submissions:", error);
