@@ -31,19 +31,6 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
     );
   }
 
-  // Apply unified ACWR calculation to ensure consistency
-  const processedData = data.map(item => {
-    // Use unified helper to calculate ACWR consistently
-    // For weekly data, acute load is the total for that week, chronic is the rolling average
-    const acuteLoad = item.total || 0;
-    const chronicLoad = item.chronic || 0;
-    const acwrValue = getAcwrSmoothed(acuteLoad, chronicLoad);
-    return {
-      ...item,
-      acwr: acwrValue
-    };
-  });
-
   return (
     <div className="rounded-xl bg-white/5 backdrop-blur p-4 md:p-6 shadow">
       <h2 className="chart-title mb-1">Weekly Load & ACWR (Last 10 Weeks)</h2>
@@ -51,7 +38,7 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
       <div className="w-full h-80" style={{ minWidth: '400px', minHeight: '300px' }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
-            data={processedData}
+            data={data}
             margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
           >
             <CartesianGrid stroke="#374151" strokeDasharray="3 3" opacity={0.3} />
@@ -151,7 +138,12 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
                 borderRadius: '8px',
                 color: 'white'
               }}
-              formatter={(v, name) => name === 'acwr' ? `${v}` : `${v} AU`}
+              formatter={(v, name) => {
+                if (name === 'acwr') {
+                  return v === null ? '—' : typeof v === 'number' ? v.toFixed(2) : '—';
+                }
+                return `${v} AU`;
+              }}
               labelFormatter={(label) => `Week ${label}`}
             />
           </ComposedChart>
