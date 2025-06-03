@@ -43,10 +43,10 @@ export default function LoadInsights() {
   // Mobile detection
   const isMobile = useMediaQuery('(max-width: 639px)');
   
-  // Default to the last available week (most recent)
+  // Default to the current week (first in array since it's reversed)
   const weekOpts = buildWeekOptions();
   const [weekStart, setWeekStart] = useState<string>(
-    weekOpts[weekOpts.length - 1]?.value ?? weekOpts[0].value
+    weekOpts[0]?.value ?? ""
   );
   
   // Get athletes
