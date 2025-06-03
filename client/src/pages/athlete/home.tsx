@@ -15,7 +15,8 @@ import {
   User,
   MapPin,
   Zap,
-  Target
+  Target,
+  Activity
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -63,7 +64,7 @@ export default function AthleteHomePage() {
   // Function to get training type icon
   const getTrainingIcon = (type: string) => {
     if (type?.includes('Field')) return MapPin;
-    if (type?.includes('Gym')) return Dumbbell;
+    if (type?.includes('Gym')) return Activity;
     if (type?.includes('Match')) return Target;
     return Dumbbell; // Default
   };
@@ -166,9 +167,14 @@ export default function AthleteHomePage() {
                       })()}
                       <div className="flex flex-col items-start">
                         <span className="text-xl font-bold">RPE Form</span>
-                        <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full mt-1">
-                          Completed Today
-                        </span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                            Completed Today
+                          </span>
+                          <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full">
+                            {primaryTrainingType?.replace(' Training', '')}
+                          </span>
+                        </div>
                       </div>
                     </>
                   ) : (
