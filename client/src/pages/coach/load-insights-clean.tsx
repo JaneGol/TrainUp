@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useLocation } from "wouter";
+import { getAcwr, formatAcwr } from "@/utils/getAcwr";
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceLine, ReferenceArea
@@ -63,13 +64,26 @@ export default function LoadInsights() {
   // Get combined 10-week data for the unified chart
   const { data: tenWeekComboData = [], isLoading: tenWeekComboLoading } = useTenWeekCombo(athleteId);
 
+  // Get ACWR data with real-time updates
+  const { data: acwrData = [] } = useQuery({
+    queryKey: ["/api/analytics/acwr"],
+    staleTime: 30_000, // 30 seconds
+    refetchInterval: 60_000, // Refresh every minute
+    refetchOnWindowFocus: true,
+  });
+
   // Calculate enhanced weekly metrics from the weekly load data
   const weeklyMetrics = useMemo(() => {
     const totalAU = weeklyLoadData.reduce((sum, entry) => sum + (entry.total || 0), 0);
     const sessions = weeklyLoadData.reduce((sum, entry) => sum + (entry.sessionCount || 0), 0);
-    const avgAcwr = weeklyLoadData.length > 0 
-      ? (weeklyLoadData.reduce((sum, entry) => sum + (entry.acwr || 0), 0) / weeklyLoadData.length)
-      : 0;
+    
+    // Calculate ACWR using unified helper - use the actual ACWR data from API
+    const latestAcwr = acwrData && acwrData.length > 0 ? acwrData[acwrData.length - 1] : null;
+    const acuteLoad = latestAcwr?.acute || 0;
+    const chronicLoad = latestAcwr?.chronic || 0;
+    
+    const acwrValue = getAcwr(acuteLoad, chronicLoad);
+    const avgAcwr = formatAcwr(acwrValue);
     
     // Calculate training monotony (coefficient of variation)
     const activeDays = weeklyLoadData.filter(day => day.total > 0);
@@ -91,7 +105,7 @@ export default function LoadInsights() {
     return { 
       totalAU, 
       sessions, 
-      avgAcwr: avgAcwr.toFixed(2),
+      avgAcwr, // Already formatted as string
       monotony: monotony.toFixed(2),
       strain: strain.toFixed(0),
       fieldLoad,
@@ -99,15 +113,7 @@ export default function LoadInsights() {
       matchLoad,
       activeDays: activeDays.length
     };
-  }, [weeklyLoadData]);
-
-  // Get ACWR data with real-time updates
-  const { data: acwrData = [] } = useQuery({
-    queryKey: ["/api/analytics/acwr"],
-    staleTime: 30_000, // 30 seconds
-    refetchInterval: 60_000, // Refresh every minute
-    refetchOnWindowFocus: true,
-  });
+  }, [weeklyLoadData, acwrData]);
 
 
 
@@ -226,9 +232,9 @@ export default function LoadInsights() {
               <div className="text-lg font-bold text-white">{weeklyMetrics.monotony}</div>
               <div className="text-xs text-zinc-500 mb-2">Variability Index</div>
               <div className="text-xs text-zinc-500">
-                • 0.8 – 1.3 = desirable range – balanced variety that supports adaptation.<br/>
-                • {'<'} 0.8 = too uniform/monotonous – can build hidden fatigue.<br/>
-                • {'>'} 1.3 = highly erratic – big swings may elevate injury & illness risk.
+                • 0.8–1.3 = ideal variety<br/>
+                • {'<'}0.8 = too even — fatigue risk<br/>
+                • {'>'}1.3 = erratic — injury/illness risk
               </div>
             </div>
             
