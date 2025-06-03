@@ -91,18 +91,17 @@ export default function MorningDiaryPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-white">
                 <CheckCircle className="h-5 w-5 text-green-500" />
-                Already Completed
+                Thank you for your answers!
               </CardTitle>
               <CardDescription className="text-gray-400">
-                You've already completed your morning diary for today.
+                Your diary for today is complete.
+                <br /><br />
+                Have a great day!
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-400 mb-4">
                 Your readiness score for today is {latestDiary.readinessScore}%.
-              </p>
-              <p className="text-sm text-gray-400">
-                Feel free to check the Smart Doctor section for personalized recommendations based on your input.
               </p>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">

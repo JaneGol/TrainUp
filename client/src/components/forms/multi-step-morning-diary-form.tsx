@@ -369,17 +369,7 @@ export default function MultiStepMorningDiaryForm() {
     submitMutation.mutate(data);
   }
   
-  // Auto-redirect after successful submission
-  useEffect(() => {
-    if (isSubmitted) {
-      const timer = setTimeout(() => {
-        // Navigate back to athlete home screen
-        setLocation("/athlete");
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isSubmitted, setLocation]);
+
   
   // If form is already submitted, show success message
   if (isSubmitted) {
@@ -406,13 +396,28 @@ export default function MultiStepMorningDiaryForm() {
           </div>
           <h3 className="text-2xl font-bold text-white">Thank you for your answers!</h3>
           <p className="text-gray-300 max-w-md mx-auto">
+            Your diary for today is complete.
+            <br /><br />
             Have a great day!
           </p>
           <div className="mt-2">
             <p className="text-sm text-gray-400">Your readiness score</p>
             <p className="text-3xl font-bold text-primary">{readinessScore}%</p>
           </div>
-          <p className="text-sm text-gray-500 mt-4">Returning to home screen...</p>
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => setLocation("/athlete")}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors"
+            >
+              Back to home page
+            </button>
+            <button
+              onClick={() => setLocation("/athlete/smart-doctor")}
+              className="px-4 py-2 bg-primary hover:bg-primary/90 text-black rounded-md transition-colors"
+            >
+              View recommendations
+            </button>
+          </div>
         </div>
       </div>
     );
