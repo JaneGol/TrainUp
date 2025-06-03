@@ -43,11 +43,10 @@ export default function LoadInsights() {
   // Mobile detection
   const isMobile = useMediaQuery('(max-width: 639px)');
   
-  // Default to current ISO week (Week 22) - May 26, 2025
+  // Default to the last available week (most recent)
   const weekOpts = buildWeekOptions();
-  const currentWeekValue = "2025-05-26"; // Week 22 starts on Monday May 26, 2025
   const [weekStart, setWeekStart] = useState<string>(
-    weekOpts.find(o => o.value === currentWeekValue)?.value ?? weekOpts[0].value
+    weekOpts[weekOpts.length - 1]?.value ?? weekOpts[0].value
   );
   
   // Get athletes
