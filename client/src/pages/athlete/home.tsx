@@ -12,7 +12,10 @@ import {
   ArrowRight,
   LogOut,
   LineChart,
-  User
+  User,
+  MapPin,
+  Zap,
+  Target
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -39,9 +42,31 @@ export default function AthleteHomePage() {
     }
   });
 
+  // Fetch today's RPE submissions to check if RPE has been completed today
+  const { data: todaysRpe, isLoading: rpeLoading } = useQuery({
+    queryKey: ["/api/rpe/today"],
+    queryFn: async () => {
+      const res = await fetch("/api/rpe/today");
+      if (!res.ok) throw new Error("Failed to fetch today's RPE submissions");
+      return await res.json();
+    }
+  });
+
   // Check if user has completed diary today
   const today = new Date().toISOString().split('T')[0];
   const hasCompletedDiaryToday = latestDiary?.date?.split('T')[0] === today;
+
+  // Check if user has completed RPE today and get training type
+  const hasCompletedRpeToday = todaysRpe && todaysRpe.length > 0;
+  const primaryTrainingType = hasCompletedRpeToday ? todaysRpe[0]?.type : null;
+
+  // Function to get training type icon
+  const getTrainingIcon = (type: string) => {
+    if (type?.includes('Field')) return MapPin;
+    if (type?.includes('Gym')) return Dumbbell;
+    if (type?.includes('Match')) return Target;
+    return Dumbbell; // Default
+  };
 
   // Format date for display
   const currentDate = new Date();
@@ -122,13 +147,40 @@ export default function AthleteHomePage() {
           {/* RPE Form Button */}
           <Button
             onClick={() => navigate("/athlete/training-entry")}
-            className="btn-athletic h-24 bg-gray-600 text-primary hover:text-primary"
+            className={`btn-athletic h-24 ${
+              hasCompletedRpeToday
+                ? "bg-success text-white"
+                : "bg-gray-600 text-primary hover:text-primary"
+            }`}
           >
-            <div className="flex items-center">
-              <Dumbbell className="sport-icon" />
-              <span className="text-xl font-bold">RPE Form</span>
-            </div>
-            <ArrowRight className="h-5 w-5 opacity-70" />
+            {rpeLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-white" />
+            ) : (
+              <>
+                <div className="flex items-center">
+                  {hasCompletedRpeToday ? (
+                    <>
+                      {(() => {
+                        const TrainingIcon = getTrainingIcon(primaryTrainingType);
+                        return <TrainingIcon className="sport-icon" />;
+                      })()}
+                      <div className="flex flex-col items-start">
+                        <span className="text-xl font-bold">RPE Form</span>
+                        <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full mt-1">
+                          Completed Today
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Dumbbell className="sport-icon" />
+                      <span className="text-xl font-bold">RPE Form</span>
+                    </>
+                  )}
+                </div>
+                <ArrowRight className="h-5 w-5 opacity-70" />
+              </>
+            )}
           </Button>
 
           {/* Fitness Progress Button */}

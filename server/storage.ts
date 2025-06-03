@@ -722,6 +722,16 @@ export class MemStorage implements IStorage {
     
     return alerts;
   }
+
+  async getWeeklyLoadData(athleteId: string, weekStart: string): Promise<any[]> {
+    // Mock implementation for MemStorage
+    return [];
+  }
+
+  async getTodaysRpeSubmissions(userId: number, today: string): Promise<{ type: string; sessionNumber?: number }[]> {
+    // Mock implementation for MemStorage - return empty array since this is primarily for database use
+    return [];
+  }
 }
 
 // Import DatabaseStorage implementation and helper functions
