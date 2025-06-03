@@ -337,7 +337,7 @@ export default function LoadInsights() {
                   tick={{ className: 'tick-font' }}
                   axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                 />
-                <Tooltip 
+                <RechartsTooltip 
                   contentStyle={{ 
                     backgroundColor: '#1F2937', 
                     border: '1px solid #374151',
@@ -380,7 +380,7 @@ export default function LoadInsights() {
                   tick={{ className: 'tick-font' }}
                   axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                 />
-                <Tooltip 
+                <RechartsTooltip 
                   contentStyle={{ 
                     backgroundColor: '#1F2937', 
                     border: '1px solid #374151',
