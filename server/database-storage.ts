@@ -1606,4 +1606,59 @@ export class DatabaseStorage implements IStorage {
     console.log(`Athlete ${userId}: Returning 14 days of load data with ACWR values`);
     return result;
   }
+
+  async getTodaysRpeSubmissions(userId: number, today: string): Promise<{ type: string; sessionNumber?: number }[]> {
+    try {
+      // Get today's training sessions that the athlete submitted RPE for
+      const todayStart = new Date(today);
+      const todayEnd = new Date(today);
+      todayEnd.setDate(todayEnd.getDate() + 1);
+
+      const submissions = await db
+        .select({
+          sessionType: trainingSessions.type,
+          sessionNumber: trainingSessions.sessionNumber,
+        })
+        .from(rpeSubmissions)
+        .innerJoin(trainingSessions, eq(rpeSubmissions.sessionId, trainingSessions.id))
+        .where(
+          and(
+            eq(rpeSubmissions.athleteId, userId),
+            gte(trainingSessions.sessionDate, todayStart),
+            lte(trainingSessions.sessionDate, todayEnd)
+          )
+        );
+
+      // Transform to the expected format and apply priority: Match > Gym > Field
+      const uniqueTypes = new Set<string>();
+      const result: { type: string; sessionNumber?: number }[] = [];
+
+      submissions.forEach(sub => {
+        const type = `${sub.sessionType} Training`;
+        if (!uniqueTypes.has(type)) {
+          uniqueTypes.add(type);
+          result.push({
+            type,
+            sessionNumber: sub.sessionNumber
+          });
+        }
+      });
+
+      // Sort by priority: Match > Gym > Field
+      result.sort((a, b) => {
+        const getPriority = (type: string) => {
+          if (type.includes('Match')) return 3;
+          if (type.includes('Gym')) return 2;
+          if (type.includes('Field')) return 1;
+          return 0;
+        };
+        return getPriority(b.type) - getPriority(a.type);
+      });
+
+      return result;
+    } catch (error) {
+      console.error("Error fetching today's RPE submissions:", error);
+      return [];
+    }
+  }
 }

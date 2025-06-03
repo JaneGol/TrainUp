@@ -426,6 +426,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     res.json(diary);
   });
+
+  // Get today's RPE submissions for the current athlete
+  app.get("/api/rpe/today", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const userId = req.user!.id;
+    const today = new Date().toISOString().split('T')[0];
+    
+    try {
+      const todaysSubmissions = await storage.getTodaysRpeSubmissions(userId, today);
+      res.json(todaysSubmissions);
+    } catch (error) {
+      console.error("Error fetching today's RPE submissions:", error);
+      res.status(500).json({ error: "Failed to fetch today's RPE submissions" });
+    }
+  });
   
   app.delete("/api/morning-diary/latest", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

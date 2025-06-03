@@ -59,6 +59,7 @@ export interface IStorage {
   getInjuryRiskFactors(): Promise<{ athleteId: number; name: string; riskScore: number; factors: string[] }[]>;
   getTodaysAlerts(): Promise<{ athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[]>;
   getWeeklyLoadData(athleteId: string, weekStart: string): Promise<any[]>;
+  getTodaysRpeSubmissions(userId: number, today: string): Promise<{ type: string; sessionNumber?: number }[]>;
 
   
   // Session store
