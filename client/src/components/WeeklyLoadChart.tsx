@@ -74,7 +74,7 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
           margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
         >
           {/* Reference areas for ACWR zones */}
-          <ReferenceArea y1={0} y2={0.79} fill="#1e3a8a" fillOpacity={0.08} yAxisId="acwr" />
+          <ReferenceArea y1={0.5} y2={0.79} fill="#1e3a8a" fillOpacity={0.08} yAxisId="acwr" />
           <ReferenceArea y1={0.8} y2={1.19} fill="#15803d" fillOpacity={0.08} yAxisId="acwr" />
           <ReferenceArea y1={1.2} y2={1.49} fill="#fbbf24" fillOpacity={0.08} yAxisId="acwr" />
           <ReferenceArea y1={1.5} y2={2.0} fill="#dc2626" fillOpacity={0.08} yAxisId="acwr" />
@@ -99,7 +99,7 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
           <YAxis 
             yAxisId="acwr" 
             orientation="right" 
-            domain={[0, 2]} 
+            domain={[0.5, 2]} 
             tick={{ fontSize: 11, fill: '#facc15' }}
             axisLine={{ stroke: 'rgba(250, 204, 21, 0.4)' }}
             tickLine={{ stroke: 'rgba(250, 204, 21, 0.3)' }}
