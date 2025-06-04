@@ -32,7 +32,7 @@ export default function FitnessProgressRedesigned() {
   });
 
   // Calculate current ACWR and status
-  const currentAcwr = fitnessData?.acwr || 1.0;
+  const currentAcwr = fitnessData?.summary?.acwr || 1.0;
   const getStatusInfo = (acwr: number) => {
     if (acwr <= 1.2) return { status: "OK", color: "bg-lime-500", message: "Training load is well balanced." };
     if (acwr <= 1.29) return { status: "Caution", color: "bg-yellow-500", message: "Monitor your recovery closely." };
@@ -199,6 +199,17 @@ export default function FitnessProgressRedesigned() {
               <div className="text-sm text-zinc-400 mt-1">
                 {statusInfo.message}
               </div>
+            </div>
+          </div>
+          
+          {/* Explanation */}
+          <div className="mt-4 p-3 bg-zinc-700/50 rounded-lg">
+            <h3 className="text-sm font-medium text-zinc-300 mb-2">How your status is calculated:</h3>
+            <div className="text-xs text-zinc-400 space-y-1">
+              <p>• <strong>ACWR</strong> = Your last 7 days training load ÷ Your 28-day average</p>
+              <p>• <strong>Training Load</strong> = (Physical RPE + Emotional Load) ÷ 2 × Session Duration</p>
+              <p>• <strong>Status zones:</strong> OK (≤1.2), Caution (1.2-1.3), High Risk (≥1.3)</p>
+              <p>• Values below 0.8 suggest you can safely increase training intensity</p>
             </div>
           </div>
         </div>
