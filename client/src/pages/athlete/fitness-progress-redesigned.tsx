@@ -238,19 +238,10 @@ export default function FitnessProgressRedesigned() {
                 <div>
                   • <strong>Training Load:</strong> (Physical RPE + Emotional Load) ÷ 2 × Duration (minutes)
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-3 border-t border-zinc-700">
-                  <div className="text-center">
-                    <div className="text-xs text-zinc-400">OK Zone</div>
-                    <div className="font-semibold text-lime-400">≤ 1.2</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-zinc-400">Caution Zone</div>
-                    <div className="font-semibold text-yellow-400">1.2 - 1.3</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-zinc-400">High Risk</div>
-                    <div className="font-semibold text-red-400">≥ 1.3</div>
-                  </div>
+                <div className="flex justify-center gap-6 mt-4 pt-3 border-t border-zinc-700 text-sm">
+                  <span><span className="text-zinc-400">OK Zone:</span> <span className="font-semibold text-lime-400">≤ 1.2</span></span>
+                  <span><span className="text-zinc-400">Caution Zone:</span> <span className="font-semibold text-yellow-400">1.2 - 1.3</span></span>
+                  <span><span className="text-zinc-400">High Risk:</span> <span className="font-semibold text-red-400">≥ 1.3</span></span>
                 </div>
                 <div className="text-xs text-zinc-400 mt-3">
                   💡 Values below 0.8 indicate you can safely increase training intensity
