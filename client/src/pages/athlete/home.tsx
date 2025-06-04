@@ -57,8 +57,9 @@ export default function AthleteHomePage() {
   const today = new Date().toISOString().split('T')[0];
   const hasCompletedDiaryToday = latestDiary?.date?.split('T')[0] === today;
 
-  // Check if user has completed RPE today and get training type
+  // Check if user has completed RPE today and get training types
   const hasCompletedRpeToday = todaysRpe && todaysRpe.length > 0;
+  const completedTrainingTypes = hasCompletedRpeToday ? todaysRpe : [];
   const primaryTrainingType = hasCompletedRpeToday ? todaysRpe[0]?.type : null;
 
   // Function to get training type icon
@@ -161,19 +162,25 @@ export default function AthleteHomePage() {
                 <div className="flex items-center">
                   {hasCompletedRpeToday ? (
                     <>
-                      {(() => {
-                        const TrainingIcon = getTrainingIcon(primaryTrainingType);
-                        return <TrainingIcon className="sport-icon" />;
-                      })()}
+                      <div className="flex items-center gap-1 mr-3">
+                        {completedTrainingTypes.map((training, index) => {
+                          const TrainingIcon = getTrainingIcon(training.type);
+                          return <TrainingIcon key={index} className="sport-icon" style={{ width: '20px', height: '20px' }} />;
+                        })}
+                      </div>
                       <div className="flex flex-col items-start">
                         <span className="text-xl font-bold">RPE Form</span>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
                             Completed Today
                           </span>
-                          <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full">
-                            {primaryTrainingType?.replace(' Training', '')}
-                          </span>
+                          <div className="flex gap-1">
+                            {completedTrainingTypes.map((training, index) => (
+                              <span key={index} className="text-xs bg-white/10 px-2 py-0.5 rounded-full">
+                                {training.type?.replace(' Training', '')}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </>
