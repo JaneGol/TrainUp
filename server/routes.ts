@@ -1112,7 +1112,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const historicalData: { [key: string]: number } = {};
       allEntries.forEach(entry => {
         const dateStr = new Date(entry.date).toISOString().split('T')[0];
-        historicalData[dateStr] = (historicalData[dateStr] || 0) + (entry.trainingLoad || 0);
+        const load = entry.trainingLoad || 0;
+        historicalData[dateStr] = (historicalData[dateStr] || 0) + load;
+        console.log(`Historical entry: ${dateStr} = ${load} AU (total now: ${historicalData[dateStr]})`);
       });
 
       // Calculate ACWR for each day with proper rolling windows
@@ -1144,7 +1146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acwr = parseFloat((acuteSum / chronicAvg).toFixed(2));
         }
 
-        console.log(`ACWR for ${day.date}: acute=${acuteSum}, chronic=${chronicAvg.toFixed(2)}, ratio=${acwr}`);
+        console.log(`ACWR for ${day.date}: acute=${acuteSum.toFixed(1)}, chronic=${chronicAvg.toFixed(1)}, ratio=${acwr}`);
 
         return {
           ...day,
