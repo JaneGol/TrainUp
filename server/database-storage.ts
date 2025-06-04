@@ -1116,7 +1116,7 @@ export class DatabaseStorage implements IStorage {
         .map(([key]) => key);
       
       if (soreAreas.length > 0) {
-        issues.push(`Muscle soreness: ${soreAreas.join(', ')}`);
+        issues.push(`Muscle soreness: ${soreAreas.length} areas affected`);
       }
       
       return {

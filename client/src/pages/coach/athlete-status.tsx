@@ -143,12 +143,10 @@ export default function AthleteStatusPage() {
                                     <span className="text-[11px] text-zinc-300 leading-tight">
                                       {athlete.issues.map((issue: string, index: number) => {
                                         if (issue.includes('Muscle soreness:')) {
-                                          // Extract the sore areas from the issue text
-                                          const sorenessText = issue.replace('Muscle soreness: ', '');
-                                          const soreAreas = sorenessText.split(', ').filter(area => area.trim() !== '' && area !== 'has_soreness');
-                                          const sorenessCount = soreAreas.length;
-                                          
-                                          if (sorenessCount > 0) {
+                                          // Extract the number from "X areas affected" format
+                                          const match = issue.match(/(\d+) areas affected/);
+                                          if (match) {
+                                            const sorenessCount = parseInt(match[1]);
                                             return `Muscle soreness (${sorenessCount}/5)`;
                                           }
                                           return issue;
