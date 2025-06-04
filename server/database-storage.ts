@@ -1353,12 +1353,12 @@ export class DatabaseStorage implements IStorage {
     for (let i = 27; i < dates.length; i++) {
       const currentDate = dates[i];
       
-      // Acute load - last 7 days average
+      // Acute load - last 7 days total (not average)
       let acuteSum = 0;
       for (let j = i - 6; j <= i; j++) {
         acuteSum += loadByDate[dates[j]] || 0;
       }
-      const acuteLoad = acuteSum / 7;
+      const acuteLoad = acuteSum; // Keep as total, not average
       
       // Chronic load - last 28 days average
       let chronicSum = 0;
@@ -1567,7 +1567,7 @@ export class DatabaseStorage implements IStorage {
         Match: Math.round(data.Match),
         total: Math.round(data.total),
         sessionCount: data.sessionCount,
-        acwr: data.total > 0 ? 1.0 : 0
+        acwr: null // Will be calculated properly with 28-day data requirement
       }));
 
     const totalSessionsThisWeek = Object.values(dailyData).reduce((sum, day) => sum + day.sessionCount, 0);

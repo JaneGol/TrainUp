@@ -58,7 +58,7 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
             <p className="text-white font-medium border-t border-zinc-700 pt-1 mt-2">
               Total: {total} AU
             </p>
-            <p className="text-yellow-400">ACWR: {acwrValue.toFixed(2)}</p>
+            <p className="text-yellow-400">ACWR: {acwrValue ? acwrValue.toFixed(2) : "—"}</p>
           </div>
         </div>
       );
@@ -74,27 +74,10 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
           margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
         >
           {/* Reference areas for ACWR zones */}
-          <ReferenceArea 
-            y1={0.8} 
-            y2={1.3} 
-            yAxisId="acwr" 
-            fill="#22c55e" 
-            fillOpacity={0.05} 
-          />
-          <ReferenceArea 
-            y1={1.3} 
-            y2={2.0} 
-            yAxisId="acwr" 
-            fill="#ef4444" 
-            fillOpacity={0.05} 
-          />
-          <ReferenceArea 
-            y1={0} 
-            y2={0.8} 
-            yAxisId="acwr" 
-            fill="#3b82f6" 
-            fillOpacity={0.05} 
-          />
+          <ReferenceArea y1={0} y2={0.79} fill="#1e3a8a" fillOpacity={0.08} yAxisId="acwr" />
+          <ReferenceArea y1={0.8} y2={1.19} fill="#15803d" fillOpacity={0.08} yAxisId="acwr" />
+          <ReferenceArea y1={1.2} y2={1.49} fill="#fbbf24" fillOpacity={0.08} yAxisId="acwr" />
+          <ReferenceArea y1={1.5} y2={2.0} fill="#dc2626" fillOpacity={0.08} yAxisId="acwr" />
 
           <CartesianGrid strokeOpacity={0.15} />
           
@@ -157,6 +140,11 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
         <span className="flex items-center gap-1">
           <span className="w-3 h-px bg-[#facc15] inline-block"></span>ACWR
         </span>
+      </div>
+      
+      {/* ACWR Caption */}
+      <div className="text-center mt-2 text-[11px] text-zinc-400">
+        ACWR compares this week's load to your 4-week average. 0.8–1.2 = balanced; &gt;1.5 = spike (higher risk).
       </div>
     </div>
   );
