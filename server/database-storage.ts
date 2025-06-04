@@ -1567,12 +1567,39 @@ export class DatabaseStorage implements IStorage {
         Match: Math.round(data.Match),
         total: Math.round(data.total),
         sessionCount: data.sessionCount,
-        acwr: null // Will be calculated properly with 28-day data requirement
+        acwr: this.calculateDailyAcwr(date, dailyData)
       }));
 
     const totalSessionsThisWeek = Object.values(dailyData).reduce((sum, day) => sum + day.sessionCount, 0);
     console.log(`DB single source: Returning ${result.length} days with ${totalSessionsThisWeek} sessions:`, result.map(d => `${d.date}: ${d.total} AU (${d.sessionCount} sessions)`));
     return result;
+  }
+
+  private calculateDailyAcwr(currentDate: string, dailyData: Record<string, any>): number | null {
+    // Get all dates sorted chronologically
+    const dates = Object.keys(dailyData).sort((a, b) => a.localeCompare(b));
+    const currentIndex = dates.indexOf(currentDate);
+    
+    if (currentIndex < 27) {
+      // Need at least 28 days of data for proper ACWR calculation
+      return null;
+    }
+    
+    // Calculate 7-day acute load (total)
+    let acuteSum = 0;
+    for (let i = currentIndex - 6; i <= currentIndex; i++) {
+      acuteSum += dailyData[dates[i]]?.total || 0;
+    }
+    
+    // Calculate 28-day chronic load (average)
+    let chronicSum = 0;
+    for (let i = currentIndex - 27; i <= currentIndex; i++) {
+      chronicSum += dailyData[dates[i]]?.total || 0;
+    }
+    const chronicAvg = chronicSum / 28;
+    
+    // Return ACWR ratio
+    return chronicAvg > 0 ? parseFloat((acuteSum / chronicAvg).toFixed(2)) : null;
   }
 
   async getAthleteWeeklyLoad(userId: number): Promise<any[]> {

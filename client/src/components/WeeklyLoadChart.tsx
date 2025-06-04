@@ -100,10 +100,10 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
             yAxisId="acwr" 
             orientation="right" 
             domain={[0, 2]} 
-            tick={{ fontSize: 12, fill: '#facc15' }}
-            axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-            tickLine={false}
-            label={{ value: 'ACWR', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fontSize: 10, fill: '#facc15' } }}
+            tick={{ fontSize: 11, fill: '#facc15' }}
+            axisLine={{ stroke: 'rgba(250, 204, 21, 0.4)' }}
+            tickLine={{ stroke: 'rgba(250, 204, 21, 0.3)' }}
+            label={{ value: 'ACWR', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fontSize: 11, fill: '#facc15' } }}
           />
           
           <Tooltip content={<CustomTooltip />} />
@@ -119,8 +119,10 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
             type="monotone" 
             dataKey="acwr" 
             stroke="#facc15" 
-            strokeWidth={2}
-            dot={{ r: 3, fill: '#facc15' }}
+            strokeWidth={3}
+            dot={{ r: 4, fill: '#facc15', stroke: '#facc15', strokeWidth: 2 }}
+            activeDot={{ r: 6, fill: '#facc15', stroke: '#ffffff', strokeWidth: 2 }}
+            connectNulls={false}
             name="ACWR"
           />
         </ComposedChart>
