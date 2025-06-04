@@ -1454,7 +1454,23 @@ export class DatabaseStorage implements IStorage {
         // Check for sickness symptoms  
         if (diary.symptoms && Array.isArray(diary.symptoms) && 
             !diary.symptoms.includes('no_symptoms') && diary.symptoms.length > 0) {
-          const symptomsText = diary.symptoms.join(', ');
+          const symptomsText = diary.symptoms.map(symptom => {
+            // Convert symptom codes to readable text
+            switch(symptom) {
+              case 'fever': return 'Fever';
+              case 'sore_throat': return 'Sore Throat';
+              case 'runny_nose': return 'Runny Nose';
+              case 'headache': return 'Headache';
+              case 'fatigue': return 'Fatigue';
+              case 'nausea': return 'Nausea';
+              case 'muscle_aches': return 'Muscle Aches';
+              case 'cough': return 'Cough';
+              case 'diarrhea': return 'Diarrhea';
+              case 'vomiting': return 'Vomiting';
+              case 'dizziness': return 'Dizziness';
+              default: return symptom.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+            }
+          }).join(', ');
           alerts.push({
             athleteId: athlete.id,
             name: `${athlete.firstName} ${athlete.lastName}`,
