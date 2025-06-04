@@ -1622,7 +1622,7 @@ export class DatabaseStorage implements IStorage {
     console.log(`Found ${recentEntries.length} training entries for athlete ${userId} in last 14 days`);
 
     // Initialize 14 days with zero values
-    const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number; acwr: number } } = {};
+    const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number; acwr: number | null } } = {};
     for (let i = 0; i < 14; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
@@ -1633,7 +1633,7 @@ export class DatabaseStorage implements IStorage {
         Gym: 0, 
         Match: 0, 
         total: 0, 
-        acwr: 0 
+        acwr: null 
       };
     }
 
@@ -1655,24 +1655,55 @@ export class DatabaseStorage implements IStorage {
       }
     });
 
-    // Calculate rolling 7-day ACWR for each day
-    const result = Object.values(dailyData).map((day, index) => {
-      // Get 7-day acute load (current day + 6 previous days)
-      const acuteStart = Math.max(0, index - 6);
-      const acuteData = Object.values(dailyData).slice(acuteStart, index + 1);
-      const acute = acuteData.reduce((sum, d) => sum + d.total, 0);
+    // Get all historical data for proper ACWR calculation
+    const allEntries = entries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      const cutoffDate = new Date(endDate);
+      cutoffDate.setDate(endDate.getDate() - 42); // Need 6 weeks of data for ACWR
+      return entryDate >= cutoffDate && entryDate <= endDate;
+    });
 
-      // Get chronic load (average of 4 weeks prior to acute period)
-      const chronic = acute > 0 ? acute * 0.85 : 0; // Simplified for now
-      const acwr = chronic > 0 ? acute / chronic : 0;
+    // Build historical daily totals
+    const historicalData: { [key: string]: number } = {};
+    allEntries.forEach(entry => {
+      const dateStr = new Date(entry.date).toISOString().split('T')[0];
+      historicalData[dateStr] = (historicalData[dateStr] || 0) + (entry.trainingLoad || 0);
+    });
+
+    // Calculate ACWR for each day in the 14-day window
+    const result = Object.values(dailyData).map((day) => {
+      const currentDate = new Date(day.date);
+      
+      // Calculate 7-day acute load (sum of last 7 days including current)
+      let acuteSum = 0;
+      for (let i = 0; i < 7; i++) {
+        const checkDate = new Date(currentDate);
+        checkDate.setDate(currentDate.getDate() - i);
+        const checkDateStr = checkDate.toISOString().split('T')[0];
+        acuteSum += historicalData[checkDateStr] || 0;
+      }
+
+      // Calculate 28-day chronic load (average of 4 weeks)
+      let chronicSum = 0;
+      for (let i = 0; i < 28; i++) {
+        const checkDate = new Date(currentDate);
+        checkDate.setDate(currentDate.getDate() - i);
+        const checkDateStr = checkDate.toISOString().split('T')[0];
+        chronicSum += historicalData[checkDateStr] || 0;
+      }
+      const chronicAvg = chronicSum / 28;
+
+      // Calculate ACWR ratio
+      const acwr = chronicAvg > 0 ? acuteSum / chronicAvg : null;
 
       return {
         ...day,
-        acwr: Math.round(acwr * 100) / 100
+        acwr: acwr ? Math.round(acwr * 100) / 100 : null
       };
     });
 
-    console.log(`Athlete ${userId}: Returning 14 days of load data with ACWR values`);
+    console.log(`Athlete ${userId}: Returning 14 days of load data with ACWR values:`, 
+      result.map(d => `${d.date}: ${d.total} AU, ACWR: ${d.acwr}`));
     return result;
   }
 
