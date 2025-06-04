@@ -111,7 +111,7 @@ export default function FitnessProgressRedesigned() {
         </div>
 
         {/* 1. Weekly Training Load Chart */}
-        <div className="bg-zinc-800/90 rounded-lg p-6 mb-8">
+        <div className="bg-zinc-800/90 rounded-lg px-3 py-6 mb-8">
           <h2 className="text-base font-semibold text-center mb-4">
             Weekly Training Load (Last 14 Days)
           </h2>
