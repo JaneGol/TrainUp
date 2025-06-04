@@ -32,6 +32,16 @@ export const useAlerts = () => {
       };
     }
 
+    // Check if there are actual health alerts first (prioritize showing health issues)
+    if (alerts.length > 0) {
+      return {
+        hasAlerts: true,
+        isPendingData: false,
+        message: `${alerts.length} alert${alerts.length > 1 ? 's' : ''}`,
+        alerts
+      };
+    }
+
     // Check if any athletes are missing today's data
     const athletesMissingData = athleteReadiness.filter((athlete: any) => 
       athlete.issues?.includes("No data from today") || 
@@ -47,22 +57,12 @@ export const useAlerts = () => {
       };
     }
 
-    // All athletes have submitted data - check for actual health alerts
-    if (alerts.length === 0) {
-      return {
-        hasAlerts: false,
-        isPendingData: false,
-        message: "No health alerts. Everyone is healthy.",
-        alerts: []
-      };
-    }
-
-    // There are actual health alerts
+    // All athletes have submitted data - no health alerts
     return {
-      hasAlerts: true,
+      hasAlerts: false,
       isPendingData: false,
-      message: `${alerts.length} alert${alerts.length > 1 ? 's' : ''}`,
-      alerts
+      message: "No health alerts. Everyone is healthy.",
+      alerts: []
     };
   };
 
