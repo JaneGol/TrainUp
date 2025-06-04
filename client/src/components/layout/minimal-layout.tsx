@@ -39,7 +39,7 @@ export default function MinimalLayout({ children }: MinimalLayoutProps) {
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
           <div className="flex items-center">
-            <h1 className="font-bold text-xl text-primary">TrainUpSOTA</h1>
+            <h1 className="font-bold text-xl text-primary">TrainUp</h1>
           </div>
           
           <div className="flex items-center space-x-4">
