@@ -333,6 +333,16 @@ export default function FitnessProgressRedesigned() {
                 {fitnessData?.summary?.acuteLoad ? `${Math.round(fitnessData.summary.acuteLoad)} AU` : 'Calculating...'}
               </span>
             </div>
+            {fitnessData?.summary?.acuteLoad && (
+              <div className="text-xs text-zinc-500 mt-1 pl-0">
+                {Math.round(fitnessData.summary.acuteLoad) < 50 ? 
+                  '📊 Light week - good for recovery' :
+                  Math.round(fitnessData.summary.acuteLoad) < 80 ? 
+                  '📊 Moderate load - balanced training' :
+                  '📊 High intensity week - monitor recovery closely'
+                }
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-zinc-400">Readiness score</span>
               <span className="text-zinc-300">
