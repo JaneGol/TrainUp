@@ -31,6 +31,11 @@ export default function FitnessProgressRedesigned() {
     queryKey: ["/api/athlete/fitness-progress"],
   });
 
+  // Get latest morning diary for current metrics
+  const { data: latestDiary } = useQuery({
+    queryKey: ["/api/morning-diary/latest"],
+  });
+
   // Calculate current ACWR and status
   const currentAcwr = fitnessData?.summary?.acwr || 1.0;
   const getStatusInfo = (acwr: number) => {
@@ -295,21 +300,46 @@ export default function FitnessProgressRedesigned() {
           </div>
         )}
 
-        {/* 5. Weekly Scorecard Placeholder */}
+        {/* 5. Weekly Scorecard */}
         <div className="bg-zinc-800/90 rounded-lg p-6">
           <h2 className="text-base font-semibold mb-4">Weekly Scorecard</h2>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-zinc-400">Sleep avg</span>
-              <span className="text-zinc-300">7.2h 👍</span>
+              <span className="text-zinc-400">Sleep hours</span>
+              <span className="text-zinc-300">
+                {latestDiary?.sleepHours ? `${latestDiary.sleepHours}h` : 'No data'} 
+                {latestDiary?.sleepQuality === 'good' ? ' 😴' : latestDiary?.sleepQuality === 'poor' ? ' 😵' : ' 🙂'}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zinc-400">Stress avg</span>
-              <span className="text-zinc-300">2.1 ↑</span>
+              <span className="text-zinc-400">Recovery level</span>
+              <span className="text-zinc-300">
+                {latestDiary?.recoveryLevel === 'good' ? 'Good ✅' : 
+                 latestDiary?.recoveryLevel === 'moderate' ? 'Moderate ⚠️' : 
+                 latestDiary?.recoveryLevel === 'poor' ? 'Poor ❌' : 'No data'}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zinc-400">Motivation avg</span>
-              <span className="text-zinc-300">3.8 ↓</span>
+              <span className="text-zinc-400">Motivation</span>
+              <span className="text-zinc-300">
+                {latestDiary?.motivationLevel === 'high' ? 'High 🔥' : 
+                 latestDiary?.motivationLevel === 'moderate' ? 'Moderate 💪' : 
+                 latestDiary?.motivationLevel === 'low' ? 'Low 😐' : 'No data'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zinc-400">Training load (7d)</span>
+              <span className="text-zinc-300">
+                {fitnessData?.summary?.acuteLoad ? `${Math.round(fitnessData.summary.acuteLoad)} AU` : 'Calculating...'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zinc-400">Readiness score</span>
+              <span className="text-zinc-300">
+                {latestDiary?.readinessScore ? `${latestDiary.readinessScore}/100` : 'No data'}
+                {latestDiary?.readinessScore >= 80 ? ' 🟢' : 
+                 latestDiary?.readinessScore >= 60 ? ' 🟡' : ' 🔴'}
+              </span>
             </div>
           </div>
         </div>
