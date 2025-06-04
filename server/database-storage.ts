@@ -1693,12 +1693,17 @@ export class DatabaseStorage implements IStorage {
       }
       const chronicAvg = chronicSum / 28;
 
-      // Calculate ACWR ratio
-      const acwr = chronicAvg > 0 ? acuteSum / chronicAvg : null;
+      // Calculate ACWR ratio - need at least some chronic load to avoid division by zero
+      let acwr = null;
+      if (chronicAvg > 0) {
+        acwr = parseFloat((acuteSum / chronicAvg).toFixed(2));
+      }
+
+      console.log(`ACWR calculation for ${day.date}: acute=${acuteSum}, chronic=${chronicAvg.toFixed(2)}, ratio=${acwr}`);
 
       return {
         ...day,
-        acwr: acwr ? Math.round(acwr * 100) / 100 : null
+        acwr: acwr
       };
     });
 
