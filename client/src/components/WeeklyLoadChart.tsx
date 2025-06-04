@@ -71,7 +71,7 @@ export default function WeeklyLoadChart({ data }: WeeklyLoadChartProps) {
       <ResponsiveContainer width="100%" height={280}>
         <ComposedChart 
           data={data} 
-          margin={{ top: 5, right: 10, left: 5, bottom: 5 }}
+          margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
         >
           {/* Reference areas for ACWR zones */}
           <ReferenceArea y1={0.5} y2={0.79} fill="#1e3a8a" fillOpacity={0.08} yAxisId="acwr" />
