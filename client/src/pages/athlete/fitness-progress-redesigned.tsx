@@ -262,15 +262,15 @@ export default function FitnessProgressRedesigned() {
           )}
         </div>
 
-        {/* 4. Body vs Mind Load */}
-        {bodyMindData.length > 0 && (
+        {/* 3. Training Distribution */}
+        {trainingDistribution.length > 0 && (
           <div className="bg-zinc-800/90 rounded-lg p-6 mb-8">
-            <h2 className="text-base font-semibold mb-4">Physical vs Emotional Load (This Week)</h2>
+            <h2 className="text-base font-semibold mb-4">Training Distribution (This Week)</h2>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={bodyMindData}
+                    data={trainingDistribution}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -278,7 +278,7 @@ export default function FitnessProgressRedesigned() {
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    {bodyMindData.map((entry, index) => (
+                    {trainingDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
@@ -288,14 +288,15 @@ export default function FitnessProgressRedesigned() {
                       border: '1px solid #374151',
                       borderRadius: '8px'
                     }}
-                    formatter={(value) => [`${value} AU`, '']}
+                    formatter={(value) => [`${value}%`, '']}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
             <div className="flex justify-center gap-4 text-xs">
-              <span className="text-lime-400">▇ Physical</span>
-              <span className="text-blue-400">▇ Emotional</span>
+              <span className="text-lime-400">▇ Field Training</span>
+              <span className="text-blue-400">▇ Gym Training</span>
+              <span className="text-red-400">▇ Match</span>
             </div>
           </div>
         )}
