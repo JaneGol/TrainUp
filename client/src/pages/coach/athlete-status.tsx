@@ -141,7 +141,20 @@ export default function AthleteStatusPage() {
                                   <>
                                     <span className="text-red-400 mt-0.5">🌡️</span>
                                     <span className="text-[11px] text-zinc-300 leading-tight">
-                                      {athlete.issues.join(", ")}
+                                      {athlete.issues.map((issue: string, index: number) => {
+                                        if (issue.includes('Muscle soreness:')) {
+                                          // Extract the sore areas from the issue text
+                                          const sorenessText = issue.replace('Muscle soreness: ', '');
+                                          const soreAreas = sorenessText.split(', ').filter(area => area.trim() !== '' && area !== 'has_soreness');
+                                          const sorenessCount = soreAreas.length;
+                                          
+                                          if (sorenessCount > 0) {
+                                            return `Muscle soreness (${sorenessCount}/5)`;
+                                          }
+                                          return issue;
+                                        }
+                                        return issue;
+                                      }).join(", ")}
                                     </span>
                                   </>
                                 ) : (
