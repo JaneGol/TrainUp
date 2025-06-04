@@ -1140,13 +1140,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         const chronicAvg = chronicSum / 28;
 
-        // Calculate ACWR ratio
+        // Calculate ACWR ratio - compare averages, not sum vs average
+        const acuteAvg = acuteSum / 7; // Average daily load for 7 days
         let acwr = null;
         if (chronicAvg > 0) {
-          acwr = parseFloat((acuteSum / chronicAvg).toFixed(2));
+          acwr = parseFloat((acuteAvg / chronicAvg).toFixed(2));
         }
 
-        console.log(`ACWR for ${day.date}: acute=${acuteSum.toFixed(1)}, chronic=${chronicAvg.toFixed(1)}, ratio=${acwr}`);
+        console.log(`ACWR for ${day.date}: acute=${acuteSum.toFixed(1)} (avg: ${acuteAvg.toFixed(1)}), chronic=${chronicAvg.toFixed(1)}, ratio=${acwr}`);
 
         return {
           ...day,
