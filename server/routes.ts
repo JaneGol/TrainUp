@@ -1100,17 +1100,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      // Calculate ACWR for each day
-      const result = Object.values(dailyData).map((day, index) => {
-        const acuteStart = Math.max(0, index - 6);
-        const acuteData = Object.values(dailyData).slice(acuteStart, index + 1);
-        const acute = acuteData.reduce((sum, d) => sum + d.total, 0);
-        const chronic = acute > 0 ? acute * 0.85 : 0;
-        const acwr = chronic > 0 ? acute / chronic : 0;
+      // Get all training entries for proper ACWR calculation (need 28+ days)
+      const allEntries = entries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        const cutoffDate = new Date(endDate);
+        cutoffDate.setDate(endDate.getDate() - 42); // Get 6 weeks for proper calculation
+        return entryDate >= cutoffDate && entryDate <= endDate;
+      });
+
+      // Build historical daily totals for ACWR calculation
+      const historicalData: { [key: string]: number } = {};
+      allEntries.forEach(entry => {
+        const dateStr = new Date(entry.date).toISOString().split('T')[0];
+        historicalData[dateStr] = (historicalData[dateStr] || 0) + (entry.trainingLoad || 0);
+      });
+
+      // Calculate ACWR for each day with proper rolling windows
+      const result = Object.values(dailyData).map((day) => {
+        const currentDate = new Date(day.date);
+        
+        // Calculate 7-day acute load (sum of last 7 days including current)
+        let acuteSum = 0;
+        for (let i = 0; i < 7; i++) {
+          const checkDate = new Date(currentDate);
+          checkDate.setDate(currentDate.getDate() - i);
+          const checkDateStr = checkDate.toISOString().split('T')[0];
+          acuteSum += historicalData[checkDateStr] || 0;
+        }
+
+        // Calculate 28-day chronic load (average of 4 weeks)
+        let chronicSum = 0;
+        for (let i = 0; i < 28; i++) {
+          const checkDate = new Date(currentDate);
+          checkDate.setDate(currentDate.getDate() - i);
+          const checkDateStr = checkDate.toISOString().split('T')[0];
+          chronicSum += historicalData[checkDateStr] || 0;
+        }
+        const chronicAvg = chronicSum / 28;
+
+        // Calculate ACWR ratio
+        let acwr = null;
+        if (chronicAvg > 0) {
+          acwr = parseFloat((acuteSum / chronicAvg).toFixed(2));
+        }
+
+        console.log(`ACWR for ${day.date}: acute=${acuteSum}, chronic=${chronicAvg.toFixed(2)}, ratio=${acwr}`);
 
         return {
           ...day,
-          acwr: Math.round(acwr * 100) / 100
+          acwr: acwr
         };
       });
 
