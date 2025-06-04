@@ -219,6 +219,41 @@ export default function FitnessProgressRedesigned() {
           </div>
         </div>
 
+        {/* 3. Explanation Box */}
+        {fitnessData?.summary && (
+          <div className="bg-zinc-800/90 rounded-lg p-6 mb-8">
+            <h2 className="text-base font-semibold mb-4">How Your Status is Calculated</h2>
+            <div className="space-y-3 text-sm text-zinc-300">
+              <div>
+                <strong className="text-white">ACWR (Acute:Chronic Workload Ratio):</strong> {currentAcwr.toFixed(2)}
+              </div>
+              <div>
+                • <strong>Formula:</strong> 7-day training load ÷ 28-day average load
+              </div>
+              <div>
+                • <strong>Training Load:</strong> (Physical RPE + Emotional Load) ÷ 2 × Duration (minutes)
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-3 border-t border-zinc-700">
+                <div className="text-center">
+                  <div className="text-xs text-zinc-400">OK Zone</div>
+                  <div className="font-semibold text-lime-400">≤ 1.2</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-zinc-400">Caution Zone</div>
+                  <div className="font-semibold text-yellow-400">1.2 - 1.3</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-zinc-400">High Risk</div>
+                  <div className="font-semibold text-red-400">≥ 1.3</div>
+                </div>
+              </div>
+              <div className="text-xs text-zinc-400 mt-3">
+                💡 Values below 0.8 indicate you can safely increase training intensity
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 4. Body vs Mind Load */}
         {bodyMindData.length > 0 && (
           <div className="bg-zinc-800/90 rounded-lg p-6 mb-8">
