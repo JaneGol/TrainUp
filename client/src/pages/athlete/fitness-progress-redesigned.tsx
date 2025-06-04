@@ -115,33 +115,32 @@ export default function FitnessProgressRedesigned() {
           <h2 className="text-base font-semibold text-center mb-4">
             Weekly Training Load (Last 14 Days)
           </h2>
-          <div className="h-64 flex justify-center">
-            <div className="w-full max-w-4xl">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={weeklyLoadData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis 
-                    dataKey="date" 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                    tickFormatter={(value) => format(parseISO(value), 'dd.MM')}
-                  />
-                  <YAxis 
-                    yAxisId="load"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                  />
-                  <YAxis 
-                    yAxisId="acwr"
-                    orientation="right"
-                    domain={[0.5, 3.0]}
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                    tickCount={6}
-                  />
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={weeklyLoadData} margin={{ left: 10, right: 10, top: 5, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="date" 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                  tickFormatter={(value) => format(parseISO(value), 'dd.MM')}
+                />
+                <YAxis 
+                  yAxisId="load"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                />
+                <YAxis 
+                  yAxisId="acwr"
+                  orientation="right"
+                  domain={[0, 2]}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                  tickCount={5}
+                />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: '#1F2937', 
@@ -191,7 +190,6 @@ export default function FitnessProgressRedesigned() {
                   />
                 </ComposedChart>
               </ResponsiveContainer>
-            </div>
           </div>
           {/* Legend */}
           <div className="flex justify-center mt-2 gap-4 text-xs">
