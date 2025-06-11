@@ -654,8 +654,9 @@ export class MemStorage implements IStorage {
       }
       const chronicLoad = chronicSum / 28;
       
-      // Calculate ACWR
-      const ratio = chronicLoad === 0 ? 0 : parseFloat((acuteLoad / chronicLoad).toFixed(2));
+      // Calculate ACWR (7-day average vs 28-day average)
+      const acuteAvg = acuteLoad / 7; // Average daily load for 7 days
+      const ratio = chronicLoad === 0 ? 0 : parseFloat((acuteAvg / chronicLoad).toFixed(2));
       
       result.push({
         date: currentDate,

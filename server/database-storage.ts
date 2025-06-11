@@ -1693,13 +1693,14 @@ export class DatabaseStorage implements IStorage {
       }
       const chronicAvg = chronicSum / 28;
 
-      // Calculate ACWR ratio - need at least some chronic load to avoid division by zero
+      // Calculate ACWR ratio - compare 7-day average vs 28-day average
+      const acuteAvg = acuteSum / 7; // Average daily load for 7 days
       let acwr = null;
       if (chronicAvg > 0) {
-        acwr = parseFloat((acuteSum / chronicAvg).toFixed(2));
+        acwr = parseFloat((acuteAvg / chronicAvg).toFixed(2));
       }
 
-      console.log(`ACWR calculation for ${day.date}: acute=${acuteSum}, chronic=${chronicAvg.toFixed(2)}, ratio=${acwr}`);
+      console.log(`ACWR calculation for ${day.date}: acute=${acuteSum} (avg: ${acuteAvg.toFixed(1)}), chronic=${chronicAvg.toFixed(1)}, ratio=${acwr}`);
 
       return {
         ...day,
