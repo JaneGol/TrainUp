@@ -2,6 +2,13 @@ import { pgTable, text, serial, integer, boolean, timestamp, json, real } from "
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const teams = pgTable("teams", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  pinCode: text("pin_code").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -12,12 +19,27 @@ export const users = pgTable("users", {
   role: text("role", { enum: ["athlete", "coach"] }).notNull(),
   profileImage: text("profile_image"),
   teamPosition: text("team_position"),
+  teamId: integer("team_id").notNull().references(() => teams.id),
+});
+
+export const insertTeamSchema = createInsertSchema(teams).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   profileImage: true,
+  teamId: true,
+}).extend({
+  teamName: z.string().min(1, "Team name is required"),
+  teamPin: z.string().length(4, "PIN must be exactly 4 digits").regex(/^\d{4}$/, "PIN must contain only numbers"),
 });
+
+export type Team = typeof teams.$inferSelect;
+export type InsertTeam = z.infer<typeof insertTeamSchema>;
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export const trainingEntries = pgTable("training_entries", {
   id: serial("id").primaryKey(),
