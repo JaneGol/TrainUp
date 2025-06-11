@@ -1212,6 +1212,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const chronicLoad = chronicSum / 28; // Average per day over 28 days
       const acwr = chronicLoad > 0 ? acuteLoad / chronicLoad : 0;
       
+      console.log(`FITNESS PROGRESS ACWR for user ${userId}:`);
+      console.log(`  Acute entries: ${acuteEntries.length}, Chronic entries: ${chronicEntries.length}`);
+      console.log(`  Acute sum: ${acuteSum.toFixed(1)}, Acute avg: ${acuteLoad.toFixed(1)}`);
+      console.log(`  Chronic sum: ${chronicSum.toFixed(1)}, Chronic avg: ${chronicLoad.toFixed(1)}`);
+      console.log(`  ACWR: ${acwr.toFixed(2)}`);
+      
       // Calculate average weekly physical and emotional RPE
       const avgPhysicalRPE = acuteEntries.length > 0 ? 
         acuteEntries.reduce((sum, entry) => sum + entry.effortLevel, 0) / acuteEntries.length : 
