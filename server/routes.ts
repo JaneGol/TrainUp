@@ -1194,20 +1194,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const defaultDuration = 70; // minutes
       
       // Calculate acute load (7-day sum)
-      const acuteLoad = acuteEntries.reduce((sum, entry) => {
+      const acuteSum = acuteEntries.reduce((sum, entry) => {
         // Use average of physical and emotional load
         const avgLoad = (entry.effortLevel + entry.emotionalLoad) / 2;
         return sum + (avgLoad * defaultDuration / 60); // Convert to hours
       }, 0);
       
-      // Calculate chronic load (28-day average)
-      const chronicLoad = chronicEntries.length > 0 ? 
+      // Calculate chronic load (28-day sum)
+      const chronicSum = chronicEntries.length > 0 ? 
         chronicEntries.reduce((sum, entry) => {
           const avgLoad = (entry.effortLevel + entry.emotionalLoad) / 2;
           return sum + (avgLoad * defaultDuration / 60);
-        }, 0) / 4 : 0; // Divide by 4 weeks
+        }, 0) : 0;
       
-      // Calculate ACWR (Acute:Chronic Workload Ratio)
+      // Calculate ACWR (7-day average vs 28-day average)
+      const acuteLoad = acuteSum / 7; // Average per day over 7 days
+      const chronicLoad = chronicSum / 28; // Average per day over 28 days
       const acwr = chronicLoad > 0 ? acuteLoad / chronicLoad : 0;
       
       // Calculate average weekly physical and emotional RPE
