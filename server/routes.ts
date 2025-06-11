@@ -681,6 +681,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(401);
     }
     
+    // Force cache refresh with proper headers
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.set('Last-Modified', new Date().toUTCString());
+    res.set('ETag', `"${Date.now()}"`);
+    
+    console.log("=== ACWR ANALYTICS: Using corrected calculation method ===");
+    
     // Parse athleteId from query parameter
     let athleteId: number | undefined = undefined;
     if (req.query.athleteId && typeof req.query.athleteId === 'string') {
@@ -739,9 +748,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json(sampleData);
     }
     
-    // For team-level view, use the stored data
-    const acwrData = await storage.getAcuteChronicLoadRatio();
-    res.json(acwrData);
+    // For team-level view, calculate fresh ACWR using corrected formula
+    try {
+      // Get authentic training session data for ACWR calculation
+      const { getSimpleTrainingSessions } = await import("./simple-sessions");
+      const sessions = await getSimpleTrainingSessions();
+      console.log(`ACWR ANALYTICS: Found ${sessions.length} authentic sessions for calculation`);
+      
+      // Group sessions by date and sum daily loads
+      const dailyLoads: { [date: string]: number } = {};
+      sessions.forEach(session => {
+        const dateStr = session.date;
+        dailyLoads[dateStr] = (dailyLoads[dateStr] || 0) + session.load;
+      });
+      
+      // Get sorted dates for the last 42 days (need 6 weeks for ACWR calculation)
+      const sortedDates = Object.keys(dailyLoads).sort();
+      const result = [];
+      
+      // Calculate ACWR for last 14 days using corrected formula
+      const today = new Date();
+      for (let i = 13; i >= 0; i--) {
+        const currentDate = new Date(today);
+        currentDate.setDate(today.getDate() - i);
+        const dateStr = currentDate.toISOString().split('T')[0];
+        
+        // Calculate 7-day acute load (sum of last 7 days ÷ 7)
+        let acuteSum = 0;
+        for (let j = 0; j < 7; j++) {
+          const checkDate = new Date(currentDate);
+          checkDate.setDate(currentDate.getDate() - j);
+          const checkDateStr = checkDate.toISOString().split('T')[0];
+          acuteSum += dailyLoads[checkDateStr] || 0;
+        }
+        const acuteAvg = acuteSum / 7;
+        
+        // Calculate 28-day chronic load (sum of last 28 days ÷ 28)
+        let chronicSum = 0;
+        for (let j = 0; j < 28; j++) {
+          const checkDate = new Date(currentDate);
+          checkDate.setDate(currentDate.getDate() - j);
+          const checkDateStr = checkDate.toISOString().split('T')[0];
+          chronicSum += dailyLoads[checkDateStr] || 0;
+        }
+        const chronicAvg = chronicSum / 28;
+        
+        // Calculate ACWR (7-day average ÷ 28-day average)
+        const ratio = chronicAvg > 0 ? parseFloat((acuteAvg / chronicAvg).toFixed(2)) : 0;
+        
+        console.log(`CORRECTED ACWR for ${dateStr}: acute=${acuteSum} (avg: ${acuteAvg.toFixed(1)}), chronic=${chronicAvg.toFixed(1)}, ratio=${ratio}`);
+        
+        result.push({
+          date: dateStr,
+          acute: Math.round(acuteSum),
+          chronic: Math.round(chronicSum),
+          ratio: ratio
+        });
+      }
+      
+      console.log(`ACWR ANALYTICS: Returning ${result.length} days with corrected ACWR calculations`);
+      res.json(result);
+      
+    } catch (error) {
+      console.error("Error calculating fresh ACWR data:", error);
+      // Fallback to storage data if calculation fails
+      const acwrData = await storage.getAcuteChronicLoadRatio();
+      res.json(acwrData);
+    }
   });
   
   // Get weekly training load (last 10 weeks)
