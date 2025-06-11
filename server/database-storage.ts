@@ -1353,22 +1353,24 @@ export class DatabaseStorage implements IStorage {
     for (let i = 27; i < dates.length; i++) {
       const currentDate = dates[i];
       
-      // Acute load - last 7 days total (not average)
+      // Acute load - last 7 days sum then average
       let acuteSum = 0;
       for (let j = i - 6; j <= i; j++) {
         acuteSum += loadByDate[dates[j]] || 0;
       }
-      const acuteLoad = acuteSum; // Keep as total, not average
+      const acuteAvg = acuteSum / 7; // CORRECTED: Average daily load for 7 days
       
-      // Chronic load - last 28 days average
+      // Chronic load - last 28 days sum then average
       let chronicSum = 0;
       for (let j = i - 27; j <= i; j++) {
         chronicSum += loadByDate[dates[j]] || 0;
       }
-      const chronicLoad = chronicSum / 28;
+      const chronicAvg = chronicSum / 28; // Average daily load for 28 days
       
-      // Calculate ACWR
-      const ratio = chronicLoad === 0 ? 0 : parseFloat((acuteLoad / chronicLoad).toFixed(2));
+      // CORRECTED ACWR: 7-day average ÷ 28-day average
+      const ratio = chronicAvg === 0 ? 0 : parseFloat((acuteAvg / chronicAvg).toFixed(2));
+      
+      console.log(`CORRECTED ACWR for ${currentDate}: acute=${acuteSum} (avg: ${acuteAvg.toFixed(1)}), chronic=${chronicSum} (avg: ${chronicAvg.toFixed(1)}), ratio=${ratio}`);
       
       // Determine risk zone based on ACWR value
       let riskZone = "optimal";
@@ -1382,8 +1384,8 @@ export class DatabaseStorage implements IStorage {
       
       result.push({
         date: currentDate,
-        acute: Math.round(acuteLoad),
-        chronic: Math.round(chronicLoad),
+        acute: Math.round(acuteSum),
+        chronic: Math.round(chronicSum), 
         ratio: ratio,
         riskZone: riskZone
       });
@@ -1482,6 +1484,8 @@ export class DatabaseStorage implements IStorage {
       
       // Check for high ACWR (using corrected calculation method)
       try {
+        // Force fresh ACWR calculation for alerts
+        console.log(`=== FRESH ACWR CALCULATION FOR ALERTS: ${athlete.firstName} ${athlete.lastName} (ID: ${athlete.id}) ===`);
         const acwrData = await this.getAcuteChronicLoadRatio(athlete.id);
         if (acwrData.length > 0) {
           const latestACWR = acwrData[acwrData.length - 1];
@@ -1497,6 +1501,8 @@ export class DatabaseStorage implements IStorage {
           } else {
             console.log(`Normal ACWR: ${athlete.firstName} ${athlete.lastName} - ACWR ${latestACWR.ratio.toFixed(2)} (below 1.3 threshold)`);
           }
+        } else {
+          console.log(`No ACWR data available for ${athlete.firstName} ${athlete.lastName}`);
         }
       } catch (error) {
         // Skip ACWR check if data is insufficient
@@ -1755,7 +1761,7 @@ export class DatabaseStorage implements IStorage {
           uniqueTypes.add(type);
           result.push({
             type,
-            sessionNumber: entry.sessionNumber || undefined
+            sessionNumber: entry.sessionNumber !== null ? entry.sessionNumber : undefined
           });
         }
       });
