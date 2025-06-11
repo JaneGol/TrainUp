@@ -479,7 +479,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(401);
     }
     
-    const athletes = await storage.getAthletes();
+    // Only return athletes from the coach's team
+    const athletes = await storage.getTeamAthletes(req.user!.teamId);
     res.json(athletes);
   });
 
@@ -489,6 +490,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     const athleteId = parseInt(req.params.id);
+    
+    // Verify the athlete belongs to the coach's team
+    const teamAthletes = await storage.getTeamAthletes(req.user!.teamId);
+    const athlete = teamAthletes.find(a => a.id === athleteId);
+    if (!athlete) {
+      return res.sendStatus(403); // Forbidden - athlete not in coach's team
+    }
+    
     const entries = await storage.getTrainingEntriesByUserId(athleteId);
     res.json(entries);
   });
@@ -499,6 +508,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     const athleteId = parseInt(req.params.id);
+    
+    // Verify the athlete belongs to the coach's team
+    const teamAthletes = await storage.getTeamAthletes(req.user!.teamId);
+    const athlete = teamAthletes.find(a => a.id === athleteId);
+    if (!athlete) {
+      return res.sendStatus(403); // Forbidden - athlete not in coach's team
+    }
+    
     const reports = await storage.getHealthReportsByUserId(athleteId);
     res.json(reports);
   });
@@ -603,7 +620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(401);
     }
     
-    const readiness = await storage.getTeamReadiness();
+    const readiness = await storage.getTeamReadiness(req.user!.teamId);
     res.json(readiness);
   });
   
@@ -971,9 +988,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      // Get wellness trends directly from storage implementation
-      // This uses our enhanced calculation logic for all three metrics
-      const wellnessTrends = await storage.getTeamWellnessTrends();
+      // Get wellness trends filtered by coach's team
+      const wellnessTrends = await storage.getTeamWellnessTrends(req.user!.teamId);
       res.json(wellnessTrends);
     } catch (error) {
       console.error('Error generating team wellness trends:', error);
@@ -987,7 +1003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(401);
     }
     
-    const recoveryReadiness = await storage.getAthleteRecoveryReadiness();
+    const recoveryReadiness = await storage.getAthleteRecoveryReadiness(req.user!.teamId);
     res.json(recoveryReadiness);
   });
   

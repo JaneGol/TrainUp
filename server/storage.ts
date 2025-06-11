@@ -54,16 +54,14 @@ export interface IStorage {
   getCoachFeedbackByCoachId(coachId: number): Promise<CoachFeedback[]>;
   getCoachFeedbackByAthleteId(athleteId: number): Promise<CoachFeedback[]>;
   
-  // Team metrics
-  getTeamReadiness(): Promise<{ date: string; value: number }[]>;
-  
   // Enhanced Analytics methods
   getTrainingLoadByRPE(athleteId?: number): Promise<{ date: string; load: number; trainingType: string }[]>;
   getAcuteChronicLoadRatio(athleteId?: number): Promise<{ date: string; acute: number; chronic: number; ratio: number }[]>;
-  getTeamWellnessTrends(): Promise<{ date: string; value: number; category: string }[]>;
-  getAthleteRecoveryReadiness(): Promise<{ athleteId: number; name: string; readinessScore: number; trend: string; issues: string[] }[]>;
-  getInjuryRiskFactors(): Promise<{ athleteId: number; name: string; riskScore: number; factors: string[] }[]>;
-  getTodaysAlerts(): Promise<{ athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[]>;
+  getTeamWellnessTrends(teamId?: number): Promise<{ date: string; value: number; category: string }[]>;
+  getAthleteRecoveryReadiness(teamId?: number): Promise<{ athleteId: number; name: string; readinessScore: number; trend: string; issues: string[] }[]>;
+  getInjuryRiskFactors(teamId?: number): Promise<{ athleteId: number; name: string; riskScore: number; factors: string[] }[]>;
+  getTodaysAlerts(teamId?: number): Promise<{ athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[]>;
+  getTeamReadiness(teamId?: number): Promise<{ date: string; value: number }[]>;
   getWeeklyLoadData(athleteId: string, weekStart: string): Promise<any[]>;
   getTodaysRpeSubmissions(userId: number, today: string): Promise<{ type: string; sessionNumber?: number }[]>;
 
