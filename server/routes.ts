@@ -1013,7 +1013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(401);
     }
     
-    const riskFactors = await storage.getInjuryRiskFactors();
+    const riskFactors = await storage.getInjuryRiskFactors(req.user!.teamId);
     res.json(riskFactors);
   });
 
@@ -1031,7 +1031,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Expires': '0'
       });
       
-      const alerts = await storage.getTodaysAlerts();
+      const alerts = await storage.getTodaysAlerts(req.user!.teamId);
       console.log(`Alerts API: Found ${alerts.length} alerts for today`);
       res.json(alerts);
     } catch (error) {

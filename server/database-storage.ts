@@ -904,9 +904,9 @@ export class DatabaseStorage implements IStorage {
   // Enhanced Analytics methods
   
   // Team wellness trends
-  async getTeamWellnessTrends(): Promise<{ date: string; value: number; category: string }[]> {
-    // Get all morning diaries with full details needed for calculations
-    const diaries = await db
+  async getTeamWellnessTrends(teamId?: number): Promise<{ date: string; value: number; category: string }[]> {
+    // Get all morning diaries with full details needed for calculations, filtered by team
+    const baseQuery = db
       .select({
         id: morningDiary.id,
         userId: morningDiary.userId,
@@ -922,8 +922,11 @@ export class DatabaseStorage implements IStorage {
         sorenessMap: morningDiary.sorenessMap
       })
       .from(morningDiary)
-      .orderBy(morningDiary.date)
-      .limit(500); // Get a reasonable amount of data
+      .innerJoin(users, eq(morningDiary.userId, users.id));
+
+    const diaries = teamId !== undefined 
+      ? await baseQuery.where(eq(users.teamId, teamId)).orderBy(morningDiary.date).limit(500)
+      : await baseQuery.orderBy(morningDiary.date).limit(500);
       
     if (diaries.length === 0) {
       return generateDefaultWellnessTrends();
@@ -1043,9 +1046,9 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Athlete recovery readiness
-  async getAthleteRecoveryReadiness(): Promise<{ athleteId: number; name: string; readinessScore: number; trend: string; issues: string[] }[]> {
-    // Get all athletes
-    const athletes = await this.getAthletes();
+  async getAthleteRecoveryReadiness(teamId?: number): Promise<{ athleteId: number; name: string; readinessScore: number; trend: string; issues: string[] }[]> {
+    // Get athletes filtered by team
+    const athletes = teamId ? await this.getTeamAthletes(teamId) : await this.getAthletes();
     
     // Get today's date in local timezone
     const today = new Date();
