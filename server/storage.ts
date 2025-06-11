@@ -74,6 +74,7 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
+  private teams: Map<number, Team>;
   private trainingEntries: Map<number, TrainingEntry>;
   private morningDiaries: Map<number, MorningDiary>;
   private fitnessMetrics: Map<number, FitnessMetrics>;
@@ -83,6 +84,7 @@ export class MemStorage implements IStorage {
   sessionStore: SessionStoreType;
   
   private userCurrentId: number;
+  private teamCurrentId: number;
   private entryCurrentId: number;
   private diaryCurrentId: number;
   private metricsCurrentId: number;
@@ -91,6 +93,7 @@ export class MemStorage implements IStorage {
 
   constructor() {
     this.users = new Map();
+    this.teams = new Map();
     this.trainingEntries = new Map();
     this.morningDiaries = new Map();
     this.fitnessMetrics = new Map();
@@ -98,6 +101,7 @@ export class MemStorage implements IStorage {
     this.coachFeedback = new Map();
     
     this.userCurrentId = 1;
+    this.teamCurrentId = 1;
     this.entryCurrentId = 1;
     this.diaryCurrentId = 1;
     this.metricsCurrentId = 1;
@@ -108,6 +112,12 @@ export class MemStorage implements IStorage {
       checkPeriod: 86400000, // prune expired entries every 24h
     });
     
+    // Create default TEST team for existing users
+    const defaultTeam = this.createTeam({
+      name: "TEST",
+      pinCode: "1234"
+    });
+    
     // Add some sample users for development
     this.createUser({
       username: "athlete1",
@@ -116,7 +126,8 @@ export class MemStorage implements IStorage {
       firstName: "Alex",
       lastName: "Morgan",
       role: "athlete",
-      teamPosition: "Forward"
+      teamPosition: "Forward",
+      teamId: defaultTeam.id
     });
     
     this.createUser({
@@ -126,7 +137,8 @@ export class MemStorage implements IStorage {
       firstName: "John",
       lastName: "Smith",
       role: "coach",
-      teamPosition: "Head Coach"
+      teamPosition: "Head Coach",
+      teamId: defaultTeam.id
     });
   }
 
@@ -141,16 +153,45 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(insertUser: InsertUser & { teamId: number }): Promise<User> {
     const id = this.userCurrentId++;
     const user: User = { 
       ...insertUser, 
       id, 
       profileImage: null,
-      teamPosition: insertUser.teamPosition || null 
+      teamPosition: insertUser.teamPosition || null,
+      teamId: insertUser.teamId
     };
     this.users.set(id, user);
     return user;
+  }
+
+  // Team methods
+  async getTeamByName(name: string): Promise<Team | undefined> {
+    return Array.from(this.teams.values()).find(
+      (team) => team.name === name,
+    );
+  }
+
+  async createTeam(insertTeam: InsertTeam): Promise<Team> {
+    const id = this.teamCurrentId++;
+    const team: Team = { 
+      ...insertTeam, 
+      id 
+    };
+    this.teams.set(id, team);
+    return team;
+  }
+
+  async validateTeamPin(teamName: string, pin: string): Promise<boolean> {
+    const team = await this.getTeamByName(teamName);
+    return team?.pinCode === pin;
+  }
+
+  async getTeamAthletes(teamId: number): Promise<User[]> {
+    return Array.from(this.users.values()).filter(
+      (user) => user.teamId === teamId,
+    );
   }
   
   async getAthletes(): Promise<User[]> {

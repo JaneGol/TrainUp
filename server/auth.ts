@@ -69,13 +69,19 @@ export function setupAuth(app: Express) {
     try {
       // Check if the required fields are present
       if (!req.body.username || !req.body.password || !req.body.email || 
-          !req.body.firstName || !req.body.lastName || !req.body.role) {
-        return res.status(400).json({ error: "Missing required fields" });
+          !req.body.firstName || !req.body.lastName || !req.body.role ||
+          !req.body.teamName || !req.body.teamPin) {
+        return res.status(400).json({ error: "Missing required fields including team name and PIN" });
       }
 
       // Validate role is either "athlete" or "coach"
       if (req.body.role !== "athlete" && req.body.role !== "coach") {
         return res.status(400).json({ error: "Invalid role. Must be either 'athlete' or 'coach'" });
+      }
+
+      // Validate PIN format (4 digits)
+      if (!/^\d{4}$/.test(req.body.teamPin)) {
+        return res.status(400).json({ error: "PIN must be exactly 4 digits" });
       }
 
       // Check if username already exists
@@ -97,10 +103,50 @@ export function setupAuth(app: Express) {
 
       console.log("Creating user with role:", req.body.role);
       
-      // Create the user
+      let team;
+      let teamId;
+
+      if (req.body.role === "coach") {
+        // For coaches: create new team or verify they can access existing team
+        const existingTeam = await storage.getTeamByName(req.body.teamName);
+        if (existingTeam) {
+          // Verify PIN for existing team
+          const validPin = await storage.validateTeamPin(req.body.teamName, req.body.teamPin);
+          if (!validPin) {
+            return res.status(400).json({ error: "Invalid PIN for existing team" });
+          }
+          team = existingTeam;
+        } else {
+          // Create new team
+          team = await storage.createTeam({
+            name: req.body.teamName,
+            pinCode: req.body.teamPin
+          });
+        }
+        teamId = team.id;
+      } else {
+        // For athletes: validate team exists and PIN is correct
+        const validPin = await storage.validateTeamPin(req.body.teamName, req.body.teamPin);
+        if (!validPin) {
+          return res.status(400).json({ error: "Invalid team name or PIN" });
+        }
+        const existingTeam = await storage.getTeamByName(req.body.teamName);
+        if (!existingTeam) {
+          return res.status(400).json({ error: "Team not found" });
+        }
+        teamId = existingTeam.id;
+      }
+      
+      // Create the user with team assignment
       const user = await storage.createUser({
-        ...req.body,
+        username: req.body.username,
         password: await hashPassword(req.body.password),
+        email: req.body.email,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        role: req.body.role,
+        teamPosition: req.body.teamPosition,
+        teamId: teamId
       });
 
       // Log the user in

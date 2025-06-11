@@ -48,6 +48,14 @@ const registerSchema = insertUserSchema.extend({
   confirmPassword: z.string().min(6, {
     message: "Password must be at least 6 characters.",
   }),
+  teamName: z.string().min(1, {
+    message: "Team name is required.",
+  }),
+  teamPin: z.string().length(4, {
+    message: "PIN must be exactly 4 digits.",
+  }).regex(/^\d{4}$/, {
+    message: "PIN must contain only numbers.",
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -404,6 +412,44 @@ export default function AuthPage() {
                                 <FormControl>
                                   <Input 
                                     placeholder="e.g. Forward, Coach" 
+                                    className="bg-[rgb(38,38,38)] border-gray-700 text-white" 
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={registerForm.control}
+                            name="teamName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-gray-200">Team Name</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="e.g. Warriors FC" 
+                                    className="bg-[rgb(38,38,38)] border-gray-700 text-white" 
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={registerForm.control}
+                            name="teamPin"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-gray-200">Team PIN (4 digits)</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="1234" 
+                                    maxLength={4}
                                     className="bg-[rgb(38,38,38)] border-gray-700 text-white" 
                                     {...field} 
                                   />
