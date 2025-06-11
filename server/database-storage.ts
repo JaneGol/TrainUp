@@ -1480,11 +1480,12 @@ export class DatabaseStorage implements IStorage {
         }
       }
       
-      // Check for high ACWR (using existing method)
+      // Check for high ACWR (using corrected calculation method)
       try {
         const acwrData = await this.getAcuteChronicLoadRatio(athlete.id);
         if (acwrData.length > 0) {
           const latestACWR = acwrData[acwrData.length - 1];
+          console.log(`ACWR Alert Check for ${athlete.firstName} ${athlete.lastName} (ID: ${athlete.id}): ${latestACWR.ratio}`);
           if (latestACWR.ratio > 1.3) {
             alerts.push({
               athleteId: athlete.id,
@@ -1492,6 +1493,9 @@ export class DatabaseStorage implements IStorage {
               type: "acwr",
               note: `ACWR ${latestACWR.ratio.toFixed(2)}`
             });
+            console.log(`HIGH ACWR ALERT: ${athlete.firstName} ${athlete.lastName} - ACWR ${latestACWR.ratio.toFixed(2)}`);
+          } else {
+            console.log(`Normal ACWR: ${athlete.firstName} ${athlete.lastName} - ACWR ${latestACWR.ratio.toFixed(2)} (below 1.3 threshold)`);
           }
         }
       } catch (error) {
@@ -1585,21 +1589,24 @@ export class DatabaseStorage implements IStorage {
       return null;
     }
     
-    // Calculate 7-day acute load (total)
+    // Calculate 7-day acute load (sum then average)
     let acuteSum = 0;
     for (let i = currentIndex - 6; i <= currentIndex; i++) {
       acuteSum += dailyData[dates[i]]?.total || 0;
     }
+    const acuteAvg = acuteSum / 7; // Average daily load for 7 days
     
-    // Calculate 28-day chronic load (average)
+    // Calculate 28-day chronic load (sum then average)
     let chronicSum = 0;
     for (let i = currentIndex - 27; i <= currentIndex; i++) {
       chronicSum += dailyData[dates[i]]?.total || 0;
     }
-    const chronicAvg = chronicSum / 28;
+    const chronicAvg = chronicSum / 28; // Average daily load for 28 days
     
-    // Return ACWR ratio
-    return chronicAvg > 0 ? parseFloat((acuteSum / chronicAvg).toFixed(2)) : null;
+    // CORRECTED ACWR: 7-day average ÷ 28-day average
+    const ratio = chronicAvg > 0 ? parseFloat((acuteAvg / chronicAvg).toFixed(2)) : null;
+    console.log(`ACWR Alert Calc: acute=${acuteSum} (avg: ${acuteAvg.toFixed(1)}), chronic=${chronicSum} (avg: ${chronicAvg.toFixed(1)}), ratio=${ratio}`);
+    return ratio;
   }
 
   async getAthleteWeeklyLoad(userId: number): Promise<any[]> {
@@ -1748,7 +1755,7 @@ export class DatabaseStorage implements IStorage {
           uniqueTypes.add(type);
           result.push({
             type,
-            sessionNumber: entry.sessionNumber
+            sessionNumber: entry.sessionNumber || undefined
           });
         }
       });
