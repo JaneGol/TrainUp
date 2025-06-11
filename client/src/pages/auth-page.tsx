@@ -48,14 +48,6 @@ const registerSchema = insertUserSchema.extend({
   confirmPassword: z.string().min(6, {
     message: "Password must be at least 6 characters.",
   }),
-  teamName: z.string().min(1, {
-    message: "Team name is required.",
-  }),
-  teamPin: z.string().length(4, {
-    message: "PIN must be exactly 4 digits.",
-  }).regex(/^\d{4}$/, {
-    message: "PIN must contain only numbers.",
-  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],

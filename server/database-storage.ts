@@ -276,7 +276,13 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async createUser(insertUser: InsertUser & { teamId: number }): Promise<User> {
+  async createUser(insertUser: InsertUser): Promise<User> {
+    // Find the team by name to get the teamId
+    const team = await this.getTeamByName(insertUser.teamName);
+    if (!team) {
+      throw new Error("Team not found");
+    }
+    
     const [user] = await db
       .insert(users)
       .values({ 
@@ -287,7 +293,7 @@ export class DatabaseStorage implements IStorage {
         lastName: insertUser.lastName,
         role: insertUser.role,
         teamPosition: insertUser.teamPosition || null,
-        teamId: insertUser.teamId
+        teamId: team.id
       })
       .returning();
     return user;

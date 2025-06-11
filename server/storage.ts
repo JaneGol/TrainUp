@@ -19,7 +19,7 @@ export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser & { teamId: number }): Promise<User>;
+  createUser(user: InsertUser): Promise<User>;
   updateUserPassword(userId: number, hashedPassword: string): Promise<boolean>;
   getAthletes(): Promise<User[]>;
   
@@ -153,14 +153,25 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async createUser(insertUser: InsertUser & { teamId: number }): Promise<User> {
+  async createUser(insertUser: InsertUser): Promise<User> {
+    // Find the team by name to get the teamId
+    const team = await this.getTeamByName(insertUser.teamName);
+    if (!team) {
+      throw new Error("Team not found");
+    }
+    
     const id = this.userCurrentId++;
     const user: User = { 
-      ...insertUser, 
+      username: insertUser.username,
+      password: insertUser.password,
+      email: insertUser.email,
+      firstName: insertUser.firstName,
+      lastName: insertUser.lastName,
+      role: insertUser.role,
+      teamPosition: insertUser.teamPosition || null,
       id, 
       profileImage: null,
-      teamPosition: insertUser.teamPosition || null,
-      teamId: insertUser.teamId
+      teamId: team.id
     };
     this.users.set(id, user);
     return user;

@@ -146,6 +146,8 @@ export function setupAuth(app: Express) {
         lastName: req.body.lastName,
         role: req.body.role,
         teamPosition: req.body.teamPosition,
+        teamName: req.body.teamName,
+        teamPin: req.body.teamPin,
         teamId: teamId
       });
 
