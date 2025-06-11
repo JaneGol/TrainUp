@@ -187,8 +187,7 @@ export const insertRpeSubmissionSchema = createInsertSchema(rpeSubmissions).omit
   createdAt: true,
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+
 
 export type InsertTrainingEntry = z.infer<typeof insertTrainingEntrySchema>;
 export type TrainingEntry = typeof trainingEntries.$inferSelect;

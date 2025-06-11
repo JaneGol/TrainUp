@@ -1,5 +1,5 @@
 import { 
-  User, InsertUser, 
+  User, InsertUser, Team, InsertTeam,
   TrainingEntry, InsertTrainingEntry,
   MorningDiary, InsertMorningDiary,
   FitnessMetrics, InsertFitnessMetrics,
@@ -7,7 +7,7 @@ import {
   CoachFeedback, InsertCoachFeedback,
   TrainingSession, InsertTrainingSession,
   RpeSubmission, InsertRpeSubmission,
-  users, trainingEntries, morningDiary, fitnessMetrics, healthReports, coachFeedback,
+  users, teams, trainingEntries, morningDiary, fitnessMetrics, healthReports, coachFeedback,
   trainingSessions, rpeSubmissions
 } from "@shared/schema";
 import session from "express-session";
@@ -276,12 +276,49 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(insertUser: InsertUser & { teamId: number }): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values({ ...insertUser, profileImage: null, teamPosition: insertUser.teamPosition || null })
+      .values({ 
+        username: insertUser.username,
+        password: insertUser.password,
+        email: insertUser.email,
+        firstName: insertUser.firstName,
+        lastName: insertUser.lastName,
+        role: insertUser.role,
+        teamPosition: insertUser.teamPosition || null,
+        teamId: insertUser.teamId
+      })
       .returning();
     return user;
+  }
+
+  async getTeamByName(name: string): Promise<Team | undefined> {
+    const [team] = await db.select().from(teams).where(eq(teams.name, name));
+    return team;
+  }
+
+  async createTeam(insertTeam: InsertTeam): Promise<Team> {
+    const [team] = await db
+      .insert(teams)
+      .values(insertTeam)
+      .returning();
+    return team;
+  }
+
+  async validateTeamPin(teamName: string, pin: string): Promise<boolean> {
+    const [team] = await db
+      .select()
+      .from(teams)
+      .where(and(eq(teams.name, teamName), eq(teams.pinCode, pin)));
+    return !!team;
+  }
+
+  async getTeamAthletes(teamId: number): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(and(eq(users.teamId, teamId), eq(users.role, "athlete")));
   }
   
   async getAthletes(): Promise<User[]> {

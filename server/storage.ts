@@ -1,5 +1,5 @@
 import { 
-  User, InsertUser, 
+  User, InsertUser, Team, InsertTeam,
   TrainingEntry, InsertTrainingEntry,
   MorningDiary, InsertMorningDiary,
   FitnessMetrics, InsertFitnessMetrics,
@@ -19,9 +19,15 @@ export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createUser(user: InsertUser & { teamId: number }): Promise<User>;
   updateUserPassword(userId: number, hashedPassword: string): Promise<boolean>;
   getAthletes(): Promise<User[]>;
+  
+  // Team methods
+  getTeamByName(name: string): Promise<Team | undefined>;
+  createTeam(team: InsertTeam): Promise<Team>;
+  validateTeamPin(teamName: string, pin: string): Promise<boolean>;
+  getTeamAthletes(teamId: number): Promise<User[]>;
   
   // Training entry methods
   createTrainingEntry(entry: InsertTrainingEntry): Promise<TrainingEntry>;
