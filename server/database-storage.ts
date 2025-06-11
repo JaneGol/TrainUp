@@ -1179,9 +1179,9 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Injury risk factors
-  async getInjuryRiskFactors(): Promise<{ athleteId: number; name: string; riskScore: number; factors: string[] }[]> {
-    // Get all athletes
-    const athletes = await this.getAthletes();
+  async getInjuryRiskFactors(teamId?: number): Promise<{ athleteId: number; name: string; riskScore: number; factors: string[] }[]> {
+    // Get athletes filtered by team
+    const athletes = teamId ? await this.getTeamAthletes(teamId) : await this.getAthletes();
     
     // For each athlete, calculate their injury risk
     const result = await Promise.all(athletes.map(async (athlete) => {
@@ -1457,18 +1457,17 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getTodaysAlerts(): Promise<{ athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[]> {
+  async getTodaysAlerts(teamId?: number): Promise<{ athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[]> {
     const alerts: { athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[] = [];
     
     // Get today's date in local timezone (use server's local time for now)
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
     
-    // Get all athletes
-    const athletes = await db
-      .select()
-      .from(users)
-      .where(eq(users.role, 'athlete'));
+    // Get athletes filtered by team
+    const athletes = teamId !== undefined 
+      ? await db.select().from(users).where(and(eq(users.role, 'athlete'), eq(users.teamId, teamId)))
+      : await db.select().from(users).where(eq(users.role, 'athlete'));
     
     for (const athlete of athletes) {
       // Get ALL diary entries for this athlete and filter client-side for today only

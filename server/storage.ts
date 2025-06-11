@@ -420,7 +420,7 @@ export class MemStorage implements IStorage {
   }
   
   // Enhanced analytics for coaches
-  async getTeamWellnessTrends(): Promise<{ date: string; value: number; category: string; }[]> {
+  async getTeamWellnessTrends(teamId?: number): Promise<{ date: string; value: number; category: string; }[]> {
     // Get all morning diaries
     const diaries = Array.from(this.morningDiaries.values());
     if (diaries.length === 0) {
@@ -482,9 +482,11 @@ export class MemStorage implements IStorage {
     return result;
   }
   
-  async getAthleteRecoveryReadiness(): Promise<{ athleteId: number; name: string; readinessScore: number; trend: string; issues: string[] }[]> {
-    // Get all athletes
-    const athletes = Array.from(this.users.values()).filter(user => user.role === 'athlete');
+  async getAthleteRecoveryReadiness(teamId?: number): Promise<{ athleteId: number; name: string; readinessScore: number; trend: string; issues: string[] }[]> {
+    // Get athletes filtered by team
+    const athletes = Array.from(this.users.values()).filter(user => 
+      user.role === 'athlete' && (teamId === undefined || user.teamId === teamId)
+    );
     
     // For each athlete, get their latest morning diary
     const result = await Promise.all(athletes.map(async (athlete) => {
@@ -567,9 +569,11 @@ export class MemStorage implements IStorage {
     return result.sort((a, b) => a.readinessScore - b.readinessScore);
   }
   
-  async getInjuryRiskFactors(): Promise<{ athleteId: number; name: string; riskScore: number; factors: string[] }[]> {
-    // Get all athletes
-    const athletes = Array.from(this.users.values()).filter(user => user.role === 'athlete');
+  async getInjuryRiskFactors(teamId?: number): Promise<{ athleteId: number; name: string; riskScore: number; factors: string[] }[]> {
+    // Get athletes filtered by team
+    const athletes = Array.from(this.users.values()).filter(user => 
+      user.role === 'athlete' && (teamId === undefined || user.teamId === teamId)
+    );
     
     // For each athlete, calculate their injury risk
     const result = await Promise.all(athletes.map(async (athlete) => {
@@ -725,11 +729,13 @@ export class MemStorage implements IStorage {
     return result.length > 0 ? result : generateDefaultACWR();
   }
 
-  async getTodaysAlerts(): Promise<{ athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[]> {
+  async getTodaysAlerts(teamId?: number): Promise<{ athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[]> {
     const alerts: { athleteId: number; name: string; type: "injury" | "sick" | "acwr"; note: string }[] = [];
     
-    // Get all athletes
-    const athletes = Array.from(this.users.values()).filter(user => user.role === 'athlete');
+    // Get athletes filtered by team
+    const athletes = Array.from(this.users.values()).filter(user => 
+      user.role === 'athlete' && (teamId === undefined || user.teamId === teamId)
+    );
     
     for (const athlete of athletes) {
       // Check latest morning diary for injury/sickness
