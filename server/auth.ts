@@ -103,9 +103,6 @@ export function setupAuth(app: Express) {
 
       console.log("Creating user with role:", req.body.role);
       
-      let team;
-      let teamId;
-
       if (req.body.role === "coach") {
         // For coaches: create new team or verify they can access existing team
         const existingTeam = await storage.getTeamByName(req.body.teamName);
@@ -115,15 +112,13 @@ export function setupAuth(app: Express) {
           if (!validPin) {
             return res.status(400).json({ error: "Invalid PIN for existing team" });
           }
-          team = existingTeam;
         } else {
           // Create new team
-          team = await storage.createTeam({
+          await storage.createTeam({
             name: req.body.teamName,
             pinCode: req.body.teamPin
           });
         }
-        teamId = team.id;
       } else {
         // For athletes: validate team exists and PIN is correct
         const validPin = await storage.validateTeamPin(req.body.teamName, req.body.teamPin);
@@ -134,7 +129,6 @@ export function setupAuth(app: Express) {
         if (!existingTeam) {
           return res.status(400).json({ error: "Team not found" });
         }
-        teamId = existingTeam.id;
       }
       
       // Create the user with team assignment
@@ -147,8 +141,7 @@ export function setupAuth(app: Express) {
         role: req.body.role,
         teamPosition: req.body.teamPosition,
         teamName: req.body.teamName,
-        teamPin: req.body.teamPin,
-        teamId: teamId
+        teamPin: req.body.teamPin
       });
 
       // Log the user in
