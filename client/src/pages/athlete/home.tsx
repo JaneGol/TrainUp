@@ -2,6 +2,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { WellnessProgressRing } from "@/components/ui/animated-progress-ring";
+import { AppHeader } from "@/components/ui/app-header";
 import {
   ClipboardCheck,
   BarChart3,
@@ -77,6 +78,9 @@ export default function AthleteHomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted flex flex-col">
+      {/* App Header with Logo */}
+      <AppHeader />
+      
       {/* Header with gradient */}
       <header className="gradient-bg text-white p-5 pb-8 rounded-b-3xl shadow-lg">
         <div className="mb-1 text-sm font-medium opacity-90">{formattedDate}</div>
