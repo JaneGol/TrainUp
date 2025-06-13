@@ -104,7 +104,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const teamId = req.user!.role === "coach" ? req.user!.teamId : undefined;
+      console.log(`Training recommendations requested for user ${req.user!.username} (role: ${req.user!.role}, teamId: ${teamId})`);
+      
       const teamRecommendations = await trainingRecommendationService.generateTeamRecommendations(teamId);
+      console.log(`Generated team recommendations:`, JSON.stringify(teamRecommendations, null, 2));
+      
       res.json(teamRecommendations);
     } catch (error) {
       console.error("Error generating training recommendations:", error);

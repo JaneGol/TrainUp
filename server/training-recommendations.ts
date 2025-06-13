@@ -31,20 +31,32 @@ export class TrainingRecommendationService {
     const athletes = teamId ? await this.storage.getTeamAthletes(teamId) : await this.storage.getAthletes();
     const athleteRecommendations: TrainingRecommendation[] = [];
 
+    console.log(`Generating recommendations for ${athletes.length} athletes in team ${teamId || 'all'}`);
+
     for (const athlete of athletes) {
+      console.log(`Processing athlete: ${athlete.username} (ID: ${athlete.id})`);
       const recommendation = await this.generateAthleteRecommendation(athlete.id);
       if (recommendation) {
+        console.log(`Generated recommendation for ${athlete.username}: ${recommendation.recommendedIntensity}`);
         athleteRecommendations.push(recommendation);
+      } else {
+        console.log(`No recommendation generated for ${athlete.username}`);
       }
     }
 
     // Calculate team-level metrics
     const activeRecommendations = athleteRecommendations.filter(r => r.recommendedIntensity !== 'Rest');
-    const teamReadiness = activeRecommendations.length > 0 
-      ? activeRecommendations.reduce((sum, r) => sum + this.getReadinessScore(r), 0) / activeRecommendations.length
+    
+    // Calculate team readiness using all recommendations, not just active ones
+    const teamReadiness = athleteRecommendations.length > 0 
+      ? athleteRecommendations.reduce((sum, r) => sum + this.getReadinessScore(r), 0) / athleteRecommendations.length
       : 0;
 
-    const participationRate = (activeRecommendations.length / athletes.length) * 100;
+    const participationRate = athleteRecommendations.length > 0 
+      ? (activeRecommendations.length / athleteRecommendations.length) * 100
+      : 0;
+    
+    console.log(`Team metrics: readiness=${Math.round(teamReadiness)}%, participation=${Math.round(participationRate)}%, active=${activeRecommendations.length}/${athleteRecommendations.length}`);
 
     // Determine team session type
     const teamSessionType = this.determineTeamSessionType(athleteRecommendations, teamReadiness);
@@ -65,13 +77,20 @@ export class TrainingRecommendationService {
    */
   async generateAthleteRecommendation(athleteId: number): Promise<TrainingRecommendation | null> {
     try {
+      console.log(`Starting recommendation generation for athlete ${athleteId}`);
+      
       // Get athlete data
       const athlete = await this.storage.getUser(athleteId);
-      if (!athlete) return null;
+      if (!athlete) {
+        console.log(`No athlete found with ID ${athleteId}`);
+        return null;
+      }
+      console.log(`Found athlete: ${athlete.username}`);
 
       // Get recent wellness data
       const morningDiaries = await this.storage.getMorningDiariesByUserId(athleteId);
       const trainingEntries = await this.storage.getTrainingEntriesByUserId(athleteId);
+      console.log(`Found ${morningDiaries.length} morning diaries and ${trainingEntries.length} training entries for ${athlete.username}`);
 
       // Get latest diary for current readiness
       const latestDiary = morningDiaries.sort((a, b) => 
@@ -79,6 +98,7 @@ export class TrainingRecommendationService {
       )[0];
 
       if (!latestDiary) {
+        console.log(`No morning diary found for ${athlete.username}, creating default recommendation`);
         return {
           athleteId,
           athleteName: athlete.username,
