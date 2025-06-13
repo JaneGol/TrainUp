@@ -51,14 +51,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
-      const { scheduledExportService } = await import("./scheduled-exports");
-      const success = await scheduledExportService.triggerManualExport();
-
-      if (success) {
-        res.json({ message: "Export completed successfully" });
-      } else {
-        res.status(500).json({ error: "Export failed" });
-      }
+      const { runDailySheetExport } = await import("./scheduled-exports");
+      await runDailySheetExport();
+      res.json({ message: "Export completed successfully" });
     } catch (error) {
       console.error("Manual export error:", error);
       res.status(500).json({ error: "Export failed" });
