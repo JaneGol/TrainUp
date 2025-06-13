@@ -54,62 +54,189 @@ const HealthRecommendation = ({ athlete, recommendations }: {
   
   const issueTypes = getIssueTypes(athlete.issues);
   
-  // Generate recommendation text based on athlete's issues
+  // Generate smart recommendation text based on athlete's specific issues
   const getRecommendationText = () => {
     const texts = [];
+    const issues = athlete.issues.join(' ').toLowerCase();
     
-    if (issueTypes.includes('sleep')) {
-      texts.push("Monitor closely: Athlete reported poor sleep. Suggest reduced training intensity.");
+    // Check for specific health symptoms
+    if (issues.includes('fever') || issues.includes('temperature')) {
+      texts.push("🚨 IMMEDIATE ACTION: Fever detected - athlete must rest until fever-free for 24h. Monitor temperature.");
+      texts.push("💧 Ensure adequate hydration and electrolyte replacement.");
+      texts.push("📞 Consider medical consultation if fever persists beyond 48 hours.");
+    } else if (issues.includes('sore throat') || issues.includes('throat')) {
+      texts.push("⚠️ REST REQUIRED: Sore throat indicates potential infection - no training until symptoms resolve.");
+      texts.push("🏠 Keep athlete isolated to prevent team spread. Monitor for additional symptoms.");
+      texts.push("🔄 Re-evaluate in 24-48 hours before clearing for return to training.");
+    } else if (issues.includes('sick') || issues.includes('ill') || issues.includes('nausea') || issues.includes('stomach')) {
+      texts.push("🛑 NO TRAINING: Illness symptoms present - complete rest required.");
+      texts.push("💊 Focus on recovery: rest, hydration, and nutrition. Monitor symptom progression.");
+      texts.push("📋 Clearance required before return to training (48h symptom-free minimum).");
     }
     
-    if (issueTypes.includes('illness')) {
-      texts.push("Sickness reported. Mark as inactive and reassess in 48 hours.");
+    // Check for injury-related issues
+    if (issues.includes('injury') || issues.includes('pain') || issues.includes('strain') || issues.includes('sprain')) {
+      texts.push("🩹 INJURY PROTOCOL: Immediate assessment required. Apply RICE protocol if appropriate.");
+      texts.push("🏥 Consider physiotherapy consultation for proper diagnosis and treatment plan.");
+      texts.push("📊 Modify training plan - avoid aggravating movements until cleared.");
     }
     
-    if (issueTypes.includes('injury')) {
-      texts.push("Injury reported. Recommend rest for 3-5 days and follow-up check-in.");
-    }
-    
-    if (texts.length === 0 || issueTypes.includes('recovery')) {
-      if (athlete.readinessScore < 50) {
-        texts.push("Low recovery with elevated risk – taper recommended.");
+    // Check for muscle soreness
+    if (issues.includes('muscle soreness') || issues.includes('sore muscles')) {
+      const severityMatch = issues.match(/(\d+)\s*areas?\s*affected/);
+      const affectedAreas = severityMatch ? parseInt(severityMatch[1]) : 1;
+      
+      if (affectedAreas >= 3) {
+        texts.push("💪 WIDESPREAD SORENESS: Multiple muscle groups affected - reduce training intensity by 40-50%.");
+        texts.push("🧘 Focus on recovery: light stretching, massage, and adequate sleep (8+ hours).");
+      } else if (affectedAreas >= 2) {
+        texts.push("⚡ MODERATE SORENESS: Reduce training intensity by 20-30%. Focus on non-affected muscle groups.");
+        texts.push("🔄 Active recovery recommended: light cardio and targeted stretching.");
       } else {
-        texts.push("Normal training can continue with standard monitoring.");
+        texts.push("✅ MINOR SORENESS: Normal post-training response. Continue with planned intensity.");
+        texts.push("🎯 Monitor closely - increase recovery focus if soreness spreads.");
       }
+    }
+    
+    // Check for sleep issues
+    if (issues.includes('sleep') || issues.includes('tired') || issues.includes('fatigue')) {
+      texts.push("😴 SLEEP DEFICIENCY: Poor sleep affects recovery and injury risk. Reduce intensity by 25%.");
+      texts.push("🌙 Sleep hygiene: consistent bedtime, dark room, limit screens 1h before bed.");
+      texts.push("⏰ Target 8-9 hours nightly. Consider sleep tracking for better insights.");
+    }
+    
+    // Readiness-based recommendations
+    if (athlete.readinessScore < 40) {
+      texts.push("🔴 CRITICAL: Very low readiness - mandatory rest day. Address underlying issues.");
+    } else if (athlete.readinessScore < 60) {
+      texts.push("🟡 CAUTION: Low readiness - light training only (RPE 3-4 max).");
+    } else if (athlete.readinessScore >= 80) {
+      texts.push("🟢 EXCELLENT: High readiness - athlete can handle planned training intensity.");
+    }
+    
+    // Default if no specific issues
+    if (texts.length === 0) {
+      texts.push("✅ Standard monitoring sufficient. Continue with planned training program.");
     }
     
     return texts;
   };
   
+  // Determine severity level for styling
+  const getSeverityLevel = () => {
+    const issues = athlete.issues.join(' ').toLowerCase();
+    
+    if (issues.includes('fever') || issues.includes('sick') || issues.includes('ill')) {
+      return 'critical';
+    }
+    if (issues.includes('sore throat') || issues.includes('injury') || issues.includes('pain')) {
+      return 'high';
+    }
+    if (athlete.readinessScore < 50) {
+      return 'medium';
+    }
+    return 'low';
+  };
+
+  const severity = getSeverityLevel();
+  
+  // Styling based on severity
+  const getBorderColor = () => {
+    switch (severity) {
+      case 'critical': return 'border-red-500';
+      case 'high': return 'border-orange-500';
+      case 'medium': return 'border-yellow-500';
+      default: return 'border-primary-light';
+    }
+  };
+
+  const getBackgroundColor = () => {
+    switch (severity) {
+      case 'critical': return 'bg-red-500/10';
+      case 'high': return 'bg-orange-500/10';
+      case 'medium': return 'bg-yellow-500/10';
+      default: return 'bg-zinc-900';
+    }
+  };
+
+  const getSeverityIcon = () => {
+    switch (severity) {
+      case 'critical': return <AlertCircle className="h-5 w-5 text-red-500" />;
+      case 'high': return <AlertCircle className="h-5 w-5 text-orange-500" />;
+      case 'medium': return <AlertCircle className="h-5 w-5 text-yellow-500" />;
+      default: return <Activity className="h-5 w-5 text-green-500" />;
+    }
+  };
+
   return (
-    <div className="border-l-2 border-primary-light pl-4 py-4">
-      <h3 className="font-bold flex items-center">
-        {athlete.name}
-        <span className="ml-2 text-sm font-normal">
-          (Readiness: {athlete.readinessScore}%)
-        </span>
-      </h3>
+    <div className={`border-l-4 ${getBorderColor()} ${getBackgroundColor()} rounded-r-lg p-4 mb-4 border border-zinc-800`}>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold flex items-center gap-2">
+          {getSeverityIcon()}
+          {athlete.name}
+          <span className={`text-sm font-normal px-2 py-1 rounded ${
+            athlete.readinessScore >= 75 ? 'bg-green-500/20 text-green-400' :
+            athlete.readinessScore >= 50 ? 'bg-yellow-500/20 text-yellow-400' :
+            'bg-red-500/20 text-red-400'
+          }`}>
+            {athlete.readinessScore}% Ready
+          </span>
+        </h3>
+        
+        {severity === 'critical' && (
+          <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/50 animate-pulse">
+            URGENT
+          </Badge>
+        )}
+        {severity === 'high' && (
+          <Badge variant="outline" className="bg-orange-500/20 text-orange-400 border-orange-500/50">
+            HIGH PRIORITY
+          </Badge>
+        )}
+      </div>
       
-      <div className="flex flex-wrap gap-1 mt-1 mb-2">
+      <div className="flex flex-wrap gap-2 mb-3">
         {issueTypes.map((type, index) => (
-          <Badge key={index} variant="outline" className="flex items-center gap-1 bg-zinc-800">
+          <Badge key={index} variant="outline" className={`flex items-center gap-1 ${
+            severity === 'critical' ? 'bg-red-500/20 text-red-300 border-red-500/50' :
+            severity === 'high' ? 'bg-orange-500/20 text-orange-300 border-orange-500/50' :
+            severity === 'medium' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50' :
+            'bg-zinc-800 text-zinc-300'
+          }`}>
             {IssueIcon({ type })}
             <span className="capitalize">{type}</span>
           </Badge>
         ))}
       </div>
       
-      <div className="space-y-1 mt-3">
+      <div className="space-y-1 mb-4">
+        <h4 className="text-sm font-medium text-zinc-300 mb-1">Reported Issues:</h4>
         {athlete.issues.map((issue: string, i: number) => (
-          <p key={i} className="text-sm text-zinc-400">• {issue}</p>
+          <p key={i} className={`text-sm flex items-center gap-2 ${
+            severity === 'critical' ? 'text-red-300' :
+            severity === 'high' ? 'text-orange-300' :
+            'text-zinc-400'
+          }`}>
+            <span className="w-1 h-1 rounded-full bg-current flex-shrink-0 mt-2"></span>
+            {issue}
+          </p>
         ))}
       </div>
       
-      <div className="mt-4 border-t border-zinc-800 pt-3">
-        <h4 className="text-sm font-medium text-primary-light mb-2">Recommendations:</h4>
-        {getRecommendationText().map((text, i) => (
-          <p key={i} className="text-sm bg-zinc-800 p-2 rounded mb-2">{text}</p>
-        ))}
+      <div className="border-t border-zinc-700 pt-3">
+        <h4 className="text-sm font-medium text-primary-light mb-2">Smart Recommendations:</h4>
+        <div className="space-y-2">
+          {getRecommendationText().map((text, i) => (
+            <div key={i} className={`text-sm p-3 rounded-md border ${
+              text.includes('🚨') || text.includes('🛑') ? 'bg-red-500/10 border-red-500/30 text-red-200' :
+              text.includes('⚠️') || text.includes('🟡') ? 'bg-orange-500/10 border-orange-500/30 text-orange-200' :
+              text.includes('🟢') || text.includes('✅') ? 'bg-green-500/10 border-green-500/30 text-green-200' :
+              'bg-zinc-800 border-zinc-700 text-zinc-300'
+            }`}>
+              {text}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -314,34 +441,125 @@ export default function CoachSmartDoctor() {
             </div>
             
             <div className="bg-zinc-900 rounded-lg p-6 mt-6">
-              <h3 className="text-xl font-semibold mb-4">Team Health Overview</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-zinc-800 rounded-lg p-4">
-                  <h3 className="text-lg font-medium mb-2">Athletes Ready</h3>
-                  <p className="text-3xl font-bold text-green-400">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <HeartPulse className="h-6 w-6 text-primary" />
+                Team Health Overview
+              </h3>
+              
+              {/* Critical Alerts Banner */}
+              {!isLoading && athleteReadiness && (
+                (() => {
+                  const criticalCount = athleteReadiness.filter((a: any) => 
+                    a.issues.some((issue: string) => 
+                      issue.toLowerCase().includes('fever') || 
+                      issue.toLowerCase().includes('sick') || 
+                      issue.toLowerCase().includes('ill')
+                    )
+                  ).length;
+                  
+                  if (criticalCount > 0) {
+                    return (
+                      <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-6 animate-pulse">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertCircle className="h-5 w-5 text-red-400" />
+                          <h4 className="font-semibold text-red-400">TEAM HEALTH ALERT</h4>
+                        </div>
+                        <p className="text-red-200">
+                          {criticalCount} athlete{criticalCount > 1 ? 's have' : ' has'} illness symptoms. 
+                          Review individual recommendations and consider team isolation protocols.
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()
+              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium text-green-400">Ready to Train</h3>
+                    <Activity className="h-4 w-4 text-green-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-green-400">
                     {!isLoading && athleteReadiness 
                       ? athleteReadiness.filter((a: any) => a.readinessScore >= 75).length 
                       : "-"} 
-                    <span className="text-lg font-normal text-zinc-400">/{athleteReadiness?.length || 0}</span>
+                    <span className="text-sm font-normal text-zinc-400">/{athleteReadiness?.length || 0}</span>
                   </p>
+                  <p className="text-xs text-green-300 mt-1">75%+ readiness</p>
                 </div>
                 
-                <div className="bg-zinc-800 rounded-lg p-4">
-                  <h3 className="text-lg font-medium mb-2">Elevated Risk</h3>
-                  <p className="text-3xl font-bold text-yellow-400">
+                <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/20 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium text-yellow-400">Monitor Closely</h3>
+                    <AlertCircle className="h-4 w-4 text-yellow-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-yellow-400">
                     {!isLoading && athleteReadiness 
                       ? athleteReadiness.filter((a: any) => a.readinessScore >= 50 && a.readinessScore < 75).length 
                       : "-"}
                   </p>
+                  <p className="text-xs text-yellow-300 mt-1">50-74% readiness</p>
                 </div>
                 
-                <div className="bg-zinc-800 rounded-lg p-4">
-                  <h3 className="text-lg font-medium mb-2">High Risk</h3>
-                  <p className="text-3xl font-bold text-red-400">
+                <div className="bg-gradient-to-br from-red-500/10 to-red-600/5 border border-red-500/20 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium text-red-400">High Risk</h3>
+                    <Thermometer className="h-4 w-4 text-red-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-red-400">
                     {!isLoading && athleteReadiness 
                       ? athleteReadiness.filter((a: any) => a.readinessScore < 50).length 
                       : "-"}
                   </p>
+                  <p className="text-xs text-red-300 mt-1">&lt;50% readiness</p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium text-purple-400">Health Issues</h3>
+                    <HeartPulse className="h-4 w-4 text-purple-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-purple-400">
+                    {!isLoading && athleteReadiness 
+                      ? athleteReadiness.filter((a: any) => a.issues.length > 0).length 
+                      : "-"}
+                  </p>
+                  <p className="text-xs text-purple-300 mt-1">reported symptoms</p>
+                </div>
+              </div>
+              
+              {/* Quick Actions */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-zinc-800 rounded-lg p-4">
+                  <h4 className="font-medium mb-2 text-primary">Team Recommendations</h4>
+                  {!isLoading && athleteReadiness ? (
+                    (() => {
+                      const totalAthletes = athleteReadiness.length;
+                      const readyAthletes = athleteReadiness.filter((a: any) => a.readinessScore >= 75).length;
+                      const readyPercentage = Math.round((readyAthletes / totalAthletes) * 100);
+                      
+                      if (readyPercentage >= 80) {
+                        return <p className="text-sm text-green-300">🟢 Team is ready for planned training intensity</p>;
+                      } else if (readyPercentage >= 60) {
+                        return <p className="text-sm text-yellow-300">🟡 Consider reducing team training intensity by 20-30%</p>;
+                      } else {
+                        return <p className="text-sm text-red-300">🔴 High risk - recommend team recovery day or very light training</p>;
+                      }
+                    })()
+                  ) : (
+                    <p className="text-sm text-zinc-400">Loading team assessment...</p>
+                  )}
+                </div>
+                
+                <div className="bg-zinc-800 rounded-lg p-4">
+                  <h4 className="font-medium mb-2 text-primary">Next Actions</h4>
+                  <div className="text-sm text-zinc-300 space-y-1">
+                    <p>• Review flagged athletes below</p>
+                    <p>• Check AI insights for detailed analysis</p>
+                    <p>• Update training plans based on recommendations</p>
+                  </div>
                 </div>
               </div>
             </div>
