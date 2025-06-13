@@ -479,8 +479,8 @@ export default function NewCoachDashboard() {
         </div>
         
         {/* Recent activity section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="bg-zinc-900 border-zinc-800 text-white lg:col-span-2">
+        <div className="max-w-4xl mx-auto">
+          <Card className="bg-zinc-900 border-zinc-800 text-white">
             <CardHeader>
               <CardTitle>Athlete Status Overview</CardTitle>
             </CardHeader>
@@ -534,42 +534,6 @@ export default function NewCoachDashboard() {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-zinc-900 border-zinc-800 text-white">
-            <CardHeader>
-              <CardTitle>High Risk Factors</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {(athleteReadiness || [])
-                  .filter((a: any) => a.riskScore > 7)
-                  .slice(0, 3)
-                  .map((athlete: any, index: number) => (
-                    <div key={index} className="border-l-2 border-red-500 pl-4 py-2">
-                      <h4 className="font-semibold">{athlete.name}</h4>
-                      <p className="text-sm text-zinc-400 mb-1">Risk score: {athlete.riskScore}/10</p>
-                      <ul className="text-sm space-y-1">
-                        {athlete.issues.map((issue: string, i: number) => (
-                          <li key={i} className="text-red-300">• {issue}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                
-                {(!athleteReadiness || athleteReadiness.filter((a: any) => a.riskScore > 7).length === 0) && (
-                  <p className="text-zinc-400">No high-risk athletes at the moment.</p>
-                )}
-                
-                <Button 
-                  variant="outline"
-                  className="w-full mt-4 border-zinc-700 hover:bg-zinc-800 text-white"
-                  onClick={handleSmartDoctorClick}
-                >
-                  View Smart Doctor
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>
