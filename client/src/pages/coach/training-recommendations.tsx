@@ -1,3 +1,4 @@
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import CoachDashboardLayout from "@/components/layout/coach-dashboard-layout";
@@ -32,11 +33,13 @@ export default function TrainingRecommendationsPage() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
 
-  const { data: teamRecommendations, isLoading, error } = useQuery<TeamTrainingRecommendation>({
+  const { data: teamRecommendations, isLoading, error, refetch } = useQuery<TeamTrainingRecommendation>({
     queryKey: ["/api/training-recommendations"],
+    enabled: !!user && user.role === 'coach',
     retry: 1,
     refetchOnWindowFocus: false,
-    enabled: !!user && user.role === 'coach'
+    staleTime: 0,
+    gcTime: 0
   });
 
   // Debug logging
@@ -49,6 +52,14 @@ export default function TrainingRecommendationsPage() {
     userRole: user?.role,
     queryEnabled: !!user && user.role === 'coach'
   });
+
+  // Force refetch when component mounts and user is authenticated
+  React.useEffect(() => {
+    if (user && user.role === 'coach' && !isLoading && !teamRecommendations && !error) {
+      console.log("Manually triggering Training Recommendations refetch");
+      refetch();
+    }
+  }, [user, refetch, isLoading, teamRecommendations, error]);
 
   const handleBackClick = () => {
     navigate("/coach");
