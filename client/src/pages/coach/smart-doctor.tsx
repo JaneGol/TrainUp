@@ -132,7 +132,7 @@ const HealthRecommendation = ({ athlete, recommendations }: {
     if (issues.includes('sore throat') || issues.includes('injury') || issues.includes('pain')) {
       return 'high';
     }
-    if (athlete.readinessScore < 50) {
+    if (athlete.readinessScore < 35) {
       return 'medium';
     }
     return 'low';
@@ -175,8 +175,8 @@ const HealthRecommendation = ({ athlete, recommendations }: {
           {getSeverityIcon()}
           {athlete.name}
           <span className={`text-sm font-normal px-2 py-1 rounded ${
-            athlete.readinessScore >= 75 ? 'bg-green-500/20 text-green-400' :
-            athlete.readinessScore >= 50 ? 'bg-yellow-500/20 text-yellow-400' :
+            athlete.readinessScore >= 55 ? 'bg-green-500/20 text-green-400' :
+            athlete.readinessScore >= 35 ? 'bg-yellow-500/20 text-yellow-400' :
             'bg-red-500/20 text-red-400'
           }`}>
             {athlete.readinessScore}% Ready
@@ -483,11 +483,22 @@ export default function CoachSmartDoctor() {
                   </div>
                   <p className="text-2xl font-bold text-green-400">
                     {!isLoading && athleteReadiness 
-                      ? athleteReadiness.filter((a: any) => a.readinessScore >= 75).length 
+                      ? athleteReadiness.filter((a: any) => {
+                          // Ready if 55%+ readiness AND no injuries/illness
+                          const hasIllness = a.issues.some((issue: string) => 
+                            issue.toLowerCase().includes('fever') || 
+                            issue.toLowerCase().includes('sick') || 
+                            issue.toLowerCase().includes('ill') ||
+                            issue.toLowerCase().includes('sore throat') ||
+                            issue.toLowerCase().includes('injury') ||
+                            issue.toLowerCase().includes('pain')
+                          );
+                          return a.readinessScore >= 55 && !hasIllness;
+                        }).length 
                       : "-"} 
                     <span className="text-sm font-normal text-zinc-400">/{athleteReadiness?.length || 0}</span>
                   </p>
-                  <p className="text-xs text-green-300 mt-1">75%+ readiness</p>
+                  <p className="text-xs text-green-300 mt-1">55%+ ready, no illness/injury</p>
                 </div>
                 
                 <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/20 rounded-lg p-4">
@@ -497,10 +508,10 @@ export default function CoachSmartDoctor() {
                   </div>
                   <p className="text-2xl font-bold text-yellow-400">
                     {!isLoading && athleteReadiness 
-                      ? athleteReadiness.filter((a: any) => a.readinessScore >= 50 && a.readinessScore < 75).length 
+                      ? athleteReadiness.filter((a: any) => a.readinessScore >= 35 && a.readinessScore < 55).length 
                       : "-"}
                   </p>
-                  <p className="text-xs text-yellow-300 mt-1">50-74% readiness</p>
+                  <p className="text-xs text-yellow-300 mt-1">35-54% readiness</p>
                 </div>
                 
                 <div className="bg-gradient-to-br from-red-500/10 to-red-600/5 border border-red-500/20 rounded-lg p-4">
@@ -510,10 +521,10 @@ export default function CoachSmartDoctor() {
                   </div>
                   <p className="text-2xl font-bold text-red-400">
                     {!isLoading && athleteReadiness 
-                      ? athleteReadiness.filter((a: any) => a.readinessScore < 50).length 
+                      ? athleteReadiness.filter((a: any) => a.readinessScore < 35).length 
                       : "-"}
                   </p>
-                  <p className="text-xs text-red-300 mt-1">&lt;50% readiness</p>
+                  <p className="text-xs text-red-300 mt-1">&lt;35% readiness</p>
                 </div>
                 
                 <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-lg p-4">
@@ -537,12 +548,22 @@ export default function CoachSmartDoctor() {
                   {!isLoading && athleteReadiness ? (
                     (() => {
                       const totalAthletes = athleteReadiness.length;
-                      const readyAthletes = athleteReadiness.filter((a: any) => a.readinessScore >= 75).length;
+                      const readyAthletes = athleteReadiness.filter((a: any) => {
+                        const hasIllness = a.issues.some((issue: string) => 
+                          issue.toLowerCase().includes('fever') || 
+                          issue.toLowerCase().includes('sick') || 
+                          issue.toLowerCase().includes('ill') ||
+                          issue.toLowerCase().includes('sore throat') ||
+                          issue.toLowerCase().includes('injury') ||
+                          issue.toLowerCase().includes('pain')
+                        );
+                        return a.readinessScore >= 55 && !hasIllness;
+                      }).length;
                       const readyPercentage = Math.round((readyAthletes / totalAthletes) * 100);
                       
-                      if (readyPercentage >= 80) {
+                      if (readyPercentage >= 70) {
                         return <p className="text-sm text-green-300">🟢 Team is ready for planned training intensity</p>;
-                      } else if (readyPercentage >= 60) {
+                      } else if (readyPercentage >= 50) {
                         return <p className="text-sm text-yellow-300">🟡 Consider reducing team training intensity by 20-30%</p>;
                       } else {
                         return <p className="text-sm text-red-300">🔴 High risk - recommend team recovery day or very light training</p>;
