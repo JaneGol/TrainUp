@@ -29,6 +29,8 @@ import { ScaleTumbler } from "@/components/ui/scale-tumbler";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { InjurySelector } from "@/components/forms/injury-selector";
+import { MuscleSorenessSlider } from "@/components/ui/muscle-soreness-slider";
+import { InjuryPainSlider } from "@/components/ui/injury-pain-slider";
 import {
   Select,
   SelectContent,
@@ -448,32 +450,10 @@ export default function MorningControlDiaryForm() {
             
             {/* Soreness Intensity (conditional) */}
             {form.watch("muscleSoreness") === "yes" && (
-              <div className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
-                <FormLabel className="text-white">How intense is your muscle soreness?</FormLabel>
-                <div className="space-y-2 mt-3">
-                  <div className="py-3">
-                    <Slider
-                      min={1}
-                      max={10}
-                      step={1}
-                      value={[form.watch("sorenessIntensity") || 1]}
-                      onValueChange={(values) => {
-                        form.setValue("sorenessIntensity", values[0], { shouldValidate: true });
-                      }}
-                      className="soreness-slider-independent"
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                      <span key={`soreness-${num}`}>{num}</span>
-                    ))}
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-400 mt-0">
-                    <span>Mild</span>
-                    <span className="ml-auto">Severe</span>
-                  </div>
-                </div>
-              </div>
+              <MuscleSorenessSlider
+                value={form.watch("sorenessIntensity") || 1}
+                onChange={(value: number) => form.setValue("sorenessIntensity", value, { shouldValidate: true })}
+              />
             )}
             
             {/* Injuries */}
@@ -512,30 +492,10 @@ export default function MorningControlDiaryForm() {
             {form.watch("hasInjury") === "yes" && (
               <div className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
                 {/* Pain intensity slider - completely independent */}
-                <div className="space-y-2 mb-6">
-                  <FormLabel className="text-white">How intense is the injury pain?</FormLabel>
-                  <div className="py-3">
-                    <Slider
-                      min={1}
-                      max={10}
-                      step={1}
-                      value={[form.watch("injuryPainIntensity") || 1]}
-                      onValueChange={(values) => {
-                        form.setValue("injuryPainIntensity", values[0], { shouldValidate: true });
-                      }}
-                      className="injury-pain-slider-completely-independent"
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                      <span key={`injury-${num}`}>{num}</span>
-                    ))}
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-400 mt-0">
-                    <span>Mild</span>
-                    <span className="ml-auto">Severe</span>
-                  </div>
-                </div>
+                <InjuryPainSlider
+                  value={form.watch("injuryPainIntensity") || 1}
+                  onChange={(value: number) => form.setValue("injuryPainIntensity", value, { shouldValidate: true })}
+                />
 
                 {/* Pain trend dropdown */}
                 <div className="space-y-2 mb-6">
