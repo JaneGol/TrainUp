@@ -86,7 +86,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r">
         <div className="flex flex-col h-full">
           <div className="py-6 px-4 border-b">
-            <h2 className="text-xl font-bold text-primary">TrainUpSOTA</h2>
+            <LogoWithText logoSize="md" variant="default" className="text-xl" />
           </div>
           
           <div className="flex-1 py-6 px-4 space-y-1">
