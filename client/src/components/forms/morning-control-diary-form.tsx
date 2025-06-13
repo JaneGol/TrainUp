@@ -540,10 +540,12 @@ export default function MorningControlDiaryForm() {
                     <FormItem className="mb-4">
                       <FormControl>
                         <InjurySelector 
-                          painIntensity={field.value || 1}
-                          onPainIntensityChange={(value) => form.setValue("injuryPainIntensity", value)}
-                          painTrend={form.getValues("injuryPainTrend") || "unchanged"}
-                          onPainTrendChange={(value) => form.setValue("injuryPainTrend", value)}
+                          hasInjury={true}
+                          onHasInjuryChange={() => {}}
+                          painLevel={field.value || 1}
+                          onPainLevelChange={(value) => form.setValue("injuryPainIntensity", value)}
+                          injuryImproving={form.getValues("injuryPainTrend") || "unchanged"}
+                          onInjuryImprovingChange={(value) => form.setValue("injuryPainTrend", value)}
                           injuryNotes={form.getValues("injuryDetails") || ""}
                           onInjuryNotesChange={(value) => form.setValue("injuryDetails", value)}
                         />
