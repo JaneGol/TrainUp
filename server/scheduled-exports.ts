@@ -1,7 +1,7 @@
 
 import { CronJob } from 'cron';
 import { db } from './db';
-import { trainingSessions, morningDiaries, healthReports, fitnessMetrics } from '@shared/schema';
+import { trainingSessions, morningDiary, healthReports, fitnessMetrics } from '@shared/schema';
 import { gte, and, desc } from 'drizzle-orm';
 import { GoogleSheetsService } from './google-sheets';
 
@@ -39,12 +39,12 @@ class ScheduledExportService {
           .orderBy(desc(trainingSessions.date)),
 
         db.select()
-          .from(morningDiaries)
+          .from(morningDiary)
           .where(and(
-            gte(morningDiaries.date, yesterday),
-            gte(morningDiaries.date, today)
+            gte(morningDiary.date, yesterday),
+            gte(morningDiary.date, today)
           ))
-          .orderBy(desc(morningDiaries.date)),
+          .orderBy(desc(morningDiary.date)),
 
         db.select()
           .from(healthReports)
