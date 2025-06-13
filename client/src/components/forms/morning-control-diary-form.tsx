@@ -61,8 +61,6 @@ export default function MorningControlDiaryForm() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [hasSoreness, setHasSoreness] = useState(false);
-  const [hasInjury, setHasInjury] = useState(false);
   
   // Create form with default values
   const form = useForm<MorningDiaryFormValues>({
@@ -90,19 +88,6 @@ export default function MorningControlDiaryForm() {
       form.setValue("userId", user.id);
     }
   }, [user, form]);
-  
-  // Watch for changes in muscleSoreness to show/hide sorenessIntensity slider
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === "muscleSoreness") {
-        setHasSoreness(value.muscleSoreness === "yes");
-      }
-      if (name === "hasInjury") {
-        setHasInjury(value.hasInjury === "yes");
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form.watch]);
   
   // Submit the diary entry to the API
   const submitMutation = useMutation({
@@ -462,41 +447,33 @@ export default function MorningControlDiaryForm() {
             />
             
             {/* Soreness Intensity (conditional) */}
-            {hasSoreness && (
-              <FormField
-                control={form.control}
-                name="sorenessIntensity"
-                render={({ field }) => (
-                  <FormItem className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
-                    <FormLabel className="text-white">Pain intensity:</FormLabel>
-                    <FormControl>
-                      <div className="space-y-2">
-                        <div className="py-3">
-                          <Slider
-                            min={1}
-                            max={10}
-                            step={1}
-                            value={[field.value || 1]}
-                            onValueChange={(values) => field.onChange(values[0])}
-                            className="py-3 muscle-soreness-slider"
-                            key="muscle-soreness-intensity"
-                          />
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                            <span key={num}>{num}</span>
-                          ))}
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-400 mt-0">
-                          <span>Mild</span>
-                          <span className="ml-auto">Severe</span>
-                        </div>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {form.watch("muscleSoreness") === "yes" && (
+              <div className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
+                <FormLabel className="text-white">How intense is your muscle soreness?</FormLabel>
+                <div className="space-y-2 mt-3">
+                  <div className="py-3">
+                    <Slider
+                      min={1}
+                      max={10}
+                      step={1}
+                      value={[form.watch("sorenessIntensity") || 1]}
+                      onValueChange={(values) => {
+                        form.setValue("sorenessIntensity", values[0], { shouldValidate: true });
+                      }}
+                      className="soreness-slider-independent"
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                      <span key={`soreness-${num}`}>{num}</span>
+                    ))}
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400 mt-0">
+                    <span>Mild</span>
+                    <span className="ml-auto">Severe</span>
+                  </div>
+                </div>
+              </div>
             )}
             
             {/* Injuries */}
@@ -533,73 +510,61 @@ export default function MorningControlDiaryForm() {
             
             {/* Injury pain intensity, trend, and notes (conditional) */}
             {form.watch("hasInjury") === "yes" && (
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="injuryPainIntensity"
-                  render={({ field }) => (
-                    <FormItem className="mb-4">
-                      <FormControl>
-                        <div className="space-y-4 ml-6 border-l-2 border-zinc-700 pl-4">
-                          {/* Pain intensity slider - standalone implementation */}
-                          <div className="space-y-2">
-                            <FormLabel className="text-white">How intense is the pain?</FormLabel>
-                            <div className="py-3">
-                              <Slider
-                                min={1}
-                                max={10}
-                                step={1}
-                                value={[field.value || 1]}
-                                onValueChange={(values) => field.onChange(values[0])}
-                                className="py-3 injury-pain-slider-standalone"
-                                key="injury-pain-standalone"
-                              />
-                            </div>
-                            <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
-                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                                <span key={num}>{num}</span>
-                              ))}
-                            </div>
-                            <div className="flex justify-between text-xs text-gray-400 mt-0">
-                              <span>Mild</span>
-                              <span className="ml-auto">Severe</span>
-                            </div>
-                          </div>
+              <div className="mb-4 ml-6 border-l-2 border-zinc-700 pl-4">
+                {/* Pain intensity slider - completely independent */}
+                <div className="space-y-2 mb-6">
+                  <FormLabel className="text-white">How intense is the injury pain?</FormLabel>
+                  <div className="py-3">
+                    <Slider
+                      min={1}
+                      max={10}
+                      step={1}
+                      value={[form.watch("injuryPainIntensity") || 1]}
+                      onValueChange={(values) => {
+                        form.setValue("injuryPainIntensity", values[0], { shouldValidate: true });
+                      }}
+                      className="injury-pain-slider-completely-independent"
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                      <span key={`injury-${num}`}>{num}</span>
+                    ))}
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400 mt-0">
+                    <span>Mild</span>
+                    <span className="ml-auto">Severe</span>
+                  </div>
+                </div>
 
-                          {/* Pain trend dropdown */}
-                          <div className="space-y-2">
-                            <FormLabel className="text-white">How is the pain changing?</FormLabel>
-                            <Select
-                              value={form.getValues("injuryPainTrend") || "unchanged"}
-                              onValueChange={(value) => form.setValue("injuryPainTrend", value as "unchanged" | "better" | "worse")}
-                            >
-                              <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                                <SelectValue placeholder="Select pain trend" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                                <SelectItem value="unchanged">No change</SelectItem>
-                                <SelectItem value="better">Getting better</SelectItem>
-                                <SelectItem value="worse">Getting worse</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                {/* Pain trend dropdown */}
+                <div className="space-y-2 mb-6">
+                  <FormLabel className="text-white">How is the pain changing?</FormLabel>
+                  <Select
+                    value={form.watch("injuryPainTrend") || "unchanged"}
+                    onValueChange={(value) => form.setValue("injuryPainTrend", value as "unchanged" | "better" | "worse", { shouldValidate: true })}
+                  >
+                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                      <SelectValue placeholder="Select pain trend" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
+                      <SelectItem value="unchanged">No change</SelectItem>
+                      <SelectItem value="better">Getting better</SelectItem>
+                      <SelectItem value="worse">Getting worse</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                          {/* Notes textarea */}
-                          <div className="space-y-2">
-                            <FormLabel className="text-white">Additional notes (optional):</FormLabel>
-                            <Textarea
-                              placeholder="Describe your injury in more detail..."
-                              className="resize-none bg-zinc-800 border-zinc-700 text-white min-h-[80px]"
-                              value={form.getValues("injuryDetails") || ""}
-                              onChange={(e) => form.setValue("injuryDetails", e.target.value)}
-                            />
-                          </div>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Notes textarea */}
+                <div className="space-y-2">
+                  <FormLabel className="text-white">Additional notes (optional):</FormLabel>
+                  <Textarea
+                    placeholder="Describe your injury in more detail..."
+                    className="resize-none bg-zinc-800 border-zinc-700 text-white min-h-[80px]"
+                    value={form.watch("injuryDetails") || ""}
+                    onChange={(e) => form.setValue("injuryDetails", e.target.value, { shouldValidate: true })}
+                  />
+                </div>
               </div>
             )}
           </div>
