@@ -635,7 +635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(401);
     }
 
-    const readiness = await storage.getTeamReadiness();
+    const readiness = await storage.getTeamReadiness(req.user!.teamId);
     res.json(readiness);
   });
 

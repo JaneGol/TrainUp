@@ -866,19 +866,11 @@ export class DatabaseStorage implements IStorage {
   
   // Team metrics
   async getTeamReadiness(teamId?: number): Promise<{ date: string; value: number }[]> {
-    // Get team athletes first to filter diaries by team
-    let query = db
-      .select({
-        date: morningDiary.date,
-        readinessScore: morningDiary.readinessScore,
-      })
-      .from(morningDiary)
-      .orderBy(desc(morningDiary.date))
-      .limit(100); // Get more data to ensure we have enough after team filtering
-
-    // If teamId is provided, join with users table to filter by team
+    let diaries;
+    
     if (teamId !== undefined) {
-      query = db
+      // If teamId is provided, join with users table to filter by team
+      diaries = await db
         .select({
           date: morningDiary.date,
           readinessScore: morningDiary.readinessScore,
@@ -888,9 +880,17 @@ export class DatabaseStorage implements IStorage {
         .where(and(eq(users.teamId, teamId), eq(users.role, 'athlete')))
         .orderBy(desc(morningDiary.date))
         .limit(100);
+    } else {
+      // Get all diaries if no team filter
+      diaries = await db
+        .select({
+          date: morningDiary.date,
+          readinessScore: morningDiary.readinessScore,
+        })
+        .from(morningDiary)
+        .orderBy(desc(morningDiary.date))
+        .limit(100);
     }
-
-    const diaries = await query;
     
     // Group by date and calculate average
     const dateGroups = diaries.reduce((acc, curr) => {
