@@ -527,20 +527,117 @@ export default function CoachSmartDoctor() {
                   <p className="text-xs text-red-300 mt-1">&lt;35% readiness</p>
                 </div>
                 
-                <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-lg p-4">
+                <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border border-orange-500/20 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-medium text-purple-400">Health Issues</h3>
-                    <HeartPulse className="h-4 w-4 text-purple-400" />
+                    <h3 className="text-sm font-medium text-orange-400">Significant Issues</h3>
+                    <AlertCircle className="h-4 w-4 text-orange-400" />
                   </div>
-                  <p className="text-2xl font-bold text-purple-400">
+                  <p className="text-2xl font-bold text-orange-400">
                     {!isLoading && athleteReadiness 
-                      ? athleteReadiness.filter((a: any) => a.issues.length > 0).length 
+                      ? athleteReadiness.filter((a: any) => {
+                          return a.issues.some((issue: string) => {
+                            const lowerIssue = issue.toLowerCase();
+                            
+                            // Critical issues (illness/injury)
+                            if (lowerIssue.includes('fever') || lowerIssue.includes('sick') || 
+                                lowerIssue.includes('ill') || lowerIssue.includes('sore throat') || 
+                                lowerIssue.includes('injury') || lowerIssue.includes('pain')) {
+                              return true;
+                            }
+                            
+                            // High-level muscle soreness (3+ areas = signal, 4+ = red flag)
+                            const sorenessMatch = lowerIssue.match(/(\d+)\s*areas?\s*affected/);
+                            if (sorenessMatch) {
+                              const areas = parseInt(sorenessMatch[1]);
+                              return areas >= 3; // Level 3+ soreness is significant
+                            }
+                            
+                            return false;
+                          });
+                        }).length 
                       : "-"}
                   </p>
-                  <p className="text-xs text-purple-300 mt-1">reported symptoms</p>
+                  <p className="text-xs text-orange-300 mt-1">requiring attention</p>
                 </div>
               </div>
               
+              {/* Detailed Health Breakdown */}
+              <div className="mt-6 bg-zinc-800 rounded-lg p-4">
+                <h4 className="font-medium mb-3 text-primary">Health Issue Breakdown</h4>
+                {!isLoading && athleteReadiness ? (
+                  (() => {
+                    const criticalIssues = athleteReadiness.filter((a: any) => 
+                      a.issues.some((issue: string) => 
+                        issue.toLowerCase().includes('fever') || 
+                        issue.toLowerCase().includes('sick') || 
+                        issue.toLowerCase().includes('ill') ||
+                        issue.toLowerCase().includes('sore throat')
+                      )
+                    );
+                    
+                    const injuryIssues = athleteReadiness.filter((a: any) => 
+                      a.issues.some((issue: string) => 
+                        issue.toLowerCase().includes('injury') || 
+                        issue.toLowerCase().includes('pain')
+                      )
+                    );
+                    
+                    const redFlagSoreness = athleteReadiness.filter((a: any) => 
+                      a.issues.some((issue: string) => {
+                        const match = issue.match(/(\d+)\s*areas?\s*affected/);
+                        return match && parseInt(match[1]) >= 4;
+                      })
+                    );
+                    
+                    const signalSoreness = athleteReadiness.filter((a: any) => 
+                      a.issues.some((issue: string) => {
+                        const match = issue.match(/(\d+)\s*areas?\s*affected/);
+                        return match && parseInt(match[1]) === 3;
+                      })
+                    );
+                    
+                    const normalSoreness = athleteReadiness.filter((a: any) => 
+                      a.issues.some((issue: string) => {
+                        const match = issue.match(/(\d+)\s*areas?\s*affected/);
+                        return match && parseInt(match[1]) <= 2;
+                      })
+                    );
+                    
+                    return (
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-red-400">{criticalIssues.length}</div>
+                          <div className="text-xs text-red-300">Critical</div>
+                          <div className="text-xs text-zinc-400">Illness/Fever</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-orange-400">{injuryIssues.length}</div>
+                          <div className="text-xs text-orange-300">Injuries</div>
+                          <div className="text-xs text-zinc-400">Pain/Injury</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-red-400">{redFlagSoreness.length}</div>
+                          <div className="text-xs text-red-300">Red Flag</div>
+                          <div className="text-xs text-zinc-400">4+ Areas</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-yellow-400">{signalSoreness.length}</div>
+                          <div className="text-xs text-yellow-300">Signal</div>
+                          <div className="text-xs text-zinc-400">3 Areas</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-green-400">{normalSoreness.length}</div>
+                          <div className="text-xs text-green-300">Normal</div>
+                          <div className="text-xs text-zinc-400">1-2 Areas</div>
+                        </div>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <p className="text-sm text-zinc-400">Loading breakdown...</p>
+                )}
+              </div>
+
               {/* Quick Actions */}
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-zinc-800 rounded-lg p-4">
