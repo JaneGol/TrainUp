@@ -18,6 +18,7 @@ import {
   Menu
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LogoWithText } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -186,7 +187,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <span className="sr-only">Open sidebar</span>
                 </Button>
               )}
-              <h1 className="md:hidden font-bold text-xl text-primary">TrainUpSOTA</h1>
+              <LogoWithText logoSize="sm" variant="default" className="md:hidden text-lg" />
             </div>
             
             <div className="flex items-center space-x-4">
