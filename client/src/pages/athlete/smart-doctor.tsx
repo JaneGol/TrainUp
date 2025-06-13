@@ -74,25 +74,35 @@ export default function SmartDoctorPage() {
     const painLevel = latestDiary.painLevel || 0;
     
     // Check for critical health symptoms
-    const hasFever = symptoms.some((symptom: string) => 
-      symptom.toLowerCase().includes('fever') || 
-      symptom.toLowerCase().includes('temperature') ||
-      symptom.toLowerCase().includes('hot')
-    );
+    const hasFever = symptoms.some((symptom: string) => {
+      const symptomLower = symptom.toLowerCase();
+      return symptomLower.includes('fever') || 
+             symptomLower.includes('temperature') ||
+             symptomLower.includes('high_temp') ||
+             symptomLower.includes('temp') ||
+             symptomLower.includes('hot') ||
+             symptomLower.includes('burning');
+    });
     
-    const hasSickness = symptoms.some((symptom: string) => 
-      symptom.toLowerCase().includes('sick') || 
-      symptom.toLowerCase().includes('ill') ||
-      symptom.toLowerCase().includes('nausea') ||
-      symptom.toLowerCase().includes('vomit')
-    );
+    const hasSickness = symptoms.some((symptom: string) => {
+      const symptomLower = symptom.toLowerCase();
+      return symptomLower.includes('sick') || 
+             symptomLower.includes('ill') ||
+             symptomLower.includes('nausea') ||
+             symptomLower.includes('vomit') ||
+             symptomLower.includes('dizzy') ||
+             symptomLower.includes('weak');
+    });
     
-    const hasRespiratoryIssues = symptoms.some((symptom: string) => 
-      symptom.toLowerCase().includes('cough') || 
-      symptom.toLowerCase().includes('throat') ||
-      symptom.toLowerCase().includes('breathing') ||
-      symptom.toLowerCase().includes('chest')
-    );
+    const hasRespiratoryIssues = symptoms.some((symptom: string) => {
+      const symptomLower = symptom.toLowerCase();
+      return symptomLower.includes('cough') || 
+             symptomLower.includes('throat') ||
+             symptomLower.includes('breathing') ||
+             symptomLower.includes('chest') ||
+             symptomLower.includes('runny_nose') ||
+             symptomLower.includes('congestion');
+    });
 
     let status = "Normal";
     let recommendation = "";

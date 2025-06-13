@@ -77,16 +77,114 @@ export class HealthRecommendationService {
     const insights: string[] = [];
     const riskAreas: string[] = [];
     const improvementAreas: string[] = [];
+    let summary = "Health assessment based on recent data";
     
-    // 1. Analyze recent morning diaries for sleep trends
+    // 1. Analyze recent morning diaries for health symptoms and trends
     if (morningDiaries.length > 0) {
       const latestDiary = morningDiaries[0];
-      const sleepScore = latestDiary.sleepQuality;
       
-      if (sleepScore < 3) {
-        insights.push("Your recent sleep quality is below optimal levels.");
-        riskAreas.push("Sleep Quality");
-        recommendations.push("Consider adjusting your sleeping environment - reduce screen time before bed and maintain a consistent sleep schedule.");
+      // Check for critical health symptoms first
+      const symptoms = Array.isArray(latestDiary.symptoms) ? latestDiary.symptoms : [];
+      
+      // Fever/Temperature detection
+      const hasFever = symptoms.some((symptom: string) => {
+        const symptomLower = symptom.toLowerCase();
+        return symptomLower.includes('fever') || 
+               symptomLower.includes('temperature') ||
+               symptomLower.includes('high_temp') ||
+               symptomLower.includes('temp') ||
+               symptomLower.includes('hot') ||
+               symptomLower.includes('burning');
+      });
+      
+      // Illness symptoms
+      const hasSickness = symptoms.some((symptom: string) => {
+        const symptomLower = symptom.toLowerCase();
+        return symptomLower.includes('sick') || 
+               symptomLower.includes('ill') ||
+               symptomLower.includes('nausea') ||
+               symptomLower.includes('vomit') ||
+               symptomLower.includes('dizzy') ||
+               symptomLower.includes('weak');
+      });
+      
+      // Respiratory issues
+      const hasRespiratoryIssues = symptoms.some((symptom: string) => {
+        const symptomLower = symptom.toLowerCase();
+        return symptomLower.includes('cough') || 
+               symptomLower.includes('throat') ||
+               symptomLower.includes('breathing') ||
+               symptomLower.includes('chest') ||
+               symptomLower.includes('runny_nose') ||
+               symptomLower.includes('congestion');
+      });
+      
+      // Critical health conditions override other recommendations
+      if (hasFever) {
+        summary = "🚨 URGENT: Fever detected - immediate rest required";
+        insights.push("🚨 FEVER ALERT: Elevated body temperature detected from morning assessment.");
+        insights.push("Training is contraindicated until fever-free for 24+ hours.");
+        riskAreas.push("Acute Illness");
+        riskAreas.push("Infectious Disease Risk");
+        recommendations.push("Complete rest and monitor temperature regularly.");
+        recommendations.push("Increase fluid intake significantly - water, electrolyte solutions.");
+        recommendations.push("Seek medical attention if fever persists or worsens.");
+        recommendations.push("NO TRAINING until fever-free for 24 hours minimum.");
+        improvementAreas.push("Hydration Management");
+        improvementAreas.push("Rest and Recovery");
+      } else if (hasSickness) {
+        summary = "Illness symptoms detected - rest recommended";
+        insights.push("General illness symptoms reported in morning assessment.");
+        riskAreas.push("Illness Recovery");
+        recommendations.push("Complete rest until symptoms fully resolve.");
+        recommendations.push("Focus on hydration and nutrition.");
+        recommendations.push("Return to training gradually after recovery.");
+      } else if (hasRespiratoryIssues) {
+        summary = "Respiratory symptoms present - modified training recommended";
+        insights.push("Respiratory symptoms detected - monitor carefully during activity.");
+        riskAreas.push("Respiratory Health");
+        recommendations.push("Avoid high-intensity training.");
+        recommendations.push("Light activity only if feeling well enough.");
+        recommendations.push("Stop activity if breathing becomes difficult.");
+      }
+      
+      // Check injury status
+      if (latestDiary.hasInjury && latestDiary.painLevel && latestDiary.painLevel > 6) {
+        insights.push(`High pain level reported: ${latestDiary.painLevel}/10`);
+        riskAreas.push("Injury Management");
+        recommendations.push("Avoid exercises that aggravate the injury.");
+        recommendations.push("Consider medical evaluation if pain persists.");
+      }
+      
+      // Only check other factors if no critical health issues
+      if (!hasFever && !hasSickness) {
+        // Check sleep quality
+        const sleepQuality = latestDiary.sleepQuality;
+        if (sleepQuality === "poor") {
+          insights.push("Your recent sleep quality is below optimal levels.");
+          riskAreas.push("Sleep Quality");
+          recommendations.push("Consider adjusting your sleeping environment - reduce screen time before bed and maintain a consistent sleep schedule.");
+        }
+        
+        // Check sleep duration
+        if (latestDiary.sleepHours < 7) {
+          insights.push("Your sleep duration is below the recommended 7-9 hours.");
+          riskAreas.push("Sleep Duration");
+          recommendations.push("Aim for 7-9 hours of sleep tonight to improve recovery and performance.");
+        }
+        
+        // Check stress levels
+        if (latestDiary.stressLevel === "high") {
+          insights.push("You've reported high stress levels which can impact performance and recovery.");
+          riskAreas.push("Mental Health");
+          recommendations.push("Consider stress-reduction techniques like deep breathing, meditation, or light exercise.");
+        }
+        
+        // Check readiness score
+        if (latestDiary.readinessScore < 50) {
+          insights.push("Your overall readiness score indicates you might need additional recovery time.");
+          recommendations.push("Consider a light recovery session instead of intense training today.");
+        }
       }
       
       // Check mood trends
@@ -174,8 +272,16 @@ export class HealthRecommendationService {
       );
     }
     
-    // Generate summary based on insights and recommendations
-    const summary = this.generateSummary(insights, riskAreas, improvementAreas);
+    // Use the summary we set earlier or generate a default one
+    if (summary === "Health assessment based on recent data" && insights.length > 0) {
+      if (riskAreas.includes("Acute Illness")) {
+        // Keep the fever summary we set earlier
+      } else if (riskAreas.length > 0) {
+        summary = `Attention needed: ${riskAreas[0].toLowerCase()} requires focus`;
+      } else {
+        summary = "Overall health indicators are within normal ranges";
+      }
+    }
     
     return {
       summary,
