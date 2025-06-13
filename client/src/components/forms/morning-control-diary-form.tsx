@@ -540,16 +540,61 @@ export default function MorningControlDiaryForm() {
                   render={({ field }) => (
                     <FormItem className="mb-4">
                       <FormControl>
-                        <InjurySelector 
-                          hasInjury={true}
-                          onHasInjuryChange={() => {}}
-                          painLevel={field.value || 1}
-                          onPainLevelChange={(value) => form.setValue("injuryPainIntensity", value)}
-                          injuryImproving={form.getValues("injuryPainTrend") || "unchanged"}
-                          onInjuryImprovingChange={(value) => form.setValue("injuryPainTrend", value)}
-                          injuryNotes={form.getValues("injuryDetails") || ""}
-                          onInjuryNotesChange={(value) => form.setValue("injuryDetails", value)}
-                        />
+                        <div className="space-y-4 ml-6 border-l-2 border-zinc-700 pl-4">
+                          {/* Pain intensity slider - standalone implementation */}
+                          <div className="space-y-2">
+                            <FormLabel className="text-white">How intense is the pain?</FormLabel>
+                            <div className="py-3">
+                              <Slider
+                                min={1}
+                                max={10}
+                                step={1}
+                                value={[field.value || 1]}
+                                onValueChange={(values) => field.onChange(values[0])}
+                                className="py-3 injury-pain-slider-standalone"
+                                key="injury-pain-standalone"
+                              />
+                            </div>
+                            <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
+                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                                <span key={num}>{num}</span>
+                              ))}
+                            </div>
+                            <div className="flex justify-between text-xs text-gray-400 mt-0">
+                              <span>Mild</span>
+                              <span className="ml-auto">Severe</span>
+                            </div>
+                          </div>
+
+                          {/* Pain trend dropdown */}
+                          <div className="space-y-2">
+                            <FormLabel className="text-white">How is the pain changing?</FormLabel>
+                            <Select
+                              value={form.getValues("injuryPainTrend") || "unchanged"}
+                              onValueChange={(value) => form.setValue("injuryPainTrend", value as "unchanged" | "better" | "worse")}
+                            >
+                              <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                                <SelectValue placeholder="Select pain trend" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
+                                <SelectItem value="unchanged">No change</SelectItem>
+                                <SelectItem value="better">Getting better</SelectItem>
+                                <SelectItem value="worse">Getting worse</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Notes textarea */}
+                          <div className="space-y-2">
+                            <FormLabel className="text-white">Additional notes (optional):</FormLabel>
+                            <Textarea
+                              placeholder="Describe your injury in more detail..."
+                              className="resize-none bg-zinc-800 border-zinc-700 text-white min-h-[80px]"
+                              value={form.getValues("injuryDetails") || ""}
+                              onChange={(e) => form.setValue("injuryDetails", e.target.value)}
+                            />
+                          </div>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
