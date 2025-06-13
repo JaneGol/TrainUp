@@ -47,10 +47,23 @@ export class TrainingRecommendationService {
     // Calculate team-level metrics
     const activeRecommendations = athleteRecommendations.filter(r => r.recommendedIntensity !== 'Rest');
     
-    // Calculate team readiness using all recommendations, not just active ones
-    const teamReadiness = athleteRecommendations.length > 0 
-      ? athleteRecommendations.reduce((sum, r) => sum + this.getReadinessScore(r), 0) / athleteRecommendations.length
-      : 0;
+    // Calculate team readiness using actual morning diary data
+    const teamMorningDiaries = await Promise.all(
+      teamAthletes.map(athlete => this.storage.getMorningDiariesByUserId(athlete.id))
+    );
+    
+    const latestReadinessScores = teamMorningDiaries
+      .map(diaries => {
+        const latest = diaries.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0];
+        return latest ? latest.readinessScore : 60; // Default if no data
+      })
+      .filter(score => score > 0);
+    
+    const teamReadiness = latestReadinessScores.length > 0 
+      ? latestReadinessScores.reduce((sum, score) => sum + score, 0) / latestReadinessScores.length
+      : 60;
 
     const participationRate = athleteRecommendations.length > 0 
       ? (activeRecommendations.length / athleteRecommendations.length) * 100
@@ -156,8 +169,8 @@ export class TrainingRecommendationService {
     let confidence = 70;
     let reasonCode = 'NORMAL';
 
-    // Readiness Score Analysis (40% weight)
-    if (readinessScore < 45) {
+    // Readiness Score Analysis (40% weight) - Adjusted thresholds for more realistic recommendations
+    if (readinessScore < 35) {
       recommendedIntensity = 'Rest';
       recommendedRPE = 0;
       riskLevel = 'High';
@@ -165,7 +178,7 @@ export class TrainingRecommendationService {
       reasoning.push(`Very low readiness score (${readinessScore}%)`);
       reasoning.push('Complete rest recommended for recovery');
       confidence = 85;
-    } else if (readinessScore < 60) {
+    } else if (readinessScore < 50) {
       recommendedIntensity = 'Low';
       recommendedRPE = 3;
       riskLevel = 'High';
@@ -173,7 +186,7 @@ export class TrainingRecommendationService {
       reasoning.push(`Poor readiness score (${readinessScore}%)`);
       reasoning.push('Light activity only to promote recovery');
       confidence = 80;
-    } else if (readinessScore < 75) {
+    } else if (readinessScore < 70) {
       recommendedIntensity = 'Moderate';
       recommendedRPE = 5;
       riskLevel = 'Medium';
@@ -188,14 +201,14 @@ export class TrainingRecommendationService {
     }
 
     // ACWR Analysis (30% weight) - Adjust recommendation based on training load ratio
-    if (acwrRatio > 1.5) {
-      // High injury risk due to rapid load increase
+    if (acwrRatio > 1.8) {
+      // Very high injury risk due to rapid load increase
       if (recommendedIntensity === 'High') recommendedIntensity = 'Moderate';
       if (recommendedIntensity === 'Moderate') recommendedIntensity = 'Low';
       recommendedRPE = Math.max(recommendedRPE - 2, 2);
       riskLevel = 'High';
       reasonCode = 'HIGH_ACWR';
-      reasoning.push(`High ACWR ratio (${acwrRatio.toFixed(2)}) indicates injury risk`);
+      reasoning.push(`Very high ACWR ratio (${acwrRatio.toFixed(2)}) indicates injury risk`);
       reasoning.push('Reducing intensity to manage load progression');
       confidence = Math.max(confidence - 15, 50);
     } else if (acwrRatio < 0.8) {
