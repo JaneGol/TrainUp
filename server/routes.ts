@@ -547,7 +547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { getSimpleTrainingSessions } = await import('./simple-sessions');
-      const sessions: import('@shared/types/api').TrainingSessionResponse[] = await getSimpleTrainingSessions();
+      const sessions: import('@shared/types/api').TrainingSessionResponse[] = await getSimpleTrainingSessions(req.user!.teamId);
       res.json(sessions);
     } catch (error) {
       console.error("Error fetching training sessions:", error);
@@ -1069,12 +1069,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Getting coach weekly load data for week ${weekStart}`);
 
-      // Get training entries for all athletes to show team totals
-      const allAthleteIds = [1, 12, 13, 14, 15, 16]; // All athlete IDs
+      // Get training entries for athletes in the coach's team only
+      const teamAthletes = await storage.getAthletesByTeamId(req.user!.teamId);
       let allEntries: any[] = [];
 
-      for (const athleteId of allAthleteIds) {
-        const athleteEntries = await storage.getTrainingEntriesByUserId(athleteId);
+      for (const athlete of teamAthletes) {
+        const athleteEntries = await storage.getTrainingEntriesByUserId(athlete.id);
         allEntries.push(...athleteEntries);
       }
 
