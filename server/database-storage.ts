@@ -865,17 +865,32 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Team metrics
-  async getTeamReadiness(): Promise<{ date: string; value: number }[]> {
-    // This would be much more sophisticated with a real database
-    // Here we're aggregating the team's average readiness by date
-    const diaries = await db
+  async getTeamReadiness(teamId?: number): Promise<{ date: string; value: number }[]> {
+    // Get team athletes first to filter diaries by team
+    let query = db
       .select({
         date: morningDiary.date,
         readinessScore: morningDiary.readinessScore,
       })
       .from(morningDiary)
       .orderBy(desc(morningDiary.date))
-      .limit(30); // Get last 30 days
+      .limit(100); // Get more data to ensure we have enough after team filtering
+
+    // If teamId is provided, join with users table to filter by team
+    if (teamId !== undefined) {
+      query = db
+        .select({
+          date: morningDiary.date,
+          readinessScore: morningDiary.readinessScore,
+        })
+        .from(morningDiary)
+        .innerJoin(users, eq(morningDiary.userId, users.id))
+        .where(and(eq(users.teamId, teamId), eq(users.role, 'athlete')))
+        .orderBy(desc(morningDiary.date))
+        .limit(100);
+    }
+
+    const diaries = await query;
     
     // Group by date and calculate average
     const dateGroups = diaries.reduce((acc, curr) => {

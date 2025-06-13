@@ -370,21 +370,42 @@ export class MemStorage implements IStorage {
   }
   
   // Team metrics
-  async getTeamReadiness(): Promise<{ date: string; value: number }[]> {
-    // Generate random readiness data for the last 7 days
-    const readiness: { date: string; value: number }[] = [];
+  async getTeamReadiness(teamId?: number): Promise<{ date: string; value: number }[]> {
+    // Filter diaries by team if teamId is provided
+    let relevantDiaries = Array.from(this.morningDiaries.values());
+    
+    if (teamId !== undefined) {
+      // Get athletes from the specified team
+      const teamAthletes = Array.from(this.users.values())
+        .filter(user => user.role === 'athlete' && user.teamId === teamId)
+        .map(user => user.id);
+      
+      // Filter diaries to only include those from team athletes
+      relevantDiaries = relevantDiaries.filter(diary => teamAthletes.includes(diary.userId));
+    }
+    
+    // Group by date and calculate average readiness
+    const last7Days = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const dateString = date.toISOString().split('T')[0];
       
-      readiness.push({
+      const dayDiaries = relevantDiaries.filter(diary => 
+        diary.date.toISOString().split('T')[0] === dateString
+      );
+      
+      const avgReadiness = dayDiaries.length > 0 
+        ? Math.round(dayDiaries.reduce((sum, d) => sum + d.readinessScore, 0) / dayDiaries.length)
+        : Math.round(60 + Math.random() * 30); // Fallback for demo
+      
+      last7Days.push({
         date: dateString,
-        value: Math.round(60 + Math.random() * 30) // Random value between 60-90
+        value: avgReadiness
       });
     }
     
-    return readiness;
+    return last7Days;
   }
   
   // Enhanced Analytics methods

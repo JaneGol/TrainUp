@@ -27,8 +27,8 @@ export class TrainingRecommendationService {
   /**
    * Generate training recommendations for all athletes
    */
-  async generateTeamRecommendations(): Promise<TeamTrainingRecommendation> {
-    const athletes = await this.storage.getAthletes();
+  async generateTeamRecommendations(teamId?: number): Promise<TeamTrainingRecommendation> {
+    const athletes = teamId ? await this.storage.getTeamAthletes(teamId) : await this.storage.getAthletes();
     const athleteRecommendations: TrainingRecommendation[] = [];
 
     for (const athlete of athletes) {

@@ -103,7 +103,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
-      const teamRecommendations = await trainingRecommendationService.generateTeamRecommendations();
+      const teamId = req.user!.role === "coach" ? req.user!.teamId : undefined;
+      const teamRecommendations = await trainingRecommendationService.generateTeamRecommendations(teamId);
       res.json(teamRecommendations);
     } catch (error) {
       console.error("Error generating training recommendations:", error);
@@ -634,7 +635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.sendStatus(401);
     }
 
-    const readiness = await storage.getTeamReadiness(req.user!.teamId);
+    const readiness = await storage.getTeamReadiness();
     res.json(readiness);
   });
 
