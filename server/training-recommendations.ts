@@ -49,7 +49,7 @@ export class TrainingRecommendationService {
     
     // Calculate team readiness using actual morning diary data
     const teamMorningDiaries = await Promise.all(
-      teamAthletes.map(athlete => this.storage.getMorningDiariesByUserId(athlete.id))
+      athletes.map(athlete => this.storage.getMorningDiariesByUserId(athlete.id))
     );
     
     const latestReadinessScores = teamMorningDiaries
@@ -234,11 +234,12 @@ export class TrainingRecommendationService {
       confidence = Math.min(confidence + 10, 95);
     }
 
-    // Symptoms Check (10% weight)
+    // Symptoms Check (10% weight) - Only severe symptoms require rest
     const hasSymptoms = latestDiary.symptoms && latestDiary.symptoms !== 'None';
-    const hasInjury = latestDiary.injuryNote || (latestDiary.painIntensity && latestDiary.painIntensity > 0);
+    const hasSignificantPain = latestDiary.painIntensity && latestDiary.painIntensity > 6;
+    const hasSignificantInjury = latestDiary.injuryNote && latestDiary.injuryNote.length > 20;
     
-    if (hasSymptoms || hasInjury) {
+    if (hasSignificantPain || hasSignificantInjury) {
       recommendedIntensity = 'Rest';
       recommendedRPE = 0;
       riskLevel = 'High';
