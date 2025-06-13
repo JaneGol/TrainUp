@@ -102,11 +102,11 @@ export class TrainingRecommendationService {
         return {
           athleteId,
           athleteName: athlete.username,
-          recommendedIntensity: 'Moderate',
+          recommendedIntensity: 'Moderate' as const,
           recommendedRPE: 5,
           reasonCode: 'NO_DATA',
           reasoning: ['No recent wellness data available', 'Using moderate intensity as default'],
-          riskLevel: 'Medium',
+          riskLevel: 'Medium' as const,
           confidence: 30,
           generatedAt: new Date().toISOString()
         };

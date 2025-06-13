@@ -34,6 +34,17 @@ export default function TrainingRecommendationsPage() {
 
   const { data: teamRecommendations, isLoading, error } = useQuery<TeamTrainingRecommendation>({
     queryKey: ["/api/training-recommendations"],
+    retry: 1,
+    refetchOnWindowFocus: false
+  });
+
+  // Debug logging
+  console.log("Training Recommendations Query State:", {
+    isLoading,
+    error: error?.message,
+    hasData: !!teamRecommendations,
+    teamReadiness: teamRecommendations?.teamReadiness,
+    participationRate: teamRecommendations?.participationRate
   });
 
   const handleBackClick = () => {
