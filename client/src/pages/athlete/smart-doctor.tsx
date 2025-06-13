@@ -23,25 +23,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-
-interface MorningDiary {
-  id: number;
-  userId: number;
-  date: string;
-  readinessScore: number;
-  sleepQuality: string;
-  hydrationLevel: string;
-  sleepHours: number;
-  mood: string;
-  stress: string;
-  fatigue: string;
-  soreness: string;
-  recovery: string;
-  motivation: string;
-  pain: string;
-  mentalState: string;
-  additionalNotes: string | null;
-}
+import { MorningDiary } from "@shared/schema";
 
 export default function SmartDoctorPage() {
   const { user } = useAuth();
@@ -80,19 +62,70 @@ export default function SmartDoctorPage() {
 
   // Check if athlete submitted a morning diary today
   const today = new Date().toISOString().split('T')[0];
-  const hasSubmittedToday = latestDiary?.date?.split('T')[0] === today;
+  const hasSubmittedToday = latestDiary?.date ? new Date(latestDiary.date).toISOString().split('T')[0] === today : false;
 
   // Generate AI health assessment based on latest diary
   const generateHealthAssessment = () => {
     if (!latestDiary) return null;
 
     const readinessScore = latestDiary.readinessScore;
+    const symptoms = Array.isArray(latestDiary.symptoms) ? latestDiary.symptoms : [];
+    const hasInjury = latestDiary.hasInjury;
+    const painLevel = latestDiary.painLevel || 0;
+    
+    // Check for critical health symptoms
+    const hasFever = symptoms.some((symptom: string) => 
+      symptom.toLowerCase().includes('fever') || 
+      symptom.toLowerCase().includes('temperature') ||
+      symptom.toLowerCase().includes('hot')
+    );
+    
+    const hasSickness = symptoms.some((symptom: string) => 
+      symptom.toLowerCase().includes('sick') || 
+      symptom.toLowerCase().includes('ill') ||
+      symptom.toLowerCase().includes('nausea') ||
+      symptom.toLowerCase().includes('vomit')
+    );
+    
+    const hasRespiratoryIssues = symptoms.some((symptom: string) => 
+      symptom.toLowerCase().includes('cough') || 
+      symptom.toLowerCase().includes('throat') ||
+      symptom.toLowerCase().includes('breathing') ||
+      symptom.toLowerCase().includes('chest')
+    );
+
     let status = "Normal";
     let recommendation = "";
     let color = "text-green-500";
     let statusIcon = <CheckCircle2 className="h-5 w-5 text-green-500" />;
+    let urgentAlert = "";
 
-    if (readinessScore < 40) {
+    // Critical health conditions override readiness score
+    if (hasFever) {
+      status = "MEDICAL ATTENTION REQUIRED";
+      recommendation = "🚨 FEVER DETECTED - Complete rest required. No training until fever-free for 24 hours.";
+      urgentAlert = "Monitor temperature regularly. Seek medical attention if fever persists or worsens.";
+      color = "text-red-500";
+      statusIcon = <AlertCircle className="h-5 w-5 text-red-500" />;
+    } else if (hasSickness) {
+      status = "Illness detected";
+      recommendation = "Complete rest recommended. No training until symptoms resolve.";
+      urgentAlert = "Focus on hydration and nutrition. Return to training gradually after recovery.";
+      color = "text-red-500";
+      statusIcon = <AlertCircle className="h-5 w-5 text-red-500" />;
+    } else if (hasRespiratoryIssues) {
+      status = "Respiratory symptoms";
+      recommendation = "Avoid intense training. Light activity only if feeling well enough.";
+      urgentAlert = "Monitor breathing during any activity. Stop if symptoms worsen.";
+      color = "text-amber-500";
+      statusIcon = <Info className="h-5 w-5 text-amber-500" />;
+    } else if (hasInjury && painLevel > 6) {
+      status = "Significant injury";
+      recommendation = "Rest or very light training only. Focus on injury management.";
+      urgentAlert = "Consider medical evaluation if pain persists or worsens.";
+      color = "text-red-500";
+      statusIcon = <AlertCircle className="h-5 w-5 text-red-500" />;
+    } else if (readinessScore < 40) {
       status = "Recovery needed";
       recommendation = "Today should be a rest day or very light activity only.";
       color = "text-red-500";
@@ -122,24 +155,40 @@ export default function SmartDoctorPage() {
       sleepAdvice = "Consider improving sleep quality with a wind-down routine.";
     }
 
-    // Recovery advice based on soreness
+    // Recovery advice based on soreness and symptoms
     let recoveryAdvice = "";
-    if (latestDiary.soreness === "high") {
-      recoveryAdvice = "Apply ice to sore areas and consider gentle stretching.";
-    } else if (latestDiary.recovery === "not at all") {
+    if (hasFever || hasSickness) {
+      recoveryAdvice = "Complete rest and hydration are essential for recovery.";
+    } else if (hasInjury && painLevel > 0) {
+      recoveryAdvice = `Pain level ${painLevel}/10 - Consider ice, gentle stretching, or physiotherapy.`;
+    } else if (latestDiary.recoveryLevel === "poor") {
       recoveryAdvice = "Focus on proper nutrition and hydration today.";
     }
 
-    // Hydration advice
+    // Hydration advice - especially important when sick
     let hydrationAdvice = "";
-    if (latestDiary.hydrationLevel === "poor") {
-      hydrationAdvice = "Increase water intake throughout the day.";
+    if (hasFever || hasSickness) {
+      hydrationAdvice = "Increase fluid intake significantly - water, electrolyte solutions, and clear broths.";
+    } else {
+      hydrationAdvice = "Maintain regular hydration throughout the day.";
     }
 
     // Nutrition advice
     let nutritionAdvice = "Focus on balanced meals with protein, carbs, and vegetables.";
-    if (latestDiary.readinessScore < 60) {
+    if (hasFever || hasSickness) {
+      nutritionAdvice = "Light, easily digestible foods. Focus on vitamin C and zinc-rich foods.";
+    } else if (latestDiary.readinessScore < 60) {
       nutritionAdvice = "Prioritize protein and carbohydrates to support recovery.";
+    }
+
+    // Training load advice
+    let trainingAdvice = "";
+    if (hasFever || hasSickness) {
+      trainingAdvice = "NO TRAINING until fully recovered and fever-free for 24+ hours.";
+    } else if (hasInjury && painLevel > 6) {
+      trainingAdvice = "Avoid exercises that aggravate the injury. Consider alternative training methods.";
+    } else if (readinessScore < 40) {
+      trainingAdvice = "Rest day recommended. Light stretching or walking only.";
     }
 
     return {
@@ -147,10 +196,15 @@ export default function SmartDoctorPage() {
       statusIcon,
       color,
       recommendation,
+      urgentAlert,
       sleepAdvice,
       recoveryAdvice,
       hydrationAdvice,
-      nutritionAdvice
+      nutritionAdvice,
+      trainingAdvice,
+      symptoms,
+      hasInjury,
+      painLevel
     };
   };
 
@@ -206,10 +260,31 @@ export default function SmartDoctorPage() {
 
         {latestDiary && assessment && (
           <div className="space-y-6">
+            {/* Urgent Alert */}
+            {assessment.urgentAlert && (
+              <div className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 p-4 rounded-md">
+                <div className="flex items-start">
+                  <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                      URGENT HEALTH ALERT
+                    </h3>
+                    <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                      {assessment.urgentAlert}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Current Health Status */}
             <Card>
               <CardHeader className="pb-2">
                 <div>
-                  <CardTitle>Current Health Status</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    {assessment.statusIcon}
+                    Current Health Status
+                  </CardTitle>
                   <CardDescription className="text-xs mt-0">
                     Based on latest assessment
                   </CardDescription>
@@ -217,6 +292,10 @@ export default function SmartDoctorPage() {
               </CardHeader>
               <CardContent className="pb-2">
                 <div className="mb-4">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm font-medium">Status</span>
+                    <span className={`text-sm font-medium ${assessment.color}`}>{assessment.status}</span>
+                  </div>
                   <div className="flex justify-between mb-1">
                     <span className="text-sm font-medium">Readiness Score</span>
                     <span className="text-sm font-medium">{latestDiary.readinessScore}%</span>
@@ -229,6 +308,73 @@ export default function SmartDoctorPage() {
                 Last updated: {new Date(latestDiary.date).toLocaleString()}
               </CardFooter>
             </Card>
+
+            {/* Current Symptoms */}
+            {assessment.symptoms && assessment.symptoms.length > 0 && !assessment.symptoms.includes('no_symptoms') && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                    Current Symptoms
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {assessment.symptoms.map((symptom: string, index: number) => (
+                      <Badge 
+                        key={index} 
+                        variant={symptom.toLowerCase().includes('fever') || symptom.toLowerCase().includes('temperature') ? "destructive" : "secondary"}
+                        className="text-xs"
+                      >
+                        {symptom.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Injury Information */}
+            {assessment.hasInjury && assessment.painLevel > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-amber-500" />
+                    Injury Status
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Pain Level</span>
+                      <Badge variant={assessment.painLevel > 6 ? "destructive" : "secondary"}>
+                        {assessment.painLevel}/10
+                      </Badge>
+                    </div>
+                    {assessment.painLevel > 6 && (
+                      <p className="text-sm text-amber-600 dark:text-amber-400">
+                        High pain level detected - avoid activities that worsen the injury.
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Training Recommendations */}
+            {assessment.trainingAdvice && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-blue-500" />
+                    Training Recommendations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm font-medium">{assessment.trainingAdvice}</p>
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader>
