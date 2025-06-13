@@ -16,8 +16,8 @@ interface InjurySelectorProps {
   onHasInjuryChange: (value: boolean) => void;
   painLevel: number;
   onPainLevelChange: (value: number) => void;
-  injuryImproving: string;
-  onInjuryImprovingChange: (value: string) => void;
+  injuryImproving: "unchanged" | "better" | "worse";
+  onInjuryImprovingChange: (value: "unchanged" | "better" | "worse") => void;
   injuryNotes: string;
   onInjuryNotesChange: (value: string) => void;
 }
@@ -63,7 +63,8 @@ export function InjurySelector({
                 step={1}
                 value={[painLevel]}
                 onValueChange={handlePainIntensityChange}
-                className="py-3"
+                className="py-3 injury-pain-slider"
+                key="injury-pain-intensity"
               />
             </div>
             <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">

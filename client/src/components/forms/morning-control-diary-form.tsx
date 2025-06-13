@@ -478,7 +478,8 @@ export default function MorningControlDiaryForm() {
                             step={1}
                             value={[field.value || 1]}
                             onValueChange={(values) => field.onChange(values[0])}
-                            className="py-3"
+                            className="py-3 muscle-soreness-slider"
+                            key="muscle-soreness-intensity"
                           />
                         </div>
                         <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
