@@ -1070,7 +1070,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Getting coach weekly load data for week ${weekStart}`);
 
       // Get training entries for athletes in the coach's team only
-      const teamAthletes = await storage.getAthletesByTeamId(req.user!.teamId);
+      const teamAthletes = await storage.getTeamAthletes(req.user!.teamId);
       let allEntries: any[] = [];
 
       for (const athlete of teamAthletes) {

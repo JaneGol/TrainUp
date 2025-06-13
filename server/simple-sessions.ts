@@ -11,20 +11,37 @@ export async function getSimpleTrainingSessions(teamId?: number) {
     : await db.select({ id: users.id }).from(users).where(eq(users.role, 'athlete'));
   const athleteCount = athletes.length;
   
-  // Query the unified view using pool.query with team filtering
+  // Query training entries and filter by team athletes
   const { pool } = await import("./db");
-  const queryResult = teamId !== undefined 
-    ? await pool.query(`
-        SELECT session_date, type, session_number, participants, avg_rpe, session_load
-        FROM session_metrics_from_entries
-        WHERE team_id = $1
-        ORDER BY session_date DESC, type, session_number
-      `, [teamId])
-    : await pool.query(`
-        SELECT session_date, type, session_number, participants, avg_rpe, session_load
-        FROM session_metrics_from_entries
-        ORDER BY session_date DESC, type, session_number
-      `);
+  
+  let queryResult;
+  if (teamId !== undefined) {
+    // Get athlete IDs for this team only
+    const athleteIds = athletes.map(a => a.id);
+    if (athleteIds.length === 0) {
+      // No athletes in this team
+      queryResult = { rows: [] };
+    } else {
+      // Filter by team athletes
+      const placeholders = athleteIds.map((_, index) => `$${index + 1}`).join(',');
+      queryResult = await pool.query(`
+        SELECT te.date as session_date, te.training_type as type, te.session_number, 
+               COUNT(*) as participants, AVG(te.effort_level) as avg_rpe, 
+               SUM(te.training_load) as session_load
+        FROM training_entries te
+        WHERE te.user_id IN (${placeholders})
+        GROUP BY te.date, te.training_type, te.session_number
+        ORDER BY te.date DESC, te.training_type, te.session_number
+      `, athleteIds);
+    }
+  } else {
+    // Get all data
+    queryResult = await pool.query(`
+      SELECT session_date, type, session_number, participants, avg_rpe, session_load
+      FROM session_metrics_from_entries
+      ORDER BY session_date DESC, type, session_number
+    `);
+  }
   const sessionsFromEntries = queryResult.rows as Array<{
     session_date: Date,
     type: string,
