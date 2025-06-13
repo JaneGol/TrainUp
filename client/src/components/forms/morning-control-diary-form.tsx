@@ -532,7 +532,7 @@ export default function MorningControlDiaryForm() {
             />
             
             {/* Injury pain intensity, trend, and notes (conditional) */}
-            {hasInjury && (
+            {form.watch("hasInjury") === "yes" && (
               <div className="space-y-4">
                 <FormField
                   control={form.control}
