@@ -35,7 +35,8 @@ export default function TrainingRecommendationsPage() {
   const { data: teamRecommendations, isLoading, error } = useQuery<TeamTrainingRecommendation>({
     queryKey: ["/api/training-recommendations"],
     retry: 1,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    enabled: !!user && user.role === 'coach'
   });
 
   // Debug logging
@@ -44,7 +45,9 @@ export default function TrainingRecommendationsPage() {
     error: error?.message,
     hasData: !!teamRecommendations,
     teamReadiness: teamRecommendations?.teamReadiness,
-    participationRate: teamRecommendations?.participationRate
+    participationRate: teamRecommendations?.participationRate,
+    userRole: user?.role,
+    queryEnabled: !!user && user.role === 'coach'
   });
 
   const handleBackClick = () => {
