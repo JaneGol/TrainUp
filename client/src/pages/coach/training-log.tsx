@@ -80,7 +80,7 @@ export default function TrainingLog() {
 
     return Object.entries(grouped).map(([date, sessions]) => {
       const totalAU = sessions.reduce((sum, s) => sum + (s.load || 0), 0);
-      const validRpeValues = sessions.filter(s => s.rpe !== null && s.rpe !== undefined && !isNaN(s.rpe)).map(s => s.rpe);
+      const validRpeValues = sessions.filter(s => s.rpe !== null && s.rpe !== undefined && !isNaN(s.rpe!)).map(s => s.rpe!);
       const avgRpe = validRpeValues.length > 0 ? validRpeValues.reduce((sum, rpe) => sum + rpe, 0) / validRpeValues.length : null;
       
       return {
@@ -96,6 +96,27 @@ export default function TrainingLog() {
   // Group sessions by ISO week
   const sessionsByWeek: Record<string, TrainingSession[]> = bucketByWeek(transformedSessions);
   const orderedWeeks = Object.keys(sessionsByWeek).sort().reverse(); // newest first
+  
+  // Determine current and previous week for auto-expansion
+  const today = new Date();
+  const currentWeekKey = weekKey(today.toISOString());
+  const previousWeekKey = weekKey(subWeeks(today, 1).toISOString());
+  
+  // Toggle week expansion
+  const toggleWeek = (weekKey: string) => {
+    const newExpanded = new Set(expandedWeeks);
+    if (newExpanded.has(weekKey)) {
+      newExpanded.delete(weekKey);
+    } else {
+      newExpanded.add(weekKey);
+    }
+    setExpandedWeeks(newExpanded);
+  };
+  
+  // Check if a week should be auto-expanded (current or previous week)
+  const isAutoExpanded = (weekKey: string) => {
+    return weekKey === currentWeekKey || weekKey === previousWeekKey;
+  };
 
   const handleRowClick = (session: TrainingSession) => {
     setSelectedSession(session);
@@ -181,25 +202,46 @@ export default function TrainingLog() {
             </div>
           ) : (
             /* Individual session view */
-            orderedWeeks.map(wKey => (
-              <div key={wKey}>
-                {/* Week header */}
-                <h3 className="px-2 py-1 mb-2 text-sm font-semibold tracking-wide text-zinc-400">
-                  {weekLabel(wKey)}
-                </h3>
+            orderedWeeks.map(wKey => {
+              const isExpanded = isAutoExpanded(wKey) || expandedWeeks.has(wKey);
+              const isAutoExpand = isAutoExpanded(wKey);
+              
+              return (
+                <div key={wKey}>
+                  {/* Week header - collapsible for older weeks */}
+                  {isAutoExpand ? (
+                    <h3 className="px-2 py-1 mb-2 text-sm font-semibold tracking-wide text-zinc-400">
+                      {weekLabel(wKey)}
+                    </h3>
+                  ) : (
+                    <button
+                      onClick={() => toggleWeek(wKey)}
+                      className="w-full flex items-center justify-between px-2 py-1 mb-2 text-sm font-semibold tracking-wide text-zinc-400 hover:text-white transition-colors"
+                    >
+                      <span>{weekLabel(wKey)}</span>
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                  )}
 
-                {/* Training rows for this week */}
-                <div className="space-y-3">
-                  {sessionsByWeek[wKey].map(session => (
-                    <TrainingRow
-                      key={session.id}
-                      session={session}
-                      onOpen={handleRowClick}
-                    />
-                  ))}
+                  {/* Training rows for this week - show if expanded */}
+                  {isExpanded && (
+                    <div className="space-y-3">
+                      {sessionsByWeek[wKey].map(session => (
+                        <TrainingRow
+                          key={session.id}
+                          session={session}
+                          onOpen={handleRowClick}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -211,53 +253,74 @@ export default function TrainingLog() {
               <p>No training sessions found</p>
             </div>
           ) : (
-            orderedWeeks.map(wKey => (
-              <div key={wKey}>
-                {/* Week header */}
-                <h3 className="px-2 py-1 mb-2 text-sm font-semibold tracking-wide text-zinc-400">
-                  {weekLabel(wKey)}
-                </h3>
+            orderedWeeks.map(wKey => {
+              const isExpanded = isAutoExpanded(wKey) || expandedWeeks.has(wKey);
+              const isAutoExpand = isAutoExpanded(wKey);
+              
+              return (
+                <div key={wKey}>
+                  {/* Week header - collapsible for older weeks */}
+                  {isAutoExpand ? (
+                    <h3 className="px-2 py-1 mb-2 text-sm font-semibold tracking-wide text-zinc-400">
+                      {weekLabel(wKey)}
+                    </h3>
+                  ) : (
+                    <button
+                      onClick={() => toggleWeek(wKey)}
+                      className="w-full flex items-center justify-between px-2 py-1 mb-2 text-sm font-semibold tracking-wide text-zinc-400 hover:text-white transition-colors"
+                    >
+                      <span>{weekLabel(wKey)}</span>
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                  )}
 
-                {/* Table for this week */}
-                <div className="bg-zinc-900 rounded-lg border border-zinc-800">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead className="border-b border-zinc-800">
-                        <tr className="text-zinc-300">
-                          <th className="p-4">Date</th>
-                          <th className="p-4">Session</th>
-                          <th className="p-4">Participants</th>
-                          <th className="p-4">RPE</th>
-                          <th className="p-4">Duration</th>
-                          <th className="p-4">Load</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sessionsByWeek[wKey].map((session) => (
-                          <tr 
-                            key={session.id}
-                            className="border-b border-zinc-800 hover:bg-zinc-800/50 cursor-pointer"
-                            onClick={() => handleRowClick(session)}
-                          >
-                            <td className="p-4">{new Date(session.date).toLocaleDateString()}</td>
-                            <td className="p-4">{session.trainingType}</td>
-                            <td className="p-4">
-                              <span className="flex items-center gap-1">
-                                <Users className="h-4 w-4" />
-                                {session.participantCount}/{session.totalAthletes}
-                              </span>
-                            </td>
-                            <td className="p-4">{session.rpe}</td>
-                            <td className="p-4">{session.duration} min</td>
-                            <td className="p-4">{session.load} AU</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  {/* Table for this week - show if expanded */}
+                  {isExpanded && (
+                    <div className="bg-zinc-900 rounded-lg border border-zinc-800">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                          <thead className="border-b border-zinc-800">
+                            <tr className="text-zinc-300">
+                              <th className="p-4">Date</th>
+                              <th className="p-4">Session</th>
+                              <th className="p-4">Participants</th>
+                              <th className="p-4">RPE</th>
+                              <th className="p-4">Duration</th>
+                              <th className="p-4">Load</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {sessionsByWeek[wKey].map((session) => (
+                              <tr 
+                                key={session.id}
+                                className="border-b border-zinc-800 hover:bg-zinc-800/50 cursor-pointer"
+                                onClick={() => handleRowClick(session)}
+                              >
+                                <td className="p-4">{new Date(session.date).toLocaleDateString()}</td>
+                                <td className="p-4">{session.trainingType}</td>
+                                <td className="p-4">
+                                  <span className="flex items-center gap-1">
+                                    <Users className="h-4 w-4" />
+                                    {session.participantCount}/{session.totalAthletes}
+                                  </span>
+                                </td>
+                                <td className="p-4">{session.rpe}</td>
+                                <td className="p-4">{session.duration} min</td>
+                                <td className="p-4">{session.load} AU</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
