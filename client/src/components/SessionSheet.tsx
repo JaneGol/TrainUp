@@ -9,7 +9,7 @@ interface TrainingSession {
   date: string;
   trainingType: string;
   sessionNumber?: number;
-  rpe: number;
+  rpe: number | null;
   load: number;
   participantCount: number;
   totalAthletes: number;
@@ -98,7 +98,7 @@ export default function SessionSheet({ open, onClose, session, onSave, isLoading
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span className="text-zinc-400">RPE</span>
-                    <span className="text-white font-medium">{session.rpe}</span>
+                    <span className="text-white font-medium">{session.rpe ?? 'N/A'}</span>
                   </div>
 
                   <div className="flex justify-between">

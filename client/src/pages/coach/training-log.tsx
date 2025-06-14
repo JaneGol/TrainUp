@@ -308,7 +308,7 @@ export default function TrainingLog() {
                                     {session.participantCount}/{session.totalAthletes}
                                   </span>
                                 </td>
-                                <td className="p-4">{session.rpe}</td>
+                                <td className="p-4">{session.rpe ?? 'N/A'}</td>
                                 <td className="p-4">{session.duration} min</td>
                                 <td className="p-4">{session.load} AU</td>
                               </tr>
