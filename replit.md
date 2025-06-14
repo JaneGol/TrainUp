@@ -100,6 +100,8 @@ TrainUp is a comprehensive web-based sports performance management platform desi
 
 ## Changelog
 
+- June 14, 2025. Updated "Awaiting Data" font styling in coach interface key metrics to match alerts button
+- June 13, 2025. Enhanced Smart Doctor with comprehensive symptom analysis and fever detection
 - June 13, 2025. Initial setup
 
 ## User Preferences
