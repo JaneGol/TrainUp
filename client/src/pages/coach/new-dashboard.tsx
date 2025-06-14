@@ -522,15 +522,6 @@ export default function NewCoachDashboard() {
                     >
                       View All Athletes
                     </Button>
-                    
-                    <Button 
-                      variant="outline"
-                      className="w-full border-zinc-700 hover:bg-zinc-800 text-white flex items-center justify-center"
-                      onClick={handleDataExportClick}
-                    >
-                      <FileSpreadsheet className="h-4 w-4 mr-2 text-[rgb(200,255,1)]" />
-                      Export Data to Sheets
-                    </Button>
                   </div>
                 </div>
               )}

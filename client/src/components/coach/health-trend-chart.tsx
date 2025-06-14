@@ -119,7 +119,7 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
     <Card className="bg-zinc-900 border-zinc-800 text-white">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">{title || "7-Day Team Wellness Trends"}</CardTitle>
-        <p className="text-xs text-zinc-400">
+        <p className="text-xs text-zinc-400 mb-2">
           {description || "Average metrics from athlete daily self-assessments"}
         </p>
       </CardHeader>

@@ -42,7 +42,7 @@ export default function MainMetrics() {
               <p className="text-xs uppercase text-white/60 mb-1">Recovery</p>
               <p className="text-lg font-bold">
                 {keyMetrics.isPendingData ? (
-                  <span className="text-zinc-400/70">Awaiting data</span>
+                  <span className="text-[13px] text-zinc-400/70 font-normal">Awaiting data</span>
                 ) : (
                   <>
                     {keyMetrics.avgRecovery.toFixed(1)}
@@ -65,7 +65,7 @@ export default function MainMetrics() {
               <p className="text-xs uppercase text-white/60 mb-1">Readiness</p>
               <p className="text-lg font-bold">
                 {keyMetrics.isPendingData ? (
-                  <span className="text-zinc-400/70">Awaiting data</span>
+                  <span className="text-[13px] text-zinc-400/70 font-normal">Awaiting data</span>
                 ) : (
                   `${keyMetrics.avgReadiness.toFixed(0)}%`
                 )}
