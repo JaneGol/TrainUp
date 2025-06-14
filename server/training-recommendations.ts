@@ -378,7 +378,7 @@ export class TrainingRecommendationService {
   ): string[] {
     const reasoning: string[] = [];
 
-    reasoning.push(`Team readiness: ${teamReadiness}%`);
+    reasoning.push(`Team readiness: ${teamReadiness.toFixed(1)}%`);
     reasoning.push(`${participationRate.toFixed(0)}% of athletes available for training`);
 
     const riskCounts = recommendations.reduce((counts, rec) => {
