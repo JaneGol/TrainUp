@@ -431,11 +431,12 @@ export class DatabaseStorage implements IStorage {
   async updateTrainingSessionDuration(sessionId: string, duration: number): Promise<any> {
     try {
       // Parse the sessionId to extract database session info
-      // sessionId format: "2025-05-27-Field Training-1"
+      // sessionId format: "2025-05-27-Field Training-1-123" (now includes database ID)
       const parts = sessionId.split('-');
       const date = `${parts[0]}-${parts[1]}-${parts[2]}`;
-      const typeWithTraining = parts.slice(3).join('-'); // "Field Training" or "Gym Training"
-      const sessionNumber = parseInt(parts[parts.length - 1]);
+      const dbId = parseInt(parts[parts.length - 1]); // Extract the database ID
+      const sessionNumber = parseInt(parts[parts.length - 2]); // Session number is second to last
+      const typeWithTraining = parts.slice(3, -2).join('-'); // "Field Training" or "Gym Training"
       
       // Convert type back to database format
       const type = typeWithTraining.replace(' Training', '');
@@ -664,7 +665,7 @@ export class DatabaseStorage implements IStorage {
             ? Math.round(avgRPE * (1 + (submissions[0].emotionalLoad - 1) * 0.125) * duration)
             : session.sessionLoad || 0;
           
-          const sessionKey = `${new Date(session.sessionDate).toISOString().split('T')[0]}-${session.type} Training-${session.sessionNumber}`;
+          const sessionKey = `${new Date(session.sessionDate).toISOString().split('T')[0]}-${session.type} Training-${session.sessionNumber}-${session.id}`;
           
           return {
             id: sessionKey,
@@ -779,7 +780,7 @@ export class DatabaseStorage implements IStorage {
           ? submissions.reduce((sum, sub) => sum + sub.rpe, 0) / submissions.length 
           : null;
         
-        const sessionKey = `${new Date(session.sessionDate).toISOString().split('T')[0]}-${session.type} Training-${session.sessionNumber}`;
+        const sessionKey = `${new Date(session.sessionDate).toISOString().split('T')[0]}-${session.type} Training-${session.sessionNumber}-${session.id}`;
         
         return {
           id: sessionKey,
