@@ -49,7 +49,7 @@ const morningDiarySchema = insertMorningDiarySchema.extend({
   muscleSoreness: z.enum(["yes", "no"]),
   sorenessIntensity: z.number().min(1).max(10).optional(), // Scale 1-10
   hasInjury: z.enum(["yes", "no"]),
-  injuryPainIntensity: z.number().min(1).max(10).optional(), // Pain intensity scale (1-10)
+  injuryPainIntensity: z.number().min(1).max(5).optional(), // Pain intensity scale (1-5)
   injuryPainTrend: z.enum(["unchanged", "better", "worse"]).optional(), // Pain trend dropdown
   injuryDetails: z.string().optional(),
   additionalNotes: z.string().optional()

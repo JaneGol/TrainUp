@@ -59,7 +59,7 @@ export function InjurySelector({
             <div className="py-3">
               <Slider
                 min={1}
-                max={10}
+                max={5}
                 step={1}
                 value={[painLevel]}
                 onValueChange={handlePainIntensityChange}
@@ -68,7 +68,7 @@ export function InjurySelector({
               />
             </div>
             <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+              {[1, 2, 3, 4, 5].map((num) => (
                 <span key={num}>{num}</span>
               ))}
             </div>

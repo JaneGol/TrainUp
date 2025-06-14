@@ -55,7 +55,7 @@ export const morningDiarySchema = z.object({
   ),
   sorenessNotes: z.string().optional(),
   hasInjury: z.boolean(),
-  painLevel: z.number().min(0).max(10).optional(),
+  painLevel: z.number().min(1).max(5).optional(),
   injuryImproving: z.enum(["yes", "no", "unchanged"]).optional(),
   injuryNotes: z.string().optional(),
 });

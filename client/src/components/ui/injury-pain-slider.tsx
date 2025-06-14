@@ -13,7 +13,7 @@ export function InjuryPainSlider({ value, onChange }: InjuryPainSliderProps) {
       <div className="py-3">
         <Slider
           min={1}
-          max={10}
+          max={5}
           step={1}
           value={[value]}
           onValueChange={(values) => onChange(values[0])}
@@ -22,7 +22,7 @@ export function InjuryPainSlider({ value, onChange }: InjuryPainSliderProps) {
         />
       </div>
       <div className="flex justify-between text-xs text-gray-400 mt-1 px-1">
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+        {[1, 2, 3, 4, 5].map((num) => (
           <span key={`injury-${num}`}>{num}</span>
         ))}
       </div>

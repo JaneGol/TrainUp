@@ -100,6 +100,7 @@ TrainUp is a comprehensive web-based sports performance management platform desi
 
 ## Changelog
 
+- June 14, 2025. Updated injury pain scale in Morning Self-Control Diary from 1-10 to 1-5 scale for simplified assessment
 - June 14, 2025. Implemented week-based Training Log with auto-expansion for current/previous weeks and collapsible older weeks with Monday-Sunday grouping
 - June 14, 2025. Enhanced 7-Day Team Wellness Trends chart: removed 0% Y-axis label, increased subtitle spacing (mb-4), ultra-narrow left margin (2px)
 - June 14, 2025. Removed "Export Data to Sheets" button from Athlete Status Overview on main coach screen
