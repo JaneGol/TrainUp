@@ -100,6 +100,7 @@ TrainUp is a comprehensive web-based sports performance management platform desi
 
 ## Changelog
 
+- June 14, 2025. Enhanced 7-Day Team Wellness Trends chart: removed 0% Y-axis label, increased subtitle spacing (mb-4), ultra-narrow left margin (2px)
 - June 14, 2025. Removed "Export Data to Sheets" button from Athlete Status Overview on main coach screen
 - June 14, 2025. Updated "Awaiting Data" font styling in coach interface key metrics to match alerts button
 - June 13, 2025. Enhanced Smart Doctor with comprehensive symptom analysis and fever detection

@@ -119,7 +119,7 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
     <Card className="bg-zinc-900 border-zinc-800 text-white">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">{title || "7-Day Team Wellness Trends"}</CardTitle>
-        <p className="text-xs text-zinc-400 mb-2">
+        <p className="text-xs text-zinc-400 mb-4">
           {description || "Average metrics from athlete daily self-assessments"}
         </p>
       </CardHeader>
@@ -139,7 +139,7 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
               margin={{
                 top: 5,
                 right: 35,
-                left: 20,
+                left: 2,
                 bottom: 5,
               }}
             >
@@ -157,7 +157,7 @@ export default function HealthTrendChart({ title, description }: HealthTrendChar
               <YAxis 
                 tick={{ fontSize: 12, fill: '#9ca3af' }}
                 domain={[0, 100]}
-                ticks={[0, 25, 50, 75, 100]}
+                ticks={[25, 50, 75, 100]}
                 axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                 tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                 tickFormatter={(value) => `${value}%`}

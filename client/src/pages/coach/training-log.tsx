@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Clock, Users, Save } from "lucide-react";
+import { ChevronLeft, Clock, Users, Save, ChevronDown, ChevronRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -9,8 +9,8 @@ import TrainingRow from "@/components/TrainingRow";
 import SessionSheet from "@/components/SessionSheet";
 import { useUpdateDuration } from "@/hooks/useUpdateDuration";
 import CoachDashboardLayout from "@/components/layout/coach-dashboard-layout";
-import { bucketByWeek, weekLabel } from "@/utils/weekHelpers";
-import { format, parseISO } from "date-fns";
+import { bucketByWeek, weekLabel, weekKey } from "@/utils/weekHelpers";
+import { format, parseISO, startOfWeek, subWeeks } from "date-fns";
 
 interface TrainingSession {
   id: string;
@@ -30,6 +30,17 @@ export default function TrainingLog() {
   const [selectedSession, setSelectedSession] = useState<TrainingSession | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [summary, setSummary] = useState(false); // false = session rows, true = daily summary
+  
+  // Week expansion state - preserve during session
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(() => {
+    // Auto-expand current week and previous week
+    const today = new Date();
+    const currentWeekKey = weekKey(today.toISOString());
+    const previousWeek = subWeeks(today, 1);
+    const previousWeekKey = weekKey(previousWeek.toISOString());
+    
+    return new Set([currentWeekKey, previousWeekKey]);
+  });
   
   // Get training sessions with real-time updates
   const { data: trainingSessions = [], isLoading: sessionsLoading } = useQuery<any[]>({
