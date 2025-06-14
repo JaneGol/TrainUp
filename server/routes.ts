@@ -314,8 +314,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         symptoms: z.array(z.string()),
         sorenessMap: z.any(),
         sorenessNotes: z.string().optional(),
+        sorenessIntensity: z.number().optional(), // Separate field for muscle soreness intensity
         hasInjury: z.boolean(),
-        painLevel: z.number().optional(),
+        painLevel: z.number().optional(), // This is for injury pain only
         injuryImproving: z.enum(["yes", "no", "unchanged"]).optional(),
         injuryNotes: z.string().optional(),
         readinessScore: z.number()

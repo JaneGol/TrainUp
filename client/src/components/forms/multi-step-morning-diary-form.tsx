@@ -54,8 +54,9 @@ export const morningDiarySchema = z.object({
     { message: "Please select at least one muscle group or confirm you have no soreness" }
   ),
   sorenessNotes: z.string().optional(),
+  sorenessIntensity: z.number().min(0).max(10).optional(), // Separate field for muscle soreness intensity
   hasInjury: z.boolean(),
-  painLevel: z.number().min(1).max(5).optional(),
+  painLevel: z.number().min(1).max(5).optional(), // This is for injury pain only
   injuryImproving: z.enum(["yes", "no", "unchanged"]).optional(),
   injuryNotes: z.string().optional(),
 });
@@ -97,9 +98,10 @@ export default function MultiStepMorningDiaryForm() {
     // Step 3 defaults
     sorenessMap: { _no_soreness: true } as Record<string, boolean>,
     sorenessNotes: "",
+    sorenessIntensity: undefined, // Separate field for muscle soreness intensity
     hasInjury: false,
     // Optional fields initialized properly
-    painLevel: undefined,
+    painLevel: undefined, // This is for injury pain only
     injuryImproving: undefined,
     injuryNotes: undefined,
   });
@@ -702,11 +704,11 @@ export default function MultiStepMorningDiaryForm() {
                   <SorenessSelector 
                     value={field.value as Record<string, boolean>} 
                     onChange={(value) => form.setValue("sorenessMap", value, { shouldValidate: true })}
-                    painIntensity={form.watch("painLevel") || 0}
+                    painIntensity={form.watch("sorenessIntensity") || 0}
                     onPainIntensityChange={
                       (value) => {
-                        // When adjusting pain intensity from soreness selector
-                        form.setValue("painLevel", value);
+                        // When adjusting muscle soreness intensity (separate from injury pain)
+                        form.setValue("sorenessIntensity", value);
                       }
                     }
                   />
