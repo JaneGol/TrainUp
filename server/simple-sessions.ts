@@ -66,7 +66,7 @@ export async function getSimpleTrainingSessions(teamId?: number) {
       participantCount: Number(session.participants),
       totalAthletes: athleteCount,
       duration: 60, // Default duration from view calculation
-      load: Math.round(session.session_load)
+      load: Math.round(session.session_load / session.participants) // Average load per athlete
     };
     
     console.log(`UNIFIED: ${result.id} = ${result.load} AU (${result.participantCount} athletes)`);
