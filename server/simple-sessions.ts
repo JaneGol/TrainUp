@@ -25,13 +25,13 @@ export async function getSimpleTrainingSessions(teamId?: number) {
       // Filter by team athletes
       const placeholders = athleteIds.map((_, index) => `$${index + 1}`).join(',');
       queryResult = await pool.query(`
-        SELECT te.date as session_date, te.training_type as type, te.session_number, 
+        SELECT DATE(te.date) as session_date, te.training_type as type, te.session_number, 
                COUNT(*) as participants, AVG(te.effort_level) as avg_rpe, 
                SUM(te.training_load) as session_load
         FROM training_entries te
         WHERE te.user_id IN (${placeholders})
-        GROUP BY te.date, te.training_type, te.session_number
-        ORDER BY te.date DESC, te.training_type, te.session_number
+        GROUP BY DATE(te.date), te.training_type, te.session_number
+        ORDER BY DATE(te.date) DESC, te.training_type, te.session_number
       `, athleteIds);
     }
   } else {
