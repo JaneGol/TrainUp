@@ -32,10 +32,14 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
     );
   }
 
-  // Process data to hide ACWR line for first 3 weeks AND weeks without sufficient data
+  // Find the first 3 weeks that have actual training data
+  const weeksWithData = data.filter(item => item.total > 0);
+  const firstThreeDataWeeks = weeksWithData.slice(0, 3).map(week => week.weekStart);
+  
+  // Process data to hide ACWR line for first 3 weeks WITH DATA AND weeks without sufficient data
   const processedData = data.map((item, index) => ({
     ...item,
-    acwr: (index < 3 || item.acwr === null) ? null : item.acwr // Hide ACWR for first 3 weeks OR if server says insufficient data
+    acwr: (firstThreeDataWeeks.includes(item.weekStart) || item.acwr === null) ? null : item.acwr // Hide ACWR for first 3 data weeks OR if server says insufficient data
   }));
   
   // Check if we have any valid ACWR values (after hiding first 3 weeks)
