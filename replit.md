@@ -100,6 +100,8 @@ TrainUp is a comprehensive web-based sports performance management platform desi
 
 ## Changelog
 
+- June 17, 2025. Updated ACWR zone classifications in athlete Fitness Progress page to correct thresholds: OK Zone ≤ 1.2, Caution Zone 1.2-1.3, High Risk ≥ 1.3
+- June 17, 2025. Implemented proper ACWR calculation system with zone-based risk assessment and status display components
 - June 17, 2025. Corrected Week 22 training load data - recalculated 72 entries to proper 60-minute base duration values
 - June 17, 2025. Fixed coach interface to show team average training loads instead of inflated totals (changed SUM to AVG in session queries)
 - June 17, 2025. Updated training load calculation to use 60-minute base duration across all athletes (recalculated 114 entries)

@@ -31,6 +31,12 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
     );
   }
 
+  // Process data to hide ACWR line for first 3 weeks
+  const processedData = data.map((item, index) => ({
+    ...item,
+    acwr: index < 3 ? null : item.acwr // Hide ACWR for first 3 data points
+  }));
+
   return (
     <div className="rounded-xl bg-white/5 backdrop-blur p-4 md:p-6 shadow">
       <h2 className="chart-title mb-1">Weekly Load & ACWR (Last 10 Weeks)</h2>
@@ -38,7 +44,7 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
       <div className="w-full h-80" style={{ minWidth: '400px', minHeight: '300px' }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
-            data={data}
+            data={processedData}
             margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
           >
             <CartesianGrid stroke="#374151" strokeDasharray="3 3" opacity={0.3} />
@@ -60,7 +66,7 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
             <YAxis 
               yAxisId="load" 
               orientation="left"
-              domain={[0, 3000]}
+              domain={[0, 8000]}
               label={{ value: 'AU', angle: -90, position: 'insideLeft' }}
               fontSize={11}
               fill="#9CA3AF"
@@ -70,19 +76,35 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
               yAxisId="acwr" 
               orientation="right" 
               type="number"
-              domain={[0, 2.5]} 
+              domain={[0, 2.0]} 
               tick={{ fontSize: 11, fill: '#9ca3af' }}
               label={{ value: 'ACWR', angle: 90, position: 'insideRight' }}
             />
             
-            {/* ACWR optimal zone */}
+            {/* Green zone band for optimal ACWR (0.8-1.3) */}
             <ReferenceArea 
               yAxisId="acwr" 
               y1={0.8} 
               y2={1.3}
               stroke="none" 
               fill="#16a34a" 
-              fillOpacity={0.08}
+              fillOpacity={0.15}
+            />
+            
+            {/* Zone boundary lines */}
+            <ReferenceLine 
+              yAxisId="acwr" 
+              y={0.8} 
+              stroke="#16a34a" 
+              strokeDasharray="3 3" 
+              strokeOpacity={0.7}
+            />
+            <ReferenceLine 
+              yAxisId="acwr" 
+              y={1.3} 
+              stroke="#16a34a" 
+              strokeDasharray="3 3" 
+              strokeOpacity={0.7}
             />
             
             {/* Stacked bars for training load */}

@@ -40,7 +40,7 @@ export default function FitnessProgressRedesigned() {
   const currentAcwr = fitnessData?.summary?.acwr || 1.0;
   const getStatusInfo = (acwr: number) => {
     if (acwr <= 1.2) return { status: "OK", color: "bg-lime-500", message: "Training load is well balanced." };
-    if (acwr <= 1.29) return { status: "Caution", color: "bg-yellow-500", message: "Monitor your recovery closely." };
+    if (acwr <= 1.3) return { status: "Caution", color: "bg-yellow-500", message: "Monitor your recovery closely." };
     return { status: "High Risk", color: "bg-red-500", message: "Reduce intensity for two days." };
   };
 
