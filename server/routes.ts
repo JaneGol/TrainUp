@@ -824,7 +824,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let chronicSum = 0;
         for (let j = 0; j < 28; j++) {
           const checkDate = new Date(currentDate);
-          checkDate.setDate(currentDate.getDate() - i);
+          checkDate.setDate(currentDate.getDate() - j);
           const checkDateStr = checkDate.toISOString().split('T')[0];
           chronicSum += dailyLoads[checkDateStr] || 0;
         }
@@ -1313,9 +1313,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Calculate 28-day chronic load (average of 4 weeks)
         let chronicSum = 0;
-        for (let i = 0; i < 28; i++) {
+        for (let j = 0; j < 28; j++) {
           const checkDate = new Date(currentDate);
-          checkDate.setDate(currentDate.getDate() - i);
+          checkDate.setDate(currentDate.getDate() - j);
           const checkDateStr = checkDate.toISOString().split('T')[0];
           chronicSum += historicalData[checkDateStr] || 0;
         }
