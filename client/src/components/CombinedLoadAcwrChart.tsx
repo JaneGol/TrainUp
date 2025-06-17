@@ -94,16 +94,37 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
               label={{ value: 'ACWR', angle: 90, position: 'insideRight' }}
             />
             
-            {/* Green zone band for optimal ACWR (0.8-1.3) - only show if ACWR data exists */}
+            {/* ACWR zone markings - only show if ACWR data exists */}
             {hasValidAcwr && (
-              <ReferenceArea 
-                yAxisId="acwr" 
-                y1={0.8} 
-                y2={1.3}
-                stroke="none" 
-                fill="#16a34a" 
-                fillOpacity={0.15}
-              />
+              <>
+                {/* Green zone band for optimal ACWR (0.8-1.3) */}
+                <ReferenceArea 
+                  yAxisId="acwr" 
+                  y1={0.8} 
+                  y2={1.3}
+                  stroke="none" 
+                  fill="#16a34a" 
+                  fillOpacity={0.15}
+                />
+                
+                {/* Blue dotted line at 0.8 - Underload threshold */}
+                <ReferenceLine 
+                  yAxisId="acwr" 
+                  y={0.8} 
+                  stroke="#3b82f6" 
+                  strokeDasharray="5 5"
+                  strokeWidth={1}
+                />
+                
+                {/* Red dotted line at 1.3 - High Risk threshold */}
+                <ReferenceLine 
+                  yAxisId="acwr" 
+                  y={1.3} 
+                  stroke="#ef4444" 
+                  strokeDasharray="5 5"
+                  strokeWidth={1}
+                />
+              </>
             )}
             
 
