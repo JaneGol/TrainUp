@@ -62,7 +62,7 @@ export async function getSimpleTrainingSessions(teamId?: number) {
       date: dateStr,
       trainingType: session.type,
       sessionNumber: session.session_number,
-      rpe: Number(session.avg_rpe),
+      rpe: Number(Number(session.avg_rpe).toFixed(1)),
       participantCount: Number(session.participants),
       totalAthletes: athleteCount,
       duration: 60, // Default duration from view calculation
