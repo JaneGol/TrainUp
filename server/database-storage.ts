@@ -361,9 +361,9 @@ export class DatabaseStorage implements IStorage {
   // Training Type Multipliers for ACWR calculations
   private getTrainingTypeMultiplier(trainingType: string): number {
     const multipliers = {
-      "Field Training": 1.25,  // Higher impact field sessions
+      "Field Training": 1.2,   // Higher impact field sessions
       "Gym Training": 1.0,     // Standard gym workouts
-      "Match/Game": 1.0,       // Games treated as standard
+      "Match/Game": 1.5,       // Games treated as highest intensity
       "Recovery": 0.5          // Light recovery sessions
     };
     return multipliers[trainingType as keyof typeof multipliers] || 1.0;
@@ -372,7 +372,9 @@ export class DatabaseStorage implements IStorage {
   // Calculate Training Load: RPE × Duration × Emotional Factor
   private calculateTrainingLoad(rpe: number, duration: number, emotionalLoad: number): number {
     const emotionalFactor = this.getEmotionalMultiplier(emotionalLoad);
-    return rpe * duration * emotionalFactor;
+    // Use base duration of 40 to achieve 300-600 AU range
+    const baseDuration = 40;
+    return rpe * baseDuration * emotionalFactor;
   }
 
   // Calculate Weighted Training Load for ACWR: Training Load × Type Multiplier
