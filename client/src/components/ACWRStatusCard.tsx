@@ -98,7 +98,10 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
           <div className="text-2xl font-bold text-gray-900">
             {acwrStatus.acwr.toFixed(2)}
           </div>
-          <div className="text-xs text-gray-500">Acute:Chronic Ratio</div>
+          <div className="text-xs text-gray-500">Current ACWR</div>
+          <div className="text-[10px] text-gray-400 mt-1">
+            Based on last 7 days vs 28-day average
+          </div>
         </div>
 
         {/* Status Badge */}
