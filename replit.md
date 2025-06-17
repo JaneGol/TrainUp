@@ -100,7 +100,7 @@ TrainUp is a comprehensive web-based sports performance management platform desi
 
 ## Changelog
 
-- June 17, 2025. Recalculated all training loads for athlete weekly charts to proper 300-600 AU range per session across last 14 days
+- June 17, 2025. Systematically recalculated training loads for all athletes to proper 300-600 AU range per session (updated 90+ entries across last 14 days)
 - June 17, 2025. Fixed incorrect training data in athlete charts - corrected misclassified Gym Training entry to Field Training for accurate visualization
 - June 17, 2025. Restored stacked bars to show Field/Gym training breakdown (user noticed missing Gym sessions in single-bar view)
 - June 17, 2025. Fixed weekly training load chart visualization issues - chart now displays bars properly instead of showing only values at bottom
