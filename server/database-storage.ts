@@ -1679,23 +1679,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAthleteWeeklyLoad(userId: number): Promise<any[]> {
-    console.log(`Getting 14-day athlete weekly load using training entries for athlete ${userId}`);
+    console.log(`CORRECTED: Getting 14-day athlete weekly load using unified sessions for athlete ${userId}`);
     
-    // Use the existing training entries method to get athlete's training data
-    const entries = await this.getTrainingEntriesByUserId(userId);
+    // Use unified session data to avoid double-counting individual entries
+    const { getSimpleTrainingSessions } = await import("./simple-sessions");
+    const allSessions = await getSimpleTrainingSessions();
     
     // Get last 14 days
     const endDate = new Date();
     const startDate = new Date(endDate);
     startDate.setDate(endDate.getDate() - 13); // 14 days total
     
-    // Filter to last 14 days
-    const recentEntries = entries.filter(entry => {
-      const entryDate = new Date(entry.date);
-      return entryDate >= startDate && entryDate <= endDate;
+    // Filter sessions to date range (all sessions, not just for this athlete)
+    const recentSessions = allSessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      return sessionDate >= startDate && sessionDate <= endDate;
     });
 
-    console.log(`Found ${recentEntries.length} training entries for athlete ${userId} in last 14 days`);
+    console.log(`CORRECTED: Found ${recentSessions.length} unified sessions in last 14 days`);
 
     // Initialize 14 days with zero values
     const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number; acwr: number | null } } = {};
@@ -1713,37 +1714,46 @@ export class DatabaseStorage implements IStorage {
       };
     }
 
-    // Sum training loads by date and type
-    recentEntries.forEach(entry => {
-      const dateStr = new Date(entry.date).toISOString().split('T')[0];
-      const load = Math.round(entry.trainingLoad || 0);
+    // Calculate athlete's individual share of each session
+    recentSessions.forEach(session => {
+      const sessionDate = new Date(session.date);
+      const dateStr = sessionDate.toISOString().split('T')[0];
       
       if (dailyData[dateStr]) {
+        // Calculate individual athlete's proportional load for this session
+        const participantCount = session.participantCount || 1;
+        const athleteLoad = Math.round((session.load || 0) / participantCount);
+        
+        console.log(`CORRECTED: ${dateStr} - ${session.trainingType}: ${athleteLoad} AU (${session.load} ÷ ${participantCount})`);
+
         // Map training types to chart categories
-        if (entry.trainingType === 'Field Training') {
-          dailyData[dateStr].Field += load;
-        } else if (entry.trainingType === 'Gym Training') {
-          dailyData[dateStr].Gym += load;
-        } else if (entry.trainingType === 'Match/Game') {
-          dailyData[dateStr].Match += load;
+        if (session.trainingType === 'Field Training') {
+          dailyData[dateStr].Field += athleteLoad;
+        } else if (session.trainingType === 'Gym Training') {
+          dailyData[dateStr].Gym += athleteLoad;
+        } else if (session.trainingType === 'Match/Game') {
+          dailyData[dateStr].Match += athleteLoad;
         }
-        dailyData[dateStr].total += load;
+        dailyData[dateStr].total += athleteLoad;
       }
     });
 
-    // Get all historical data for proper ACWR calculation
-    const allEntries = entries.filter(entry => {
-      const entryDate = new Date(entry.date);
-      const cutoffDate = new Date(endDate);
-      cutoffDate.setDate(endDate.getDate() - 42); // Need 6 weeks of data for ACWR
-      return entryDate >= cutoffDate && entryDate <= endDate;
+    // Get all historical sessions for proper ACWR calculation (6+ weeks)
+    const cutoffDate = new Date(endDate);
+    cutoffDate.setDate(endDate.getDate() - 42); // Need 6 weeks of data for ACWR
+    
+    const historicalSessions = allSessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      return sessionDate >= cutoffDate && sessionDate <= endDate;
     });
 
-    // Build historical daily totals
+    // Build historical daily totals using unified sessions
     const historicalData: { [key: string]: number } = {};
-    allEntries.forEach(entry => {
-      const dateStr = new Date(entry.date).toISOString().split('T')[0];
-      historicalData[dateStr] = (historicalData[dateStr] || 0) + (entry.trainingLoad || 0);
+    historicalSessions.forEach(session => {
+      const dateStr = new Date(session.date).toISOString().split('T')[0];
+      const participantCount = session.participantCount || 1;
+      const athleteLoad = Math.round((session.load || 0) / participantCount);
+      historicalData[dateStr] = (historicalData[dateStr] || 0) + athleteLoad;
     });
 
     // Calculate ACWR for each day in the 14-day window
@@ -1776,7 +1786,7 @@ export class DatabaseStorage implements IStorage {
         acwr = parseFloat((acuteAvg / chronicAvg).toFixed(2));
       }
 
-      console.log(`ACWR calculation for ${day.date}: acute=${acuteSum} (avg: ${acuteAvg.toFixed(1)}), chronic=${chronicAvg.toFixed(1)}, ratio=${acwr}`);
+      console.log(`CORRECTED ACWR for ${day.date}: acute=${acuteSum} (avg: ${acuteAvg.toFixed(1)}), chronic=${chronicAvg.toFixed(1)}, ratio=${acwr}`);
 
       return {
         ...day,
@@ -1784,7 +1794,7 @@ export class DatabaseStorage implements IStorage {
       };
     });
 
-    console.log(`Athlete ${userId}: Returning 14 days of load data with ACWR values:`, 
+    console.log(`CORRECTED Athlete ${userId}: Returning 14 days with realistic values:`, 
       result.map(d => `${d.date}: ${d.total} AU, ACWR: ${d.acwr}`));
     return result;
   }
