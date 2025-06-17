@@ -267,14 +267,15 @@ export default function LoadInsights() {
               <div className="bg-zinc-900 rounded-lg p-3">
                 <div className="text-xs text-zinc-400 mb-1">Weekly Load Consistency</div>
                 <div className="flex items-end justify-between gap-1 h-12 mb-2">
-                  {weeklyLoadData?.slice(-4).map((week, index) => {
+                  {tenWeekComboData?.slice(-4).map((week, index) => {
                     if (!week) return null;
-                    const maxLoad = Math.max(...(weeklyLoadData?.slice(-4).map(w => (w.Field || 0) + (w.Gym || 0) + (w.Match || 0)) || [1]));
+                    const maxLoad = Math.max(...(tenWeekComboData?.slice(-4).map(w => (w.Field || 0) + (w.Gym || 0) + (w.Match || 0)) || [1]));
                     const weekLoad = (week.Field || 0) + (week.Gym || 0) + (week.Match || 0);
                     const height = Math.max(8, (weekLoad / maxLoad) * 40);
-                    const weekNum = index + 1; // Use index since week structure varies
+                    // Extract week number from "2025-W25" format or weekStart
+                    const weekNum = week.weekStart ? week.weekStart.split('-W')[1] || (index + 1) : (index + 1);
                     return (
-                      <div key={index} className="flex flex-col items-center">
+                      <div key={week.weekStart || index} className="flex flex-col items-center">
                         <div 
                           className="w-4 bg-[#b5f23d] rounded-sm"
                           style={{ height: `${height}px` }}
@@ -286,7 +287,7 @@ export default function LoadInsights() {
                 </div>
                 <div className="text-xs text-zinc-500">
                   {(() => {
-                    const recent4Weeks = weeklyLoadData?.slice(-4) || [];
+                    const recent4Weeks = tenWeekComboData?.slice(-4) || [];
                     if (recent4Weeks.length < 2) return "Need more data";
                     const loads = recent4Weeks.map(w => (w.Field || 0) + (w.Gym || 0) + (w.Match || 0));
                     const maxLoad = Math.max(...loads);
