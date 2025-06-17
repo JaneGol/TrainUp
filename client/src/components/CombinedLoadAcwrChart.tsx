@@ -32,13 +32,13 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
     );
   }
 
-  // Process data to hide ACWR line for weeks without sufficient data
+  // Process data to hide ACWR line for first 3 weeks AND weeks without sufficient data
   const processedData = data.map((item, index) => ({
     ...item,
-    acwr: item.acwr // Use server-calculated ACWR (null if insufficient data)
+    acwr: (index < 3 || item.acwr === null) ? null : item.acwr // Hide ACWR for first 3 weeks OR if server says insufficient data
   }));
   
-  // Check if we have any valid ACWR values
+  // Check if we have any valid ACWR values (after hiding first 3 weeks)
   const hasValidAcwr = processedData.some(item => item.acwr !== null && item.acwr !== undefined);
 
   return (
