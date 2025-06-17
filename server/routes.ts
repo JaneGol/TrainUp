@@ -1230,114 +1230,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const userId = req.user!.id;
-      console.log(`Getting 14-day load data for athlete ${userId}`);
+      console.log(`=== ATHLETE WEEKLY LOAD: Using corrected calculation for athlete ${userId} ===`);
 
-      // Get athlete's training entries directly using existing working method
-      const entries = await storage.getTrainingEntriesByUserId(userId);
-
-      // Filter to last 14 days
-      const endDate = new Date();
-      const startDate = new Date(endDate);
-      startDate.setDate(endDate.getDate() - 13);
-
-      const recentEntries = entries.filter(entry => {
-        const entryDate = new Date(entry.date);
-        return entryDate >= startDate && entryDate <= endDate;
-      });
-
-      console.log(`Found ${recentEntries.length} entries for athlete in last 14 days`);
-      console.log('Recent entries:', recentEntries.map(e => `${e.id}: ${e.trainingType} - ${e.trainingLoad} AU on ${e.date.toISOString().split('T')[0]}`));
-
-      // Initialize 14 days with zero values
-      const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number; acwr: number } } = {};
-      for (let i = 0; i < 14; i++) {
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + i);
-        const dateStr = date.toISOString().split('T')[0];
-        dailyData[dateStr] = { 
-          date: dateStr, 
-          Field: 0, 
-          Gym: 0, 
-          Match: 0, 
-          total: 0, 
-          acwr: 0 
-        };
-      }
-
-      // Sum training loads by date and type
-      recentEntries.forEach(entry => {
-        const dateStr = new Date(entry.date).toISOString().split('T')[0];
-        const load = Math.round(entry.trainingLoad || 0);
-
-        if (dailyData[dateStr]) {
-          if (entry.trainingType === 'Field Training') {
-            dailyData[dateStr].Field += load;
-          } else if (entry.trainingType === 'Gym Training') {
-            dailyData[dateStr].Gym += load;
-          } else if (entry.trainingType === 'Match/Game') {
-            dailyData[dateStr].Match += load;
-          }
-          dailyData[dateStr].total += load;
-        }
-      });
-
-      // Get all training entries for proper ACWR calculation (need 28+ days)
-      const allEntries = entries.filter(entry => {
-        const entryDate = new Date(entry.date);
-        const cutoffDate = new Date(endDate);
-        cutoffDate.setDate(endDate.getDate() - 42); // Get 6 weeks for proper calculation
-        return entryDate >= cutoffDate && entryDate <= endDate;
-      });
-
-      // Build historical daily totals for ACWR calculation
-      const historicalData: { [key: string]: number } = {};
-      allEntries.forEach(entry => {
-        const dateStr = new Date(entry.date).toISOString().split('T')[0];
-        const load = entry.trainingLoad || 0;
-        historicalData[dateStr] = (historicalData[dateStr] || 0) + load;
-        console.log(`Historical entry: ${dateStr} = ${load} AU (total now: ${historicalData[dateStr]})`);
-      });
-
-      // Calculate ACWR for each day with proper rolling windows
-      const result = Object.values(dailyData).map((day) => {
-        const currentDate = new Date(day.date);
-
-        // Calculate 7-day acute load (sum of last 7 days including current)
-        let acuteSum = 0;
-        for (let i = 0; i < 7; i++) {
-          const checkDate = new Date(currentDate);
-          checkDate.setDate(currentDate.getDate() - i);
-          const checkDateStr = checkDate.toISOString().split('T')[0];
-          acuteSum += historicalData[checkDateStr] || 0;
-        }
-
-        // Calculate 28-day chronic load (average of 4 weeks)
-        let chronicSum = 0;
-        for (let i = 0; i < 28; i++) {
-          const checkDate = new Date(currentDate);
-          checkDate.setDate(currentDate.getDate() - i);
-          const checkDateStr = checkDate.toISOString().split('T')[0];
-          chronicSum += historicalData[checkDateStr] || 0;
-        }
-        const chronicAvg = chronicSum / 28;
-
-        // Calculate ACWR ratio - compare averages, not sum vs average
-        const acuteAvg = acuteSum / 7; // Average daily load for 7 days
-        let acwr = null;
-        if (chronicAvg > 0) {
-          acwr = parseFloat((acuteAvg / chronicAvg).toFixed(2));
-        }
-
-        console.log(`ACWR for ${day.date}: acute=${acuteSum.toFixed(1)} (avg: ${acuteAvg.toFixed(1)}), chronic=${chronicAvg.toFixed(1)}, ratio=${acwr}`);
-
-        return {
-          ...day,
-          acwr: acwr
-        };
-      });
-
-      console.log(`Returning ${result.length} days of data for athlete ${userId}`);
-      res.json(result);
+      // Use the existing working method that already provides correct athlete loads
+      const athleteWeeklyLoad = await storage.getAthleteWeeklyLoad(userId);
+      
+      console.log(`ATHLETE: Found ${athleteWeeklyLoad.length} days of corrected data for athlete ${userId}`);
+      
+      res.json(athleteWeeklyLoad);
     } catch (error) {
       console.error("Error fetching athlete weekly load:", error);
       res.status(500).json({ error: "Failed to fetch weekly load data" });
