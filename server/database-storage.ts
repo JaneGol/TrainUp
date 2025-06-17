@@ -372,8 +372,8 @@ export class DatabaseStorage implements IStorage {
   // Calculate Training Load: RPE × Duration × Emotional Factor
   private calculateTrainingLoad(rpe: number, duration: number, emotionalLoad: number): number {
     const emotionalFactor = this.getEmotionalMultiplier(emotionalLoad);
-    // Use base duration of 40 to achieve 300-600 AU range
-    const baseDuration = 40;
+    // Use base duration of 60 minutes as requested
+    const baseDuration = 60;
     return rpe * baseDuration * emotionalFactor;
   }
 
