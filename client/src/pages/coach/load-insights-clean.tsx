@@ -257,9 +257,7 @@ export default function LoadInsights() {
             </div>
             
             {/* ACWR Status Card */}
-            <div className="bg-zinc-900 rounded-lg">
-              <ACWRStatusCard athleteId={athleteId === "all" ? undefined : parseInt(athleteId)} />
-            </div>
+            <ACWRStatusCard athleteId={athleteId === "all" ? undefined : parseInt(athleteId)} />
             
             {/* Weekly Load Consistency & Intensity Distribution */}
             <div className="grid grid-cols-1 gap-3 h-full">
