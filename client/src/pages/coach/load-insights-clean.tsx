@@ -17,6 +17,7 @@ import LegendChips from "@/components/LegendChips";
 import { useWeekLoad } from "@/hooks/useWeekLoad";
 import { useTenWeekCombo } from "@/hooks/useTenWeekCombo";
 import CombinedLoadAcwrChart from "@/components/CombinedLoadAcwrChart";
+import { ACWRStatusCard } from "@/components/ACWRStatusCard";
 import { format, parseISO } from 'date-fns';
 
 // Mobile detection hook
@@ -249,13 +250,9 @@ export default function LoadInsights() {
               </div>
             </div>
             
-            {/* ACWR Average */}
-            <div className="bg-zinc-900 rounded-lg p-3">
-              <div className="text-xs text-zinc-400 mb-1">Avg ACWR</div>
-              <div className="text-lg font-bold text-white">{weeklyMetrics.avgAcwr}</div>
-              <div className="text-xs text-zinc-500">
-                Current ACWR → shows how loaded the athlete is right now — useful for spotting risk of overload.
-              </div>
+            {/* ACWR Status Card */}
+            <div className="bg-zinc-900 rounded-lg">
+              <ACWRStatusCard athleteId={athleteId === "all" ? undefined : parseInt(athleteId)} />
             </div>
             
             {/* Load Distribution */}

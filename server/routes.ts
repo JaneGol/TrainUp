@@ -959,7 +959,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tempDate.setMonth(0, 1 + ((4 - tempDate.getDay()) + 7) % 7);
         }
         return 1 + Math.ceil((firstThursday - tempDate.valueOf()) / 604800000);
-      }
+      };
 
       // Group by ISO week and calculate weekly totals
       const weeklyData = new Map<string, {
