@@ -854,6 +854,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get ACWR status with proper zone classification
+  app.get("/api/analytics/acwr-status", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const athleteId = req.query.athleteId ? parseInt(req.query.athleteId as string) : undefined;
+    
+    try {
+      const { computeACWR, classifyACWR, getACWRZones } = await import("./acwr-utils");
+      const { getSimpleTrainingSessions } = await import("./simple-sessions");
+      
+      // Helper function to get ISO week number
+      const getWeekNumber = (date: Date): number => {
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+        return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1)/7);
+      };
+      
+      // Get last 10 weeks of training data
+      const sessions = await getSimpleTrainingSessions();
+      
+      // Group sessions by week and calculate weekly totals
+      const weeklyLoads: { week: string; load: number }[] = [];
+      const weeklyData: { [week: string]: number } = {};
+      
+      sessions.forEach(session => {
+        const sessionDate = new Date(session.date);
+        const year = sessionDate.getFullYear();
+        const week = getWeekNumber(sessionDate);
+        const weekKey = `${year}-W${week.toString().padStart(2, '0')}`;
+        
+        weeklyData[weekKey] = (weeklyData[weekKey] || 0) + session.load;
+      });
+      
+      // Convert to array and sort by most recent first
+      Object.entries(weeklyData)
+        .sort(([a], [b]) => b.localeCompare(a))
+        .slice(0, 10)
+        .forEach(([week, load]) => {
+          weeklyLoads.push({ week, load });
+        });
+      
+      // Calculate ACWR and classify
+      const acwr = computeACWR(weeklyLoads);
+      const classification = classifyACWR(acwr);
+      const zones = getACWRZones();
+      
+      res.json({
+        ...classification,
+        zones,
+        weeklyLoads: weeklyLoads.slice(0, 4) // Return recent 4 weeks for context
+      });
+      
+    } catch (error) {
+      console.error("Error calculating ACWR status:", error);
+      res.status(500).json({ error: "Failed to calculate ACWR status" });
+    }
+  });
+
   // Get weekly training load (last 10 weeks)
   app.get("/api/analytics/weekly-load", async (req, res) => {
     if (!req.isAuthenticated() || req.user!.role !== "coach") {
@@ -889,7 +949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`WEEKLY LOAD: Processed ${entries.length} sessions for weekly grouping`);
 
       // Helper function to get ISO week number
-      function getISOWeek(date: Date): number {
+      const getISOWeek = (date: Date): number => {
         const tempDate = new Date(date.valueOf());
         const dayNum = (date.getDay() + 6) % 7;
         tempDate.setDate(tempDate.getDate() - dayNum + 3);

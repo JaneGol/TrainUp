@@ -1,0 +1,77 @@
+✅ 1. Query ACWR and Load Data (Last 10 Weeks & Last 14 Days)
+python
+Copy code
+# Assume data is stored in a structure like:
+# weekly_loads = [{'week': '2025-W23', 'load': 1500}, ...]
+# Each entry includes weekly training load (sum of daily loads or session RPEs)
+
+def compute_acwr(weekly_loads):
+    # Sort by most recent week first
+    recent_weeks = sorted(weekly_loads, key=lambda x: x['week'], reverse=True)
+
+    if len(recent_weeks) < 4:
+        return None  # Not enough data for ACWR
+
+    acute_load = recent_weeks[0]['load']
+    chronic_load = sum(w['load'] for w in recent_weeks[1:4]) / 3  # Rolling average
+
+    if chronic_load == 0:
+        return None  # Avoid division by zero
+
+    acwr = acute_load / chronic_load
+    return round(acwr, 2)
+✅ 2. Define Zones and Statuses
+python
+Copy code
+def classify_acwr(acwr):
+    if acwr is None:
+        return "Insufficient data", "gray"
+    elif acwr < 0.8:
+        return "Underload — safely increase training gradually", "blue"
+    elif acwr <= 1.2:
+        return "Optimal Zone", "green"
+    elif acwr <= 1.3:
+        return "Caution Zone", "yellow"
+    else:
+        return "High Risk Zone", "red"
+✅ 3. Apply to UI Elements
+Here’s how your agent can use this to update app sections:
+
+🔹 Load Insights → Weekly Load & ACWR (Last 10 Weeks)
+Display ACWR with color indicator and label from classify_acwr()
+
+Overlay warning if ACWR > 1.3 or < 0.8 for multiple weeks
+
+If current zone classification has changed, update the zone boundaries text:
+
+"OK Zone: ≤ 1.2"
+
+"Caution: 1.2 – 1.3"
+
+"High Risk: > 1.3"
+
+🔹 Weekly Training Load (Last 14 Days)
+Fetch last 14 days of daily loads → sum into weekly chunks
+
+If load increased >15% from previous week AND ACWR > 1.3 → highlight warning
+
+🔹 Fitness Progress → Your Status
+python
+Copy code
+status, color = classify_acwr(current_acwr)
+
+ui.update_fitness_progress({
+    'status': status,
+    'status_color': color,
+    'acwr': current_acwr
+})
+✅ Optional – Auto-adjust Acceptable Zone in UI (if values changed)
+python
+Copy code
+# Only if using dynamic zones (not static thresholds)
+acceptable_zone = {
+    "ok": "≤ 1.2",
+    "caution": "1.2 – 1.3",
+    "high_risk": "> 1.3"
+}
+ui.set_acwr_zones(acceptable_zone)
