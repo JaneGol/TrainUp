@@ -792,11 +792,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sessions = await getSimpleTrainingSessions();
       console.log(`ACWR ANALYTICS: Found ${sessions.length} authentic sessions for calculation`);
 
-      // Group sessions by date and sum daily loads
+      // Group sessions by date and calculate average daily loads per athlete
       const dailyLoads: { [date: string]: number } = {};
       sessions.forEach(session => {
         const dateStr = session.date;
-        dailyLoads[dateStr] = (dailyLoads[dateStr] || 0) + session.load;
+        const participantCount = session.participantCount || 1;
+        const avgSessionLoad = Math.round((session.load || 0) / participantCount);
+        dailyLoads[dateStr] = (dailyLoads[dateStr] || 0) + avgSessionLoad;
       });
 
       // Get sorted dates for the last 42 days (need 6 weeks for ACWR calculation)
@@ -1194,7 +1196,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Check if this session falls within the week range
         if (sessionDate >= startDate && sessionDate <= endDate && dailyData[dateStr]) {
-          const sessionLoad = Math.round(session.load || 0);
+          // Calculate average load per athlete for this session
+          const participantCount = session.participantCount || 1;
+          const avgSessionLoad = Math.round((session.load || 0) / participantCount);
           const rawTrainingType = session.trainingType; // e.g., "Field Training", "Gym Training"
           
           // Map training types to chart categories
@@ -1207,10 +1211,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sessionType = 'Field';
           }
 
-          console.log(`WEEKLY LOAD: Adding ${sessionLoad} AU for ${sessionType} Training on ${dateStr}`);
+          console.log(`COACH LOAD: Adding ${avgSessionLoad} AU avg (${session.load} ÷ ${participantCount}) for ${sessionType} Training on ${dateStr}`);
 
-          dailyData[dateStr][sessionType as 'Field' | 'Gym' | 'Match'] += sessionLoad;
-          dailyData[dateStr].total += sessionLoad;
+          dailyData[dateStr][sessionType as 'Field' | 'Gym' | 'Match'] += avgSessionLoad;
+          dailyData[dateStr].total += avgSessionLoad;
           dailyData[dateStr].sessionCount += 1;
         }
       });
