@@ -249,7 +249,8 @@ export default function LoadInsights() {
               <div className="text-lg font-bold text-white">{weeklyMetrics.strain}</div>
               <div className="text-xs text-zinc-500">
                 Training Strain combines weekly load<br/>
-                with monotony. 4,000-6,000 = moderate,<br/>
+                with monotony.<br/>
+                4,000-6,000 = moderate,<br/>
                 {'>'}7,500 indicates high cumulative stress.
               </div>
             </div>
