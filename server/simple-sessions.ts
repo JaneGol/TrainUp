@@ -27,7 +27,7 @@ export async function getSimpleTrainingSessions(teamId?: number) {
       queryResult = await pool.query(`
         SELECT DATE(te.date) as session_date, te.training_type as type, te.session_number, 
                COUNT(*) as participants, AVG(te.effort_level) as avg_rpe, 
-               SUM(te.training_load) as session_load
+               AVG(te.training_load) as session_load
         FROM training_entries te
         WHERE te.user_id IN (${placeholders})
         GROUP BY DATE(te.date), te.training_type, te.session_number
@@ -39,7 +39,7 @@ export async function getSimpleTrainingSessions(teamId?: number) {
     queryResult = await pool.query(`
       SELECT DATE(te.date) as session_date, te.training_type as type, te.session_number, 
              COUNT(*) as participants, AVG(te.effort_level) as avg_rpe, 
-             SUM(te.training_load) as session_load
+             AVG(te.training_load) as session_load
       FROM training_entries te
       GROUP BY DATE(te.date), te.training_type, te.session_number
       ORDER BY DATE(te.date) DESC, te.training_type, te.session_number
