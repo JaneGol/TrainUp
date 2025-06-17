@@ -386,7 +386,7 @@ export class DatabaseStorage implements IStorage {
     // Calculate training load using the enhanced formula
     const baseTrainingLoad = this.calculateTrainingLoad(
       entry.effortLevel, 
-      entry.sessionDuration || 60, 
+      entry.sessionDuration || 10, 
       entry.emotionalLoad
     );
     const finalTrainingLoad = this.calculateWeightedTrainingLoad(
