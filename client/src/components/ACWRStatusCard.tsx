@@ -88,7 +88,7 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
   };
 
   return (
-    <Card>
+    <Card className="shadow-none">
       <CardHeader>
         <CardTitle className="text-sm font-medium">ACWR Status</CardTitle>
       </CardHeader>

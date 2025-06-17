@@ -100,6 +100,8 @@ TrainUp is a comprehensive web-based sports performance management platform desi
 
 ## Changelog
 
+- June 17, 2025. Removed shadow from ACWR Status block in Advanced Workload Metrics for cleaner visual consistency
+- June 17, 2025. Enhanced Weekly Load Consistency and Intensity Distribution sections: matched ACWR Status height, added week-over-week percentage change arrows with color coding, improved layout and typography
 - June 17, 2025. Added clear explanation to ACWR Status calculation: "Based on last 7 days vs 28-day average" to clarify timing and methodology
 - June 17, 2025. Added AU explanation note to Weekly Training Load section: "*AU = Arbitrary Units — a combined measure of training volume and intensity (duration × session RPE)*"
 - June 17, 2025. Fixed session count calculation in Weekly Training Load - added sessionCount field to /api/load/week endpoint
