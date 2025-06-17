@@ -26,7 +26,7 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
 
   if (isLoading) {
     return (
-      <div className="rounded-lg bg-card text-card-foreground p-6">
+      <div className="rounded-lg bg-zinc-800 text-white p-6">
         <div className="mb-6">
           <h3 className="text-sm font-medium">ACWR Status</h3>
         </div>
@@ -40,7 +40,7 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
 
   if (!acwrStatus || acwrStatus.acwr === null) {
     return (
-      <div className="rounded-lg bg-card text-card-foreground p-6">
+      <div className="rounded-lg bg-zinc-800 text-white p-6">
         <div className="mb-6">
           <h3 className="text-sm font-medium">ACWR Status</h3>
         </div>
@@ -83,7 +83,7 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
   };
 
   return (
-    <div className="rounded-lg bg-card text-card-foreground p-6">
+    <div className="rounded-lg bg-zinc-800 text-white p-6">
       <div className="mb-6">
         <h3 className="text-sm font-medium">ACWR Status</h3>
       </div>
