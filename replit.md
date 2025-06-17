@@ -100,7 +100,6 @@ TrainUp is a comprehensive web-based sports performance management platform desi
 
 ## Changelog
 
-- June 17, 2025. Enhanced Advanced Workload Metrics section: added info icon tooltips for Training Monotony and Training Strain, moved ACWR numeric value above status label, updated undertraining explanation text, added up/down arrows to weekly loads, enhanced load distribution bar with percentage labels, and expanded Primary Type with emoji icons
 - June 17, 2025. Added dotted reference lines to ACWR chart: blue at 0.8 (Underload) and red at 1.3 (High Risk) for better zone visualization
 - June 17, 2025. Updated ACWR chart to handle insufficient data gracefully with conditional display and fallback messaging, while maintaining first 3 weeks hidden
 - June 17, 2025. Enhanced Weekly Load & ACWR chart: hidden ACWR line for first 3 weeks, Y-axis ranges 0-8000 AU and 0-2.0 ACWR, green zone band 0.8-1.3 with risk labels

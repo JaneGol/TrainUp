@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, Info, ChevronUp, ChevronDown } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
 
 interface ACWRStatus {
   acwr: number | null;
@@ -89,48 +88,33 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
   };
 
   return (
-    <TooltipProvider>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium flex items-center gap-1">
-            ACWR Status
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs max-w-48">ACWR compares your current weekly load to the average of the past 3 weeks.</p>
-              </TooltipContent>
-            </Tooltip>
-          </CardTitle>
-        </CardHeader>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm font-medium">ACWR Status</CardTitle>
+      </CardHeader>
       <CardContent className="space-y-4">
-        {/* ACWR Value Display - moved above status */}
+        {/* ACWR Value Display */}
         <div className="text-center">
           <div className="text-2xl font-bold text-gray-900">
             {acwrStatus.acwr.toFixed(2)}
           </div>
-          
-          {/* Status Badge - now directly below the number */}
-          <div className="mt-2">
-            <Badge 
-              variant="outline" 
-              className={`${getStatusColor(acwrStatus.zone)} flex items-center gap-1 px-3 py-1`}
-            >
-              {getStatusIcon(acwrStatus.zone)}
-              <span className="text-xs font-medium">{acwrStatus.zone.replace('_', ' ').toUpperCase()}</span>
-            </Badge>
-          </div>
+          <div className="text-xs text-gray-500">Acute:Chronic Ratio</div>
         </div>
 
-        {/* Status Description - updated text for undertraining */}
+        {/* Status Badge */}
+        <div className="flex justify-center">
+          <Badge 
+            variant="outline" 
+            className={`${getStatusColor(acwrStatus.zone)} flex items-center gap-1 px-3 py-1`}
+          >
+            {getStatusIcon(acwrStatus.zone)}
+            <span className="text-xs font-medium">{acwrStatus.zone.replace('_', ' ').toUpperCase()}</span>
+          </Badge>
+        </div>
+
+        {/* Status Description */}
         <div className="text-center">
-          <p className="text-sm text-gray-700">
-            {acwrStatus.zone === 'undertraining' 
-              ? 'Training load is currently low. Gradually increase intensity to improve fitness and resilience.'
-              : acwrStatus.status
-            }
-          </p>
+          <p className="text-sm text-gray-700">{acwrStatus.status}</p>
         </div>
 
         {/* Zone Reference */}
@@ -156,37 +140,18 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
           <div className="border-t pt-3">
             <div className="text-xs text-gray-500 mb-2">Recent Weekly Loads (AU)</div>
             <div className="space-y-1">
-              {acwrStatus.weeklyLoads.slice(0, 4).map((week, index) => {
-                const currentLoad = week.load;
-                const previousLoad = index < acwrStatus.weeklyLoads.length - 1 
-                  ? acwrStatus.weeklyLoads[index + 1]?.load 
-                  : null;
-                
-                const changeIcon = previousLoad !== null && currentLoad !== previousLoad ? (
-                  currentLoad > previousLoad ? (
-                    <ChevronUp className="h-3 w-3 text-green-500" />
-                  ) : (
-                    <ChevronDown className="h-3 w-3 text-red-500" />
-                  )
-                ) : null;
-
-                return (
-                  <div key={week.week} className="flex justify-between items-center text-xs">
-                    <span className={index === 0 ? "font-medium" : ""}>
-                      {week.week} {index === 0 ? "(current)" : ""}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <span className={index === 0 ? "font-medium" : ""}>{week.load.toFixed(0)}</span>
-                      {changeIcon}
-                    </div>
-                  </div>
-                );
-              })}
+              {acwrStatus.weeklyLoads.slice(0, 4).map((week, index) => (
+                <div key={week.week} className="flex justify-between text-xs">
+                  <span className={index === 0 ? "font-medium" : ""}>
+                    {week.week} {index === 0 ? "(current)" : ""}
+                  </span>
+                  <span className={index === 0 ? "font-medium" : ""}>{week.load.toFixed(0)}</span>
+                </div>
+              ))}
             </div>
           </div>
         )}
       </CardContent>
-      </Card>
-    </TooltipProvider>
+    </Card>
   );
 }

@@ -1,8 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ChevronLeft } from "lucide-react";
 import { useLocation } from "wouter";
 import { getAcwrSmoothed, formatAcwrDisplay } from "@/utils/getAcwrSmoothed";
 import { 
@@ -223,54 +222,33 @@ export default function LoadInsights() {
         <div className="h-8"></div>{/* 32-px spacer */}
 
         {/* Advanced Workload Metrics */}
-        <TooltipProvider>
-          <Card className="bg-zinc-800/90 px-4 py-4">
-            <h2 className="chart-title mb-1">Advanced Workload Metrics</h2>
-            <p className="chart-meta mb-4">Training load analysis and distribution patterns</p>
+        <Card className="bg-zinc-800/90 px-4 py-4">
+          <h2 className="chart-title mb-1">Advanced Workload Metrics</h2>
+          <p className="chart-meta mb-4">Training load analysis and distribution patterns</p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Training Monotony */}
+            <div className="bg-zinc-900 rounded-lg p-3">
+              <div className="text-xs text-zinc-400 mb-1">Training Monotony</div>
+              <div className="text-lg font-bold text-white">{weeklyMetrics.monotony}</div>
+              <div className="text-xs text-zinc-500 mb-2">Variability Index</div>
+              <div className="text-xs text-zinc-500">
+                • 0.8–1.3 = ideal variety<br/>
+                • {'<'}0.8 = too even — fatigue risk<br/>
+                • {'>'}1.3 = erratic — injury/illness risk
+              </div>
+            </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {/* Training Monotony */}
-              <div className="bg-zinc-900 rounded-lg p-3">
-                <div className="text-xs text-zinc-400 mb-1 flex items-center gap-1">
-                  Training Monotony
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs max-w-48">Training Monotony measures day-to-day variation in training load. Higher values indicate inconsistent training patterns.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="text-lg font-bold text-white">{weeklyMetrics.monotony}</div>
-                <div className="text-xs text-zinc-500 mb-2">Variability Index</div>
-                <div className="text-xs text-zinc-500">
-                  • 0.8–1.3 = ideal variety<br/>
-                  • {'<'}0.8 = too even — fatigue risk<br/>
-                  • {'>'}1.3 = erratic — injury/illness risk
-                </div>
+            {/* Training Strain */}
+            <div className="bg-zinc-900 rounded-lg p-3">
+              <div className="text-xs text-zinc-400 mb-1">Training Strain</div>
+              <div className="text-lg font-bold text-white">{weeklyMetrics.strain}</div>
+              <div className="text-xs text-zinc-500">
+                Training Strain combines weekly load<br/>
+                with monotony. 4,000-6,000 = moderate,<br/>
+                {'>'}7,500 indicates high cumulative stress.
               </div>
-              
-              {/* Training Strain */}
-              <div className="bg-zinc-900 rounded-lg p-3">
-                <div className="text-xs text-zinc-400 mb-1 flex items-center gap-1">
-                  Training Strain
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3 w-3 text-gray-400 hover:text-gray-600 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs max-w-48">Training Strain combines total weekly load with monotony to assess overall training stress and fatigue risk.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="text-lg font-bold text-white">{weeklyMetrics.strain}</div>
-                <div className="text-xs text-zinc-500">
-                  Training Strain combines weekly load<br/>
-                  with monotony. 4,000-6,000 = moderate,<br/>
-                  {'>'}7,500 indicates high cumulative stress.
-                </div>
-              </div>
+            </div>
             
             {/* ACWR Status Card */}
             <div className="bg-zinc-900 rounded-lg">
@@ -287,8 +265,8 @@ export default function LoadInsights() {
                     ? 'Gym' 
                     : 'Match'}
               </div>
-              <div className="text-xs text-zinc-500 mt-1">
-                🏃 Field: {Math.round((weeklyMetrics.fieldLoad / weeklyMetrics.totalAU) * 100)}%, 🏋️ Gym: {Math.round((weeklyMetrics.gymLoad / weeklyMetrics.totalAU) * 100)}%, ⚽ Match: {Math.round((weeklyMetrics.matchLoad / weeklyMetrics.totalAU) * 100)}%
+              <div className="text-xs text-zinc-500">
+                {Math.round((Math.max(weeklyMetrics.fieldLoad, weeklyMetrics.gymLoad, weeklyMetrics.matchLoad) / weeklyMetrics.totalAU) * 100)}% of load
               </div>
             </div>
           </div>
@@ -300,46 +278,27 @@ export default function LoadInsights() {
               {weeklyMetrics.totalAU > 0 && (
                 <>
                   <div 
-                    className="bg-[#b5f23d] relative flex items-center justify-center" 
+                    className="bg-[#b5f23d]" 
                     style={{ width: `${(weeklyMetrics.fieldLoad / weeklyMetrics.totalAU) * 100}%` }}
-                  >
-                    {((weeklyMetrics.fieldLoad / weeklyMetrics.totalAU) * 100) > 15 && (
-                      <span className="text-xs font-medium text-black">
-                        {Math.round((weeklyMetrics.fieldLoad / weeklyMetrics.totalAU) * 100)}%
-                      </span>
-                    )}
-                  </div>
+                  />
                   <div 
-                    className="bg-[#547aff] relative flex items-center justify-center" 
+                    className="bg-[#547aff]" 
                     style={{ width: `${(weeklyMetrics.gymLoad / weeklyMetrics.totalAU) * 100}%` }}
-                  >
-                    {((weeklyMetrics.gymLoad / weeklyMetrics.totalAU) * 100) > 15 && (
-                      <span className="text-xs font-medium text-white">
-                        {Math.round((weeklyMetrics.gymLoad / weeklyMetrics.totalAU) * 100)}%
-                      </span>
-                    )}
-                  </div>
+                  />
                   <div 
-                    className="bg-[#ff6b6b] relative flex items-center justify-center" 
+                    className="bg-[#ff6b6b]" 
                     style={{ width: `${(weeklyMetrics.matchLoad / weeklyMetrics.totalAU) * 100}%` }}
-                  >
-                    {((weeklyMetrics.matchLoad / weeklyMetrics.totalAU) * 100) > 15 && (
-                      <span className="text-xs font-medium text-white">
-                        {Math.round((weeklyMetrics.matchLoad / weeklyMetrics.totalAU) * 100)}%
-                      </span>
-                    )}
-                  </div>
+                  />
                 </>
               )}
             </div>
             <div className="flex justify-between text-xs text-zinc-500 mt-1">
-              <span>Field: {weeklyMetrics.fieldLoad} AU ({Math.round((weeklyMetrics.fieldLoad / weeklyMetrics.totalAU) * 100)}%)</span>
-              <span>Gym: {weeklyMetrics.gymLoad} AU ({Math.round((weeklyMetrics.gymLoad / weeklyMetrics.totalAU) * 100)}%)</span>
-              <span>Match: {weeklyMetrics.matchLoad} AU ({Math.round((weeklyMetrics.matchLoad / weeklyMetrics.totalAU) * 100)}%)</span>
+              <span>Field: {weeklyMetrics.fieldLoad} AU</span>
+              <span>Gym: {weeklyMetrics.gymLoad} AU</span>
+              <span>Match: {weeklyMetrics.matchLoad} AU</span>
             </div>
           </div>
-          </Card>
-        </TooltipProvider>
+        </Card>
 
         <div className="h-8"></div>{/* 32-px spacer */}
 
