@@ -100,6 +100,7 @@ TrainUp is a comprehensive web-based sports performance management platform desi
 
 ## Changelog
 
+- June 17, 2025. Fixed coach interface to show team average training loads instead of inflated totals (changed SUM to AVG in session queries)
 - June 17, 2025. Updated training load calculation to use 60-minute base duration across all athletes (recalculated 114 entries)
 - June 17, 2025. Systematically recalculated training loads for all athletes to proper 300-600 AU range per session (updated 90+ entries across last 14 days)
 - June 17, 2025. Fixed incorrect training data in athlete charts - corrected misclassified Gym Training entry to Field Training for accurate visualization
