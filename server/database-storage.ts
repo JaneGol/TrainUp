@@ -1720,21 +1720,23 @@ export class DatabaseStorage implements IStorage {
       const dateStr = sessionDate.toISOString().split('T')[0];
       
       if (dailyData[dateStr]) {
-        // Calculate individual athlete's proportional load for this session
+        // Get the average individual athlete load for this session
+        // session.load is already the SUM of all individual athlete loads
+        // We need the average per athlete for this specific athlete
         const participantCount = session.participantCount || 1;
-        const athleteLoad = Math.round((session.load || 0) / participantCount);
+        const avgAthleteLoad = Math.round((session.load || 0) / participantCount);
         
-        console.log(`CORRECTED: ${dateStr} - ${session.trainingType}: ${athleteLoad} AU (${session.load} ÷ ${participantCount})`);
+        console.log(`FIXED: ${dateStr} - ${session.trainingType}: ${avgAthleteLoad} AU (${session.load} ÷ ${participantCount} athletes)`);
 
         // Map training types to chart categories
         if (session.trainingType === 'Field Training') {
-          dailyData[dateStr].Field += athleteLoad;
+          dailyData[dateStr].Field += avgAthleteLoad;
         } else if (session.trainingType === 'Gym Training') {
-          dailyData[dateStr].Gym += athleteLoad;
+          dailyData[dateStr].Gym += avgAthleteLoad;
         } else if (session.trainingType === 'Match/Game') {
-          dailyData[dateStr].Match += athleteLoad;
+          dailyData[dateStr].Match += avgAthleteLoad;
         }
-        dailyData[dateStr].total += athleteLoad;
+        dailyData[dateStr].total += avgAthleteLoad;
       }
     });
 
@@ -1752,8 +1754,8 @@ export class DatabaseStorage implements IStorage {
     historicalSessions.forEach(session => {
       const dateStr = new Date(session.date).toISOString().split('T')[0];
       const participantCount = session.participantCount || 1;
-      const athleteLoad = Math.round((session.load || 0) / participantCount);
-      historicalData[dateStr] = (historicalData[dateStr] || 0) + athleteLoad;
+      const avgAthleteLoad = Math.round((session.load || 0) / participantCount);
+      historicalData[dateStr] = (historicalData[dateStr] || 0) + avgAthleteLoad;
     });
 
     // Calculate ACWR for each day in the 14-day window

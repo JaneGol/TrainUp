@@ -100,7 +100,7 @@ TrainUp is a comprehensive web-based sports performance management platform desi
 
 ## Changelog
 
-- June 17, 2025. Fixed critical ACWR and Training Load calculation errors in athlete interface - corrected getAthleteWeeklyLoad method to use unified sessions instead of individual entries, eliminating double-counting and reducing inflated daily loads from 2000+ AU to realistic 300-600 AU per session
+- June 17, 2025. Fixed critical ACWR and Training Load calculation errors in athlete interface - corrected SQL queries in simple-sessions.ts from AVG to SUM for accurate session totals, updated getAthleteWeeklyLoad method to properly calculate individual athlete loads by dividing session totals by participant count, eliminating double-counting and reducing inflated daily loads from 2000+ AU to realistic 300-600 AU per session
 - June 17, 2025. Removed shadow from ACWR Status block in Advanced Workload Metrics for cleaner visual consistency
 - June 17, 2025. Enhanced Weekly Load Consistency and Intensity Distribution sections: matched ACWR Status height, added week-over-week percentage change arrows with color coding, improved layout and typography
 - June 17, 2025. Added clear explanation to ACWR Status calculation: "Based on last 7 days vs 28-day average" to clarify timing and methodology
