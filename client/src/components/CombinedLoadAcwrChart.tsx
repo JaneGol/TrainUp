@@ -142,12 +142,6 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
             )}
             
             <Legend 
-              payload={[
-                { value: 'Field', type: 'square', color: '#b5f23d' },
-                { value: 'Gym', type: 'square', color: '#547aff' },
-                { value: 'Match', type: 'square', color: '#ff6f6f' },
-                ...(hasValidAcwr ? [{ value: 'ACWR', type: 'line', color: '#facc15' }] : [])
-              ]}
               verticalAlign="bottom" 
               height={24}
               wrapperStyle={{ color: '#fff', fontSize: '12px' }}

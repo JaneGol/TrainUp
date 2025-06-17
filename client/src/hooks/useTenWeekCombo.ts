@@ -9,7 +9,7 @@ export interface TenWeekComboData {
   Match: number;
   total: number;
   chronic: number;
-  acwr: number;
+  acwr: number | null;
 }
 
 export function useTenWeekCombo(athleteId: string) {
@@ -23,18 +23,14 @@ export function useTenWeekCombo(athleteId: string) {
       const raw = await res.json(); // Server already ensures 10 weeks
       
       return raw.map((w: any) => {
-        const total = w.total || 0;
-        const chronic = w.chronic || 0;
-        const acwrValue = getAcwrSmoothed(total, chronic);
-        
         return {
           weekStart: w.weekLabel || w.week || 'W??',
           Field: w.field || 0,
           Gym: w.gym || 0,
           Match: w.match || 0,
-          total,
-          chronic,
-          acwr: acwrValue
+          total: w.total || 0,
+          chronic: w.chronic || 0,
+          acwr: w.acwr // Use server-calculated ACWR (null if insufficient data)
         };
       });
     },
