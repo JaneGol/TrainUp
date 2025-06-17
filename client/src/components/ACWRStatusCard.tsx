@@ -95,11 +95,11 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
       <CardContent className="space-y-4">
         {/* ACWR Value Display */}
         <div className="text-center">
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-white">
             {acwrStatus.acwr.toFixed(2)}
           </div>
-          <div className="text-xs text-gray-500">Current ACWR</div>
-          <div className="text-[10px] text-gray-400 mt-1">
+          <div className="text-xs text-zinc-300">Current ACWR</div>
+          <div className="text-[10px] text-zinc-400 mt-1">
             Based on last 7 days vs 28-day average
           </div>
         </div>
@@ -117,12 +117,12 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
 
         {/* Status Description */}
         <div className="text-center">
-          <p className="text-sm text-gray-700">{acwrStatus.status}</p>
+          <p className="text-sm text-zinc-300">{acwrStatus.status}</p>
         </div>
 
         {/* Zone Reference */}
-        <div className="border-t pt-3">
-          <div className="text-xs text-gray-500 space-y-1">
+        <div className="border-t border-zinc-700 pt-3">
+          <div className="text-xs text-zinc-400 space-y-1">
             <div className="flex justify-between">
               <span>Optimal:</span>
               <span className="font-medium">{acwrStatus.zones.ok}</span>
