@@ -35,11 +35,14 @@ export async function getSimpleTrainingSessions(teamId?: number) {
       `, athleteIds);
     }
   } else {
-    // Get all data
+    // Get all data using direct training_entries query for consistency
     queryResult = await pool.query(`
-      SELECT session_date, type, session_number, participants, avg_rpe, session_load
-      FROM session_metrics_from_entries
-      ORDER BY session_date DESC, type, session_number
+      SELECT DATE(te.date) as session_date, te.training_type as type, te.session_number, 
+             COUNT(*) as participants, AVG(te.effort_level) as avg_rpe, 
+             SUM(te.training_load) as session_load
+      FROM training_entries te
+      GROUP BY DATE(te.date), te.training_type, te.session_number
+      ORDER BY DATE(te.date) DESC, te.training_type, te.session_number
     `);
   }
   const sessionsFromEntries = queryResult.rows as Array<{
@@ -66,7 +69,7 @@ export async function getSimpleTrainingSessions(teamId?: number) {
       participantCount: Number(session.participants),
       totalAthletes: athleteCount,
       duration: 60, // Default duration from view calculation
-      load: Math.round(session.session_load / session.participants) // Average load per athlete
+      load: Math.round(session.session_load) // Total team load
     };
     
     console.log(`UNIFIED: ${result.id} = ${result.load} AU (${result.participantCount} athletes)`);
