@@ -1289,14 +1289,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return entryDate >= cutoffDate && entryDate <= endDate;
       });
 
-      // Build historical daily totals for ACWR calculation
+      // Build historical daily totals for ACWR calculation with proper zero-padding
       const historicalData: { [key: string]: number } = {};
+      
+      // First, initialize all dates in the 42-day window with 0
+      const cutoffDate = new Date(endDate);
+      cutoffDate.setDate(endDate.getDate() - 42);
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(cutoffDate);
+        date.setDate(cutoffDate.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        historicalData[dateStr] = 0;
+      }
+      
+      // Then, add actual training loads to the corresponding dates
       allEntries.forEach(entry => {
         const dateStr = new Date(entry.date).toISOString().split('T')[0];
         const load = entry.trainingLoad || 0;
-        historicalData[dateStr] = (historicalData[dateStr] || 0) + load;
-        console.log(`Historical entry: ${dateStr} = ${load} AU (total now: ${historicalData[dateStr]})`);
+        if (historicalData.hasOwnProperty(dateStr)) {
+          historicalData[dateStr] += load;
+        }
       });
+      
+      console.log(`Historical data initialized for 42 days with ${allEntries.length} training entries`);
 
       // Calculate ACWR for each day with proper rolling windows
       const result = Object.values(dailyData).map((day) => {
