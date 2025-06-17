@@ -217,6 +217,9 @@ export default function LoadInsights() {
           <div className="mt-3">
             <LegendChips keys={['Field','Gym','Match']} />
           </div>
+          <p className="text-xs text-zinc-400 mt-3 text-center">
+            *AU = Arbitrary Units — a combined measure of training volume and intensity (duration × session RPE)*
+          </p>
         </Card>
 
         <div className="h-8"></div>{/* 32-px spacer */}
