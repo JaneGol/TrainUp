@@ -1694,6 +1694,11 @@ export class DatabaseStorage implements IStorage {
     });
 
     console.log(`Found ${recentEntries.length} training entries for athlete ${userId} in last 14 days`);
+    
+    // Log each entry for debugging
+    recentEntries.forEach(entry => {
+      console.log(`ATHLETE ${userId} ENTRY: ${entry.date.toISOString().split('T')[0]} - ${entry.trainingType} - ${entry.trainingLoad} AU (ID: ${entry.id})`);
+    });
 
     // Initialize 14 days with zero values
     const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number; acwr: number | null } } = {};
@@ -1716,14 +1721,21 @@ export class DatabaseStorage implements IStorage {
       const dateStr = new Date(entry.date).toISOString().split('T')[0];
       const load = Math.round(entry.trainingLoad || 0);
       
+      console.log(`ATHLETE ${userId} PROCESSING: ${dateStr} - ${entry.trainingType} - ${load} AU`);
+      
       if (dailyData[dateStr]) {
         // Map training types to chart categories
         if (entry.trainingType === 'Field Training') {
           dailyData[dateStr].Field += load;
+          console.log(`ATHLETE ${userId} FIELD: Added ${load} AU to ${dateStr}, total Field now: ${dailyData[dateStr].Field}`);
         } else if (entry.trainingType === 'Gym Training') {
           dailyData[dateStr].Gym += load;
+          console.log(`ATHLETE ${userId} GYM: Added ${load} AU to ${dateStr}, total Gym now: ${dailyData[dateStr].Gym}`);
         } else if (entry.trainingType === 'Match/Game') {
           dailyData[dateStr].Match += load;
+          console.log(`ATHLETE ${userId} MATCH: Added ${load} AU to ${dateStr}, total Match now: ${dailyData[dateStr].Match}`);
+        } else {
+          console.log(`ATHLETE ${userId} UNKNOWN TYPE: ${entry.trainingType} not mapped to any category`);
         }
         dailyData[dateStr].total += load;
       }
