@@ -32,16 +32,24 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
     );
   }
 
-  // Process data to hide ACWR line for first 3 weeks
+  // Process data to hide ACWR line for weeks without sufficient data
   const processedData = data.map((item, index) => ({
     ...item,
-    acwr: index < 3 ? null : item.acwr // Hide ACWR for first 3 data points
+    acwr: item.acwr // Use server-calculated ACWR (null if insufficient data)
   }));
+  
+  // Check if we have any valid ACWR values
+  const hasValidAcwr = processedData.some(item => item.acwr !== null && item.acwr !== undefined);
 
   return (
     <div className="rounded-xl bg-white/5 backdrop-blur p-4 md:p-6 shadow">
       <h2 className="chart-title mb-1">Weekly Load & ACWR (Last 10 Weeks)</h2>
-      <p className="chart-meta mb-4">Bars = weekly load; line = ACWR. Green band = optimal 0.8–1.3</p>
+      <p className="chart-meta mb-4">
+        {hasValidAcwr 
+          ? "Bars = weekly load; line = ACWR. Green band = optimal 0.8–1.3"
+          : "Bars = weekly load. ACWR requires 4+ weeks of data to display."
+        }
+      </p>
       <div className="w-full h-80" style={{ minWidth: '400px', minHeight: '300px' }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
@@ -82,15 +90,17 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
               label={{ value: 'ACWR', angle: 90, position: 'insideRight' }}
             />
             
-            {/* Green zone band for optimal ACWR (0.8-1.3) */}
-            <ReferenceArea 
-              yAxisId="acwr" 
-              y1={0.8} 
-              y2={1.3}
-              stroke="none" 
-              fill="#16a34a" 
-              fillOpacity={0.15}
-            />
+            {/* Green zone band for optimal ACWR (0.8-1.3) - only show if ACWR data exists */}
+            {hasValidAcwr && (
+              <ReferenceArea 
+                yAxisId="acwr" 
+                y1={0.8} 
+                y2={1.3}
+                stroke="none" 
+                fill="#16a34a" 
+                fillOpacity={0.15}
+              />
+            )}
             
 
             
@@ -117,24 +127,26 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
               name="Match"
             />
             
-            {/* ACWR line */}
-            <Line 
-              yAxisId="acwr" 
-              type="monotone" 
-              dataKey="acwr"
-              stroke="#facc15" 
-              dot={{ r: 3, fill: "#facc15" }} 
-              strokeWidth={2}
-              name="ACWR"
-              connectNulls={false}
-            />
+            {/* ACWR line - only show if valid data exists */}
+            {hasValidAcwr && (
+              <Line 
+                yAxisId="acwr" 
+                type="monotone" 
+                dataKey="acwr"
+                stroke="#facc15" 
+                dot={{ r: 3, fill: "#facc15" }} 
+                strokeWidth={2}
+                name="ACWR"
+                connectNulls={false}
+              />
+            )}
             
             <Legend 
               payload={[
                 { value: 'Field', type: 'square', color: '#b5f23d' },
                 { value: 'Gym', type: 'square', color: '#547aff' },
                 { value: 'Match', type: 'square', color: '#ff6f6f' },
-                { value: 'ACWR', type: 'line', color: '#facc15' }
+                ...(hasValidAcwr ? [{ value: 'ACWR', type: 'line', color: '#facc15' }] : [])
               ]}
               verticalAlign="bottom" 
               height={24}
@@ -159,12 +171,18 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
         </ResponsiveContainer>
       </div>
       
-      {/* ACWR Zone Labels */}
-      <div className="flex justify-center gap-4 mt-2 text-xs text-zinc-400">
-        <span>Below 0.8: <span className="text-blue-400">Underload</span></span>
-        <span>0.8–1.3: <span className="text-green-400">Optimal Zone</span></span>
-        <span>Above 1.3: <span className="text-red-400">High Risk</span></span>
-      </div>
+      {/* ACWR Zone Labels - only show if ACWR data exists */}
+      {hasValidAcwr ? (
+        <div className="flex justify-center gap-4 mt-2 text-xs text-zinc-400">
+          <span>Below 0.8: <span className="text-blue-400">Underload</span></span>
+          <span>0.8–1.3: <span className="text-green-400">Optimal Zone</span></span>
+          <span>Above 1.3: <span className="text-red-400">High Risk</span></span>
+        </div>
+      ) : (
+        <div className="flex justify-center mt-3 text-sm text-zinc-400">
+          Not enough data yet to assess ACWR – keep logging your training
+        </div>
+      )}
     </div>
   );
 }

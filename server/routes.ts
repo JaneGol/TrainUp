@@ -1033,15 +1033,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Calculate ACWR for each week
       const result = paddedWeeks.map((week, index) => {
-        // Calculate chronic load (average of previous 4 weeks)
-        const startIndex = Math.max(0, index - 3);
-        const chronicWeeks = paddedWeeks.slice(startIndex, index + 1);
-        const chronic = chronicWeeks.length > 0 
-          ? chronicWeeks.reduce((sum, w) => sum + w.total, 0) / chronicWeeks.length 
-          : 0;
+        // Only calculate ACWR if we have at least 4 weeks of data (index >= 3)
+        let chronic = 0;
+        let acwr = null;
+        
+        if (index >= 3) {
+          // Calculate chronic load (average of previous 4 weeks)
+          const startIndex = Math.max(0, index - 3);
+          const chronicWeeks = paddedWeeks.slice(startIndex, index + 1);
+          chronic = chronicWeeks.length > 0 
+            ? chronicWeeks.reduce((sum, w) => sum + w.total, 0) / chronicWeeks.length 
+            : 0;
 
-        const acute = week.total;
-        const acwr = chronic > 0 ? acute / chronic : 0;
+          const acute = week.total;
+          acwr = chronic > 0 ? acute / chronic : null;
+        }
 
         // Create week label (W21)
         const weekNumber = week.week.split('-W')[1];
@@ -1049,8 +1055,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return {
           ...week,
           weekLabel: `W${weekNumber}`,
-          chronic: Math.round(chronic * 100) / 100,
-          acwr: Math.round(acwr * 100) / 100
+          chronic: chronic > 0 ? Math.round(chronic * 100) / 100 : 0,
+          acwr: acwr !== null ? Math.round(acwr * 100) / 100 : null
         };
       });
 
