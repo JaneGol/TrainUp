@@ -261,18 +261,92 @@ export default function LoadInsights() {
               <ACWRStatusCard athleteId={athleteId === "all" ? undefined : parseInt(athleteId)} />
             </div>
             
-            {/* Load Distribution */}
-            <div className="bg-zinc-900 rounded-lg p-3">
-              <div className="text-xs text-zinc-400 mb-1">Primary Type</div>
-              <div className="text-lg font-bold text-white">
-                {weeklyMetrics.fieldLoad >= weeklyMetrics.gymLoad && weeklyMetrics.fieldLoad >= weeklyMetrics.matchLoad 
-                  ? 'Field' 
-                  : weeklyMetrics.gymLoad >= weeklyMetrics.matchLoad 
-                    ? 'Gym' 
-                    : 'Match'}
+            {/* Weekly Load Consistency & Intensity Distribution */}
+            <div className="space-y-2">
+              {/* Weekly Load Consistency */}
+              <div className="bg-zinc-900 rounded-lg p-3">
+                <div className="text-xs text-zinc-400 mb-1">Weekly Load Consistency</div>
+                <div className="flex items-end justify-between gap-1 h-12 mb-2">
+                  {weeklyLoadData?.slice(-4).map((week, index) => {
+                    const maxLoad = Math.max(...(weeklyLoadData?.slice(-4).map(w => w.field + w.gym + w.match) || [1]));
+                    const weekLoad = week.field + week.gym + week.match;
+                    const height = Math.max(8, (weekLoad / maxLoad) * 40);
+                    const weekNum = week.week.split('-W')[1];
+                    return (
+                      <div key={week.week} className="flex flex-col items-center">
+                        <div 
+                          className="w-4 bg-[#b5f23d] rounded-sm"
+                          style={{ height: `${height}px` }}
+                        />
+                        <div className="text-[9px] text-zinc-500 mt-1">W{weekNum}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="text-xs text-zinc-500">
+                  {(() => {
+                    const recent4Weeks = weeklyLoadData?.slice(-4) || [];
+                    if (recent4Weeks.length < 2) return "Need more data";
+                    const loads = recent4Weeks.map(w => w.field + w.gym + w.match);
+                    const maxLoad = Math.max(...loads);
+                    const currentLoad = loads[loads.length - 1];
+                    const change = Math.round(((currentLoad - maxLoad) / maxLoad) * 100);
+                    return `Change from highest week: ${change >= 0 ? '+' : ''}${change}%`;
+                  })()}
+                </div>
               </div>
-              <div className="text-xs text-zinc-500">
-                {Math.round((Math.max(weeklyMetrics.fieldLoad, weeklyMetrics.gymLoad, weeklyMetrics.matchLoad) / weeklyMetrics.totalAU) * 100)}% of load
+
+              {/* Intensity Distribution */}
+              <div className="bg-zinc-900 rounded-lg p-3">
+                <div className="text-xs text-zinc-400 mb-1">Intensity Distribution</div>
+                <div className="flex h-4 rounded-full overflow-hidden bg-zinc-800 mb-2">
+                  {(() => {
+                    const total = weeklyMetrics.totalAU;
+                    if (total === 0) return <div className="w-full bg-zinc-700"></div>;
+                    
+                    // Simulate intensity zones based on training types
+                    const lowIntensity = weeklyMetrics.gymLoad * 0.6; // Gym training often lower intensity
+                    const highIntensity = weeklyMetrics.matchLoad; // Match is high intensity
+                    const mediumIntensity = total - lowIntensity - highIntensity;
+                    
+                    const lowPct = (lowIntensity / total) * 100;
+                    const medPct = (mediumIntensity / total) * 100;
+                    const highPct = (highIntensity / total) * 100;
+                    
+                    return (
+                      <>
+                        <div className="bg-green-500" style={{ width: `${lowPct}%` }} />
+                        <div className="bg-yellow-500" style={{ width: `${medPct}%` }} />
+                        <div className="bg-red-500" style={{ width: `${highPct}%` }} />
+                      </>
+                    );
+                  })()}
+                </div>
+                <div className="flex justify-between text-[9px] text-zinc-500">
+                  {(() => {
+                    const total = weeklyMetrics.totalAU;
+                    if (total === 0) return <span>No data</span>;
+                    
+                    const lowIntensity = weeklyMetrics.gymLoad * 0.6;
+                    const highIntensity = weeklyMetrics.matchLoad;
+                    const mediumIntensity = total - lowIntensity - highIntensity;
+                    
+                    const lowPct = Math.round((lowIntensity / total) * 100);
+                    const medPct = Math.round((mediumIntensity / total) * 100);
+                    const highPct = Math.round((highIntensity / total) * 100);
+                    
+                    return (
+                      <>
+                        <span>Low: {lowPct}%</span>
+                        <span>Med: {medPct}%</span>
+                        <span>High: {highPct}%</span>
+                      </>
+                    );
+                  })()}
+                </div>
+                <div className="text-[9px] text-zinc-500 mt-1">
+                  Balanced intensity helps reduce fatigue risk
+                </div>
               </div>
             </div>
           </div>
