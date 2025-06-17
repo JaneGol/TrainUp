@@ -65,6 +65,12 @@ export default function LoadInsights() {
   // Get combined 10-week data for the unified chart
   const { data: tenWeekComboData = [], isLoading: tenWeekComboLoading } = useTenWeekCombo(athleteId);
 
+  // Get weekly load data for the past 4 weeks for consistency analysis
+  const { data: weeklyLoadTrends = [] } = useQuery<any[]>({
+    queryKey: ["/api/analytics/weekly-load"],
+    staleTime: 30_000,
+  });
+
   // Get ACWR data with real-time updates
   const { data: acwrData = [] } = useQuery<any[]>({
     queryKey: ["/api/analytics/acwr"],
@@ -115,6 +121,64 @@ export default function LoadInsights() {
       activeDays: activeDays.length
     };
   }, [weeklyLoadData, acwrData]);
+
+  // Calculate weekly load consistency data for the past 4 weeks
+  const weeklyConsistency = useMemo(() => {
+    if (!weeklyLoadTrends || weeklyLoadTrends.length < 4) return null;
+    
+    const last4Weeks = weeklyLoadTrends.slice(-4).map(week => ({
+      week: week.week,
+      total: (week.field || 0) + (week.gym || 0) + (week.match || 0)
+    }));
+    
+    const weekTotals = last4Weeks.map(w => w.total);
+    const maxWeek = Math.max(...weekTotals);
+    const currentWeek = weekTotals[weekTotals.length - 1];
+    const changeFromHighest = maxWeek > 0 ? ((currentWeek - maxWeek) / maxWeek * 100) : 0;
+    
+    // Calculate week-to-week changes for color coding
+    const coloredWeeks = last4Weeks.map((week, index) => {
+      if (index === 0) return { ...week, color: 'bg-zinc-600' };
+      
+      const prevTotal = last4Weeks[index - 1].total;
+      const change = prevTotal > 0 ? Math.abs((week.total - prevTotal) / prevTotal * 100) : 0;
+      
+      let color = 'bg-green-500'; // Stable
+      if (change > 25) color = 'bg-red-500'; // Volatile
+      else if (change > 10) color = 'bg-yellow-500'; // Moderate
+      
+      return { ...week, color };
+    });
+    
+    return {
+      weeks: coloredWeeks,
+      changeFromHighest: changeFromHighest.toFixed(0)
+    };
+  }, [weeklyLoadTrends]);
+
+  // Calculate intensity distribution based on session RPE ranges
+  const intensityDistribution = useMemo(() => {
+    if (!weeklyLoadData || weeklyLoadData.length === 0) return null;
+    
+    const totalLoad = weeklyMetrics.totalAU;
+    if (totalLoad === 0) return null;
+    
+    // Estimate intensity zones based on load distribution
+    // Low: Field training typically lower intensity, Gym moderate, Match high
+    const lowIntensity = weeklyMetrics.fieldLoad * 0.6 + weeklyMetrics.gymLoad * 0.3;
+    const mediumIntensity = weeklyMetrics.fieldLoad * 0.3 + weeklyMetrics.gymLoad * 0.5 + weeklyMetrics.matchLoad * 0.2;
+    const highIntensity = weeklyMetrics.fieldLoad * 0.1 + weeklyMetrics.gymLoad * 0.2 + weeklyMetrics.matchLoad * 0.8;
+    
+    const lowPct = Math.round((lowIntensity / totalLoad) * 100);
+    const mediumPct = Math.round((mediumIntensity / totalLoad) * 100);
+    const highPct = 100 - lowPct - mediumPct;
+    
+    return {
+      low: Math.max(0, lowPct),
+      medium: Math.max(0, mediumPct),
+      high: Math.max(0, highPct)
+    };
+  }, [weeklyMetrics]);
 
 
 
@@ -230,7 +294,7 @@ export default function LoadInsights() {
           <h2 className="chart-title mb-1">Advanced Workload Metrics</h2>
           <p className="chart-meta mb-4">Training load analysis and distribution patterns</p>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Training Monotony */}
             <div className="bg-zinc-900 rounded-lg p-3">
               <div className="text-xs text-zinc-400 mb-1">Training Monotony</div>
@@ -261,18 +325,72 @@ export default function LoadInsights() {
               <ACWRStatusCard athleteId={athleteId === "all" ? undefined : parseInt(athleteId)} />
             </div>
             
-            {/* Load Distribution */}
-            <div className="bg-zinc-900 rounded-lg p-3">
-              <div className="text-xs text-zinc-400 mb-1">Primary Type</div>
-              <div className="text-lg font-bold text-white">
-                {weeklyMetrics.fieldLoad >= weeklyMetrics.gymLoad && weeklyMetrics.fieldLoad >= weeklyMetrics.matchLoad 
-                  ? 'Field' 
-                  : weeklyMetrics.gymLoad >= weeklyMetrics.matchLoad 
-                    ? 'Gym' 
-                    : 'Match'}
+            {/* Insight Cards Column */}
+            <div className="space-y-4">
+              {/* Weekly Load Consistency */}
+              <div className="bg-zinc-900 rounded-lg p-3">
+                <div className="text-xs text-zinc-400 mb-1">Weekly Load Consistency</div>
+                {weeklyConsistency ? (
+                  <>
+                    <div className="flex items-end space-x-1 h-12 mb-2">
+                      {weeklyConsistency.weeks.map((week, index) => {
+                        const maxHeight = Math.max(...weeklyConsistency.weeks.map(w => w.total));
+                        const height = maxHeight > 0 ? (week.total / maxHeight) * 100 : 0;
+                        return (
+                          <div key={week.week} className="flex-1 flex flex-col items-center">
+                            <div 
+                              className={`w-full ${week.color} rounded-sm`}
+                              style={{ height: `${Math.max(height, 8)}%` }}
+                            />
+                            <div className="text-[9px] text-zinc-500 mt-1">
+                              {week.week.replace('2025-', '')}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="text-xs text-zinc-500">
+                      → Change from highest week: {weeklyConsistency.changeFromHighest}%
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-xs text-zinc-500">Insufficient data for trend analysis</div>
+                )}
               </div>
-              <div className="text-xs text-zinc-500">
-                {Math.round((Math.max(weeklyMetrics.fieldLoad, weeklyMetrics.gymLoad, weeklyMetrics.matchLoad) / weeklyMetrics.totalAU) * 100)}% of load
+              
+              {/* Intensity Distribution */}
+              <div className="bg-zinc-900 rounded-lg p-3">
+                <div className="text-xs text-zinc-400 mb-1">Intensity Distribution</div>
+                {intensityDistribution ? (
+                  <>
+                    <div className="flex h-4 rounded-full overflow-hidden bg-zinc-800 mb-2">
+                      <div 
+                        className="bg-green-500" 
+                        style={{ width: `${intensityDistribution.low}%` }}
+                      />
+                      <div 
+                        className="bg-yellow-500" 
+                        style={{ width: `${intensityDistribution.medium}%` }}
+                      />
+                      <div 
+                        className="bg-red-500" 
+                        style={{ width: `${intensityDistribution.high}%` }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[10px] text-zinc-500">
+                        <span>Low: {intensityDistribution.low}%</span>
+                        <span>Medium: {intensityDistribution.medium}%</span>
+                        <span>High: {intensityDistribution.high}%</span>
+                      </div>
+                      <div className="text-[9px] text-zinc-600">
+                        Balanced intensity promotes adaptation and recovery.
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-xs text-zinc-500">No training data available</div>
+                )}
               </div>
             </div>
           </div>
