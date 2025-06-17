@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
 
@@ -27,34 +26,30 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">ACWR Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded"></div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="rounded-lg border bg-card text-card-foreground p-6">
+        <div className="mb-6">
+          <h3 className="text-sm font-medium">ACWR Status</h3>
+        </div>
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded"></div>
+        </div>
+      </div>
     );
   }
 
   if (!acwrStatus || acwrStatus.acwr === null) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">ACWR Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center text-gray-500">
-            <Minus className="h-8 w-8 mx-auto mb-2" />
-            <p className="text-sm">Insufficient data</p>
-            <p className="text-xs text-gray-400">Need 4+ weeks of training</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="rounded-lg border bg-card text-card-foreground p-6">
+        <div className="mb-6">
+          <h3 className="text-sm font-medium">ACWR Status</h3>
+        </div>
+        <div className="text-center text-gray-500">
+          <Minus className="h-8 w-8 mx-auto mb-2" />
+          <p className="text-sm">Insufficient data</p>
+          <p className="text-xs text-gray-400">Need 4+ weeks of training</p>
+        </div>
+      </div>
     );
   }
 
@@ -88,11 +83,11 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
   };
 
   return (
-    <Card className="shadow-none">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">ACWR Status</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="rounded-lg border bg-card text-card-foreground p-6">
+      <div className="mb-6">
+        <h3 className="text-sm font-medium">ACWR Status</h3>
+      </div>
+      <div className="space-y-4">
         {/* ACWR Value Display */}
         <div className="text-center">
           <div className="text-2xl font-bold text-white">
@@ -154,7 +149,7 @@ export function ACWRStatusCard({ athleteId }: { athleteId?: number }) {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
