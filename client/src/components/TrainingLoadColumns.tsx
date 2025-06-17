@@ -88,10 +88,7 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
             labelFormatter={(value) => value}
           />
           
-          <Bar dataKey="Field" stackId="a" fill={colors.Field} />
-          <Bar dataKey="Gym" stackId="a" fill={colors.Gym} />
-          <Bar dataKey="Match" stackId="a" fill={colors.Match} />
-          <Bar dataKey="total" fill="transparent">
+          <Bar dataKey="total" fill={colors.Field}>
             <LabelList 
               dataKey="total" 
               position="top"
