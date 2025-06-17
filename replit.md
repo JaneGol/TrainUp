@@ -100,7 +100,7 @@ TrainUp is a comprehensive web-based sports performance management platform desi
 
 ## Changelog
 
-- June 17, 2025. Restored weekly training load chart to clean single-bar appearance (user preference over stacked bars)
+- June 17, 2025. Restored stacked bars to show Field/Gym training breakdown (user noticed missing Gym sessions in single-bar view)
 - June 17, 2025. Fixed weekly training load chart visualization issues - chart now displays bars properly instead of showing only values at bottom
 - June 17, 2025. Corrected training load calculations by updating default session duration from 60 to 10 minutes, fixing inflated load values
 - June 17, 2025. Updated 267 training entries with accurate load calculations - June 16th now shows correct 1403 AU total (734 + 669 AU)
