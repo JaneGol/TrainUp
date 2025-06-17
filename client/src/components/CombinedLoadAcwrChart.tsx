@@ -7,6 +7,7 @@ import {
   Tooltip,
   Legend,
   ReferenceArea,
+  ReferenceLine,
   Line,
   ComposedChart,
   ResponsiveContainer
@@ -91,21 +92,7 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
               fillOpacity={0.15}
             />
             
-            {/* Zone boundary lines */}
-            <ReferenceLine 
-              yAxisId="acwr" 
-              y={0.8} 
-              stroke="#16a34a" 
-              strokeDasharray="3 3" 
-              strokeOpacity={0.7}
-            />
-            <ReferenceLine 
-              yAxisId="acwr" 
-              y={1.3} 
-              stroke="#16a34a" 
-              strokeDasharray="3 3" 
-              strokeOpacity={0.7}
-            />
+
             
             {/* Stacked bars for training load */}
             <Bar 
@@ -170,6 +157,13 @@ export default function CombinedLoadAcwrChart({ data }: CombinedLoadAcwrChartPro
             />
           </ComposedChart>
         </ResponsiveContainer>
+      </div>
+      
+      {/* ACWR Zone Labels */}
+      <div className="flex justify-center gap-4 mt-2 text-xs text-zinc-400">
+        <span>Below 0.8: <span className="text-blue-400">Underload</span></span>
+        <span>0.8–1.3: <span className="text-green-400">Optimal Zone</span></span>
+        <span>Above 1.3: <span className="text-red-400">High Risk</span></span>
       </div>
     </div>
   );
