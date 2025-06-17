@@ -51,8 +51,8 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
   }
 
   return (
-    <div className="w-full h-64">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-64" style={{ minHeight: '256px', minWidth: '300px' }}>
+      <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={256}>
         <BarChart 
           data={chartData} 
           margin={{ top: 20, right: 20, left: 10, bottom: 0 }}
@@ -72,7 +72,7 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
             fontSize={11}
             fill="#9CA3AF"
             axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-            domain={[0, 3000]}
+            domain={[0, 'dataMax']}
           />
           <Tooltip 
             contentStyle={{
