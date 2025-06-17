@@ -27,11 +27,15 @@ interface TrainingLoadColumnsProps {
 export default function TrainingLoadColumns({ data, isLoading, isError }: TrainingLoadColumnsProps) {
   // Memoize processed data to avoid unnecessary recalculations
   const chartData = useMemo(() => {
-    return data.map(item => ({
-      ...item,
-      originalDate: item.date,
-      displayDate: format(parseISO(item.date), 'dd.MM')
-    }));
+    return data.map(item => {
+      const total = (item.Field || 0) + (item.Gym || 0) + (item.Match || 0);
+      return {
+        ...item,
+        originalDate: item.date,
+        displayDate: format(parseISO(item.date), 'dd.MM'),
+        total: total
+      };
+    });
   }, [data]);
 
   if (isLoading) {
@@ -72,7 +76,7 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
             fontSize={11}
             fill="#9CA3AF"
             axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
-            domain={[0, 3000]}
+            domain={[0, 1800]}
           />
           <Tooltip 
             contentStyle={{
