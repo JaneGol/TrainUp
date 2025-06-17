@@ -100,6 +100,10 @@ TrainUp is a comprehensive web-based sports performance management platform desi
 
 ## Changelog
 
+- June 17, 2025. Fixed weekly training load chart visualization issues - chart now displays bars properly instead of showing only values at bottom
+- June 17, 2025. Corrected training load calculations by updating default session duration from 60 to 10 minutes, fixing inflated load values
+- June 17, 2025. Updated 267 training entries with accurate load calculations - June 16th now shows correct 1403 AU total (734 + 669 AU)
+- June 17, 2025. Fixed RPE calculations to display one decimal place (7.8) instead of long decimal strings (7.8333333333333333)
 - June 14, 2025. Updated injury pain scale in Morning Self-Control Diary from 1-10 to 1-5 scale for simplified assessment
 - June 14, 2025. Implemented week-based Training Log with auto-expansion for current/previous weeks and collapsible older weeks with Monday-Sunday grouping
 - June 14, 2025. Enhanced 7-Day Team Wellness Trends chart: removed 0% Y-axis label, increased subtitle spacing (mb-4), ultra-narrow left margin (2px)
