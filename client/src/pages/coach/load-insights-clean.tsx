@@ -268,12 +268,13 @@ export default function LoadInsights() {
                 <div className="text-xs text-zinc-400 mb-1">Weekly Load Consistency</div>
                 <div className="flex items-end justify-between gap-1 h-12 mb-2">
                   {weeklyLoadData?.slice(-4).map((week, index) => {
-                    const maxLoad = Math.max(...(weeklyLoadData?.slice(-4).map(w => w.field + w.gym + w.match) || [1]));
-                    const weekLoad = week.field + week.gym + week.match;
+                    if (!week) return null;
+                    const maxLoad = Math.max(...(weeklyLoadData?.slice(-4).map(w => (w.Field || 0) + (w.Gym || 0) + (w.Match || 0)) || [1]));
+                    const weekLoad = (week.Field || 0) + (week.Gym || 0) + (week.Match || 0);
                     const height = Math.max(8, (weekLoad / maxLoad) * 40);
-                    const weekNum = week.week.split('-W')[1];
+                    const weekNum = index + 1; // Use index since week structure varies
                     return (
-                      <div key={week.week} className="flex flex-col items-center">
+                      <div key={index} className="flex flex-col items-center">
                         <div 
                           className="w-4 bg-[#b5f23d] rounded-sm"
                           style={{ height: `${height}px` }}
@@ -281,13 +282,13 @@ export default function LoadInsights() {
                         <div className="text-[9px] text-zinc-500 mt-1">W{weekNum}</div>
                       </div>
                     );
-                  })}
+                  }).filter(Boolean)}
                 </div>
                 <div className="text-xs text-zinc-500">
                   {(() => {
                     const recent4Weeks = weeklyLoadData?.slice(-4) || [];
                     if (recent4Weeks.length < 2) return "Need more data";
-                    const loads = recent4Weeks.map(w => w.field + w.gym + w.match);
+                    const loads = recent4Weeks.map(w => (w.Field || 0) + (w.Gym || 0) + (w.Match || 0));
                     const maxLoad = Math.max(...loads);
                     const currentLoad = loads[loads.length - 1];
                     const change = Math.round(((currentLoad - maxLoad) / maxLoad) * 100);
