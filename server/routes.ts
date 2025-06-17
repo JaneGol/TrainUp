@@ -1127,18 +1127,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Check if this session falls within the week range
         if (sessionDate >= startDate && sessionDate <= endDate && dailyData[dateStr]) {
           const sessionLoad = Math.round(session.load || 0);
-          const sessionType = session.trainingType; // 'Field', 'Gym', or 'Match'
-
-          console.log(`WEEKLY LOAD: Adding ${sessionLoad} AU for ${sessionType} on ${dateStr}`);
-
-          if (sessionType === 'Field') {
-            dailyData[dateStr].Field += sessionLoad;
-          } else if (sessionType === 'Gym') {
-            dailyData[dateStr].Gym += sessionLoad;
-          } else if (sessionType === 'Match') {
-            dailyData[dateStr].Match += sessionLoad;
+          const rawTrainingType = session.trainingType; // e.g., "Field Training", "Gym Training"
+          
+          // Map training types to chart categories
+          let sessionType = 'Field'; // default
+          if (rawTrainingType.includes('Gym')) {
+            sessionType = 'Gym';
+          } else if (rawTrainingType.includes('Match') || rawTrainingType.includes('Game')) {
+            sessionType = 'Match';
+          } else if (rawTrainingType.includes('Field')) {
+            sessionType = 'Field';
           }
 
+          console.log(`WEEKLY LOAD: Adding ${sessionLoad} AU for ${sessionType} Training on ${dateStr}`);
+
+          dailyData[dateStr][sessionType as 'Field' | 'Gym' | 'Match'] += sessionLoad;
           dailyData[dateStr].total += sessionLoad;
         }
       });

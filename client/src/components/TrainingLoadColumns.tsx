@@ -90,7 +90,8 @@ export default function TrainingLoadColumns({ data, isLoading, isError }: Traini
           
           <Bar dataKey="Field" stackId="a" fill={colors.Field} />
           <Bar dataKey="Gym" stackId="a" fill={colors.Gym} />
-          <Bar dataKey="Match" stackId="a" fill={colors.Match}>
+          <Bar dataKey="Match" stackId="a" fill={colors.Match} />
+          <Bar dataKey="total" fill="transparent">
             <LabelList 
               dataKey="total" 
               position="top"
