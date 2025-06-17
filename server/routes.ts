@@ -1164,7 +1164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Found ${weekEntries.length} training entries for week ${weekStart}`);
 
       // Initialize 7 days with zero values
-      const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number } } = {};
+      const dailyData: { [key: string]: { date: string; Field: number; Gym: number; Match: number; total: number; sessionCount: number; acwr: number } } = {};
       for (let i = 0; i < 7; i++) {
         const date = new Date(startDate);
         date.setDate(startDate.getDate() + i);
@@ -1174,7 +1174,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           Field: 0, 
           Gym: 0, 
           Match: 0, 
-          total: 0
+          total: 0,
+          sessionCount: 0,
+          acwr: 0
         };
       }
 
@@ -1209,6 +1211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           dailyData[dateStr][sessionType as 'Field' | 'Gym' | 'Match'] += sessionLoad;
           dailyData[dateStr].total += sessionLoad;
+          dailyData[dateStr].sessionCount += 1;
         }
       });
 
