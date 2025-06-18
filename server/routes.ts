@@ -1510,3 +1510,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+app.post("/api/register", async (req, res) => {
+  const { email, password, role, position, teamName, teamPin } = req.body;
+
+  if (!email || !password || !role || !teamName || !teamPin) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  // Тут временно просто выводим данные — как будто сохраняем
+  console.log("📩 New registration:", { email, role, teamName });
+
+  res.status(201).json({ message: "Registered successfully" });
+});
