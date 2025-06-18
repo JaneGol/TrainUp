@@ -1,4 +1,6 @@
-import { defineConfig } from "drizzle-kit";
+
+import { config } from 'dotenv'; config({ path: '../.env' }); // ⬅️ перед defineConfig
+import { defineConfig } from 'drizzle-kit';
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL, ensure the database is provisioned");
@@ -6,7 +8,7 @@ if (!process.env.DATABASE_URL) {
 
 export default defineConfig({
   out: "./migrations",
-  schema: "./shared/schema.ts",
+  schema: "./schema/schema.ts", // ✅ актуальный путь
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL,
