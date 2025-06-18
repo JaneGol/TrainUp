@@ -14,7 +14,8 @@
     "wouter": "^2.12.0",
     "@tanstack/react-query": "^5.0.0",
     "@radix-ui/react-tooltip": "^1.0.4",
-    "recharts": "^2.9.0"
+    "recharts": "^2.9.0",
+    "react-hook-form": "^7.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",
