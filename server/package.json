@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node index.ts",
+    "dev": "NODE_ENV=development ts-node index.ts",
+    "build": "esbuild index.ts --bundle --platform=node --format=esm --outdir=dist --packages=external",
+    "start": "NODE_ENV=production node dist/index.js",
     "db:push": "drizzle-kit push"
   },
   "keywords": [],

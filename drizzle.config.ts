@@ -1,15 +1,11 @@
-
-import 'dotenv/config';
-
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL, ensure the database is provisioned");
-}
+import 'dotenv/config';             // читает DATABASE_URL из переменных окружения
+import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
-  out: "./migrations",
-  schema: "./schema.ts", // ✅ актуальный путь
-  dialect: "postgresql",
+  schema: './server/schema.ts',     // здесь у тебя описаны таблицы
+  out: './migrations',              // куда складывать миграции
+  driver: 'pg',                     // драйвер Postgres
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL!,   // !! на Vercel задаётся в настройках
   },
 });
