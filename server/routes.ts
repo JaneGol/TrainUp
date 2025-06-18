@@ -1509,8 +1509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
-}
-app.post("/api/register", async (req, res) => {
+} app.post("/api/register", async (req, res) => {
   const { email, password, role, position, teamName, teamPin } = req.body;
 
   if (!email || !password || !role || !teamName || !teamPin) {
@@ -1522,3 +1521,4 @@ app.post("/api/register", async (req, res) => {
 
   res.status(201).json({ message: "Registered successfully" });
 });
+
