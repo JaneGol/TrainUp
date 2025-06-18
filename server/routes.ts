@@ -9,12 +9,12 @@ import { setupPasswordResetRoutes } from "./password-reset-routes";
 import { setupCsvExportRoutes } from "./csv-export-routes";
 import { HealthRecommendationService } from "./ai-health";
 import { TrainingRecommendationService } from "./training-recommendations";
-import { 
-  insertTrainingEntrySchema, 
-  insertHealthReportSchema, 
-  insertFitnessMetricsSchema, 
+import {
+  insertTrainingEntrySchema,
+  insertHealthReportSchema,
+  insertFitnessMetricsSchema,
   insertCoachFeedbackSchema,
-  insertMorningDiarySchema 
+  insertMorningDiarySchema
 } from "@shared/schema";
 import { z } from "zod";
 // Import for password hashing and comparison
@@ -105,10 +105,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const teamId = req.user!.role === "coach" ? req.user!.teamId : undefined;
       console.log(`Training recommendations requested for user ${req.user!.username} (role: ${req.user!.role}, teamId: ${teamId})`);
-      
+
       const teamRecommendations = await trainingRecommendationService.generateTeamRecommendations(teamId);
       console.log(`Generated team recommendations:`, JSON.stringify(teamRecommendations, null, 2));
-      
+
       res.json(teamRecommendations);
     } catch (error) {
       console.error("Error generating training recommendations:", error);
@@ -293,11 +293,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dataToValidate = {
         ...req.body,
         userId: req.user!.id,
-        symptoms: Array.isArray(req.body.symptoms) && req.body.symptoms.length > 0 
-          ? req.body.symptoms 
+        symptoms: Array.isArray(req.body.symptoms) && req.body.symptoms.length > 0
+          ? req.body.symptoms
           : ["no_symptoms"],
-        sorenessMap: req.body.sorenessMap && Object.keys(req.body.sorenessMap).length > 0 
-          ? req.body.sorenessMap 
+        sorenessMap: req.body.sorenessMap && Object.keys(req.body.sorenessMap).length > 0
+          ? req.body.sorenessMap
           : { "_no_soreness": true }
       };
 
@@ -326,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Map frontend mood values to database mood values  
       const moodMapping: Record<string, "positive" | "neutral" | "negative"> = {
-        "low": "negative", 
+        "low": "negative",
         "high": "positive"
       };
 
@@ -411,8 +411,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const diary = await storage.createMorningDiary(
-        dataForDatabase, 
-        req.user!.id, 
+        dataForDatabase,
+        req.user!.id,
         readinessScore
       );
 
@@ -857,38 +857,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get ACWR status with proper zone classification
   app.get("/api/analytics/acwr-status", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     const athleteId = req.query.athleteId ? parseInt(req.query.athleteId as string) : undefined;
-    
+
     try {
       const { computeACWR, classifyACWR, getACWRZones } = await import("./acwr-utils");
       const { getSimpleTrainingSessions } = await import("./simple-sessions");
-      
+
       // Helper function to get ISO week number
       const getWeekNumber = (date: Date): number => {
         const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
         const dayNum = d.getUTCDay() || 7;
         d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-        const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-        return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1)/7);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
       };
-      
+
       // Get last 10 weeks of training data
       const sessions = await getSimpleTrainingSessions();
-      
+
       // Group sessions by week and calculate weekly totals
       const weeklyLoads: { week: string; load: number }[] = [];
       const weeklyData: { [week: string]: number } = {};
-      
+
       sessions.forEach(session => {
         const sessionDate = new Date(session.date);
         const year = sessionDate.getFullYear();
         const week = getWeekNumber(sessionDate);
         const weekKey = `${year}-W${week.toString().padStart(2, '0')}`;
-        
+
         weeklyData[weekKey] = (weeklyData[weekKey] || 0) + session.load;
       });
-      
+
       // Convert to array and sort by most recent first
       Object.entries(weeklyData)
         .sort(([a], [b]) => b.localeCompare(a))
@@ -896,18 +896,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .forEach(([week, load]) => {
           weeklyLoads.push({ week, load });
         });
-      
+
       // Calculate ACWR and classify
       const acwr = computeACWR(weeklyLoads);
       const classification = classifyACWR(acwr);
       const zones = getACWRZones();
-      
+
       res.json({
         ...classification,
         zones,
         weeklyLoads: weeklyLoads.slice(0, 4) // Return recent 4 weeks for context
       });
-      
+
     } catch (error) {
       console.error("Error calculating ACWR status:", error);
       res.status(500).json({ error: "Failed to calculate ACWR status" });
@@ -1036,13 +1036,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Only calculate ACWR if we have at least 4 weeks of data (index >= 3)
         let chronic = 0;
         let acwr = null;
-        
+
         if (index >= 3) {
           // Calculate chronic load (average of previous 4 weeks)
           const startIndex = Math.max(0, index - 3);
           const chronicWeeks = paddedWeeks.slice(startIndex, index + 1);
-          chronic = chronicWeeks.length > 0 
-            ? chronicWeeks.reduce((sum, w) => sum + w.total, 0) / chronicWeeks.length 
+          chronic = chronicWeeks.length > 0
+            ? chronicWeeks.reduce((sum, w) => sum + w.total, 0) / chronicWeeks.length
             : 0;
 
           const acute = week.total;
@@ -1169,11 +1169,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const date = new Date(startDate);
         date.setDate(startDate.getDate() + i);
         const dateStr = date.toISOString().split('T')[0];
-        dailyData[dateStr] = { 
-          date: dateStr, 
-          Field: 0, 
-          Gym: 0, 
-          Match: 0, 
+        dailyData[dateStr] = {
+          date: dateStr,
+          Field: 0,
+          Gym: 0,
+          Match: 0,
           total: 0,
           sessionCount: 0,
           acwr: 0
@@ -1196,7 +1196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (sessionDate >= startDate && sessionDate <= endDate && dailyData[dateStr]) {
           const sessionLoad = Math.round(session.load || 0);
           const rawTrainingType = session.trainingType; // e.g., "Field Training", "Gym Training"
-          
+
           // Map training types to chart categories
           let sessionType = 'Field'; // default
           if (rawTrainingType.includes('Gym')) {
@@ -1254,13 +1254,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const date = new Date(startDate);
         date.setDate(startDate.getDate() + i);
         const dateStr = date.toISOString().split('T')[0];
-        dailyData[dateStr] = { 
-          date: dateStr, 
-          Field: 0, 
-          Gym: 0, 
-          Match: 0, 
-          total: 0, 
-          acwr: 0 
+        dailyData[dateStr] = {
+          date: dateStr,
+          Field: 0,
+          Gym: 0,
+          Match: 0,
+          total: 0,
+          acwr: 0
         };
       }
 
@@ -1291,7 +1291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Build historical daily totals for ACWR calculation with proper zero-padding
       const historicalData: { [key: string]: number } = {};
-      
+
       // First, initialize all dates in the 42-day window with 0
       const cutoffDate = new Date(endDate);
       cutoffDate.setDate(endDate.getDate() - 42);
@@ -1301,7 +1301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const dateStr = date.toISOString().split('T')[0];
         historicalData[dateStr] = 0;
       }
-      
+
       // Then, add actual training loads to the corresponding dates
       allEntries.forEach(entry => {
         const dateStr = new Date(entry.date).toISOString().split('T')[0];
@@ -1310,7 +1310,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           historicalData[dateStr] += load;
         }
       });
-      
+
       console.log(`Historical data initialized for 42 days with ${allEntries.length} training entries`);
 
       // Calculate ACWR for each day with proper rolling windows
@@ -1397,7 +1397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }, 0);
 
       // Calculate chronic load (28-day sum)
-      const chronicSum = chronicEntries.length > 0 ? 
+      const chronicSum = chronicEntries.length > 0 ?
         chronicEntries.reduce((sum, entry) => {
           const avgLoad = (entry.effortLevel + entry.emotionalLoad) / 2;
           return sum + (avgLoad * defaultDuration / 60);
@@ -1415,12 +1415,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`  ACWR: ${acwr.toFixed(2)}`);
 
       // Calculate average weekly physical and emotional RPE
-      const avgPhysicalRPE = acuteEntries.length > 0 ? 
-        acuteEntries.reduce((sum, entry) => sum + entry.effortLevel, 0) / acuteEntries.length : 
+      const avgPhysicalRPE = acuteEntries.length > 0 ?
+        acuteEntries.reduce((sum, entry) => sum + entry.effortLevel, 0) / acuteEntries.length :
         0;
 
-      const avgEmotionalRPE = acuteEntries.length > 0 ? 
-        acuteEntries.reduce((sum, entry) => sum + entry.emotionalLoad, 0) / acuteEntries.length : 
+      const avgEmotionalRPE = acuteEntries.length > 0 ?
+        acuteEntries.reduce((sum, entry) => sum + entry.emotionalLoad, 0) / acuteEntries.length :
         0;
 
       // Format all chronic/acute entries for the chart
@@ -1469,7 +1469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           riskMessage
         },
         trendData: loadTrendData,
-        recentEntries: acuteEntries.sort((a, b) => 
+        recentEntries: acuteEntries.sort((a, b) =>
           new Date(b.date).getTime() - new Date(a.date).getTime()
         ).slice(0, 5)
       });
