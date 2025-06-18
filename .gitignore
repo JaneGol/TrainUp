@@ -8,4 +8,10 @@ dist/
 .DS_Store
 
 # Replit
-.replit
+.replit.vscode/
+Code/
+VS/
+#/
+client/pnpm-lock.yaml
+server/pnpm-lock.yaml
+"\320\262"
