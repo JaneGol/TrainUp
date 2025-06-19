@@ -20,6 +20,7 @@
     "drizzle-orm": "^0.44.2",
     "drizzle-zod": "^0.8.2",
     "express": "^5.1.0",
+    "express-session": "^1.18.1",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "pg": "^8.16.0",
@@ -27,7 +28,10 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "@types/express-session": "^1.18.2",
     "@types/node": "^24.0.3",
+    "@types/passport": "^1.0.17",
+    "@types/passport-local": "^1.0.38",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
