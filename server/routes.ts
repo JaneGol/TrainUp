@@ -1507,8 +1507,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
-
   app.post("/api/register", async (req, res) => {
     const { email, password, role, position, teamName, teamPin } = req.body;
 
