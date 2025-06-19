@@ -1,98 +1,135 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+
 @layer components {
-  .chart-title { @apply text-base font-semibold text-center; }
-  .chart-meta  { @apply text-sm   font-medium text-zinc-400 text-center md:text-left; }
-  .tick-font   { @apply text-[11px] font-medium fill-zinc-300; }
+  .chart-title {
+    @apply text-base font-semibold text-center;
+  }
+
+  .chart-meta {
+    @apply text-sm font-medium text-zinc-400 text-center md:text-left;
+  }
+
+  .tick-font {
+    @apply text-[11px] font-medium fill-zinc-300;
+  }
 }
 
 :root {
   /* Font family consistency */
   --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
-  
+
   /* Dark sports app color palette - matching the screenshot */
-  --background: 0 0% 13%; /* Dark gray, almost black #212121 */
-  --foreground: 0 0% 98%; /* Off-white for text */
-  --muted: 0 0% 20%; /* Slightly lighter gray for muted elements */
-  --muted-foreground: 0 0% 80%; /* Light gray for muted text */
-  --popover: 0 0% 13%; /* Same as background */
-  --popover-foreground: 0 0% 98%; /* Same as foreground */
-  --card: 0 0% 15%; /* Slightly lighter than background for cards #262626 */
-  --card-foreground: 0 0% 98%; /* Same as foreground */
-  --border: 0 0% 20%; /* Dark border color */
-  --input: 0 0% 20%; /* Dark input color */
-  
+  --background: 0 0% 13%;
+  /* Dark gray, almost black #212121 */
+  --foreground: 0 0% 98%;
+  /* Off-white for text */
+  --muted: 0 0% 20%;
+  /* Slightly lighter gray for muted elements */
+  --muted-foreground: 0 0% 80%;
+  /* Light gray for muted text */
+  --popover: 0 0% 13%;
+  /* Same as background */
+  --popover-foreground: 0 0% 98%;
+  /* Same as foreground */
+  --card: 0 0% 15%;
+  /* Slightly lighter than background for cards #262626 */
+  --card-foreground: 0 0% 98%;
+  /* Same as foreground */
+  --border: 0 0% 20%;
+  /* Dark border color */
+  --input: 0 0% 20%;
+  /* Dark input color */
+
   /* Neon yellow-green as primary color from screenshot #CBFF00 */
   --primary: 73 100% 50%;
-  --primary-foreground: 0 0% 10%; /* Dark text on bright background */
-  
+  --primary-foreground: 0 0% 10%;
+  /* Dark text on bright background */
+
   /* Secondary color - dark gray with green tint */
   --secondary: 73 10% 20%;
   --secondary-foreground: 0 0% 98%;
-  
+
   /* Accent color - matching the neon yellow-green */
   --accent: 73 100% 50%;
   --accent-foreground: 0 0% 10%;
-  
+
   /* Alert red */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  
+
   /* Other accent colors */
   --success: 142 70% 45%;
   --warning: 38 92% 50%;
   --info: 196 80% 50%;
-  
+
   --ring: 73 100% 50%;
-  --radius: 1rem; /* More rounded corners like in the screenshot */
-  
+  --radius: 1rem;
+  /* More rounded corners like in the screenshot */
+
   /* Alert colors for Sick/Injured card */
-  --danger-bg: #9f1239;    /* rose-800 */
-  --danger-bg-0: #27272a;  /* zinc-800 - for "all clear" mode */
-  --danger-text: #fda4af;  /* rose-300 */
+  --danger-bg: #9f1239;
+  /* rose-800 */
+  --danger-bg-0: #27272a;
+  /* zinc-800 - for "all clear" mode */
+  --danger-text: #fda4af;
+  /* rose-300 */
 }
 
 /* Since we're always using dark mode by default, keep both consistent */
 .dark {
-  --background: 0 0% 13%; /* Dark gray, almost black #212121 */
-  --foreground: 0 0% 98%; /* Off-white for text */
-  --muted: 0 0% 20%; /* Slightly lighter gray for muted elements */
-  --muted-foreground: 0 0% 80%; /* Light gray for muted text */
-  --popover: 0 0% 13%; /* Same as background */
-  --popover-foreground: 0 0% 98%; /* Same as foreground */
-  --card: 0 0% 15%; /* Slightly lighter than background for cards #262626 */
-  --card-foreground: 0 0% 98%; /* Same as foreground */
-  --border: 0 0% 20%; /* Dark border color */
-  --input: 0 0% 20%; /* Dark input color */
-  
+  --background: 0 0% 13%;
+  /* Dark gray, almost black #212121 */
+  --foreground: 0 0% 98%;
+  /* Off-white for text */
+  --muted: 0 0% 20%;
+  /* Slightly lighter gray for muted elements */
+  --muted-foreground: 0 0% 80%;
+  /* Light gray for muted text */
+  --popover: 0 0% 13%;
+  /* Same as background */
+  --popover-foreground: 0 0% 98%;
+  /* Same as foreground */
+  --card: 0 0% 15%;
+  /* Slightly lighter than background for cards #262626 */
+  --card-foreground: 0 0% 98%;
+  /* Same as foreground */
+  --border: 0 0% 20%;
+  /* Dark border color */
+  --input: 0 0% 20%;
+  /* Dark input color */
+
   /* Neon yellow-green as primary color from screenshot #CBFF00 */
   --primary: 73 100% 50%;
-  --primary-foreground: 0 0% 10%; /* Dark text on bright background */
-  
+  --primary-foreground: 0 0% 10%;
+  /* Dark text on bright background */
+
   /* Secondary color - dark gray with green tint */
   --secondary: 73 10% 20%;
   --secondary-foreground: 0 0% 98%;
-  
+
   /* Accent color - matching the neon yellow-green */
   --accent: 73 100% 50%;
   --accent-foreground: 0 0% 10%;
-  
+
   /* Alert red */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  
+
   /* Other accent colors */
   --success: 142 70% 45%;
   --warning: 38 92% 50%;
   --info: 196 80% 50%;
-  
+
   --ring: 73 100% 50%;
-  --radius: 1rem; /* More rounded corners like in the screenshot */
+  --radius: 1rem;
+  /* More rounded corners like in the screenshot */
 }
 
 @layer base {
@@ -103,34 +140,39 @@
   body {
     @apply font-montserrat antialiased bg-background text-foreground tracking-tight;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-bold tracking-tight;
   }
-  
+
   h1 {
     @apply text-3xl md:text-4xl;
   }
-  
+
   h2 {
     @apply text-2xl md:text-3xl;
   }
-  
+
   /* Sport-themed gradient text */
   .gradient-text {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary;
   }
-  
+
   /* Dark gradient backgrounds with subtle variation */
   .gradient-bg {
     @apply bg-gradient-to-b from-black to-background;
   }
-  
+
   /* Neon gradient button matching screenshot */
   .gradient-btn {
     @apply bg-primary text-black font-semibold hover:brightness-110;
   }
-  
+
   /* Card with sports-themed highlight */
   .card-highlight {
     @apply border-l-4 border-primary bg-card rounded-lg shadow-md;
@@ -139,9 +181,7 @@
 
 /* Custom button styles matching the screenshot */
 .btn-athletic {
-  @apply rounded-2xl font-semibold transition-all duration-200
-         flex items-start justify-between p-5 text-black text-lg
-         bg-primary;
+  @apply rounded-2xl font-semibold transition-all duration-200 flex items-start justify-between p-5 text-black text-lg bg-primary;
 }
 
 /* Sport app icon style for navigation buttons */
@@ -150,10 +190,10 @@
 }
 
 /* Add custom hover behavior to all buttons using this class */
-.btn-athletic:hover, 
+.btn-athletic:hover,
 .btn-dark:hover,
 button:not([disabled]):hover {
-  background-color: rgb(33,33,34);
+  background-color: rgb(33, 33, 34);
   @apply text-primary;
 }
 
@@ -161,19 +201,16 @@ button:not([disabled]):hover {
 .btn-athletic:active,
 .btn-dark:active,
 button:not([disabled]):active {
-  background-color: rgb(25,25,26);
+  background-color: rgb(25, 25, 26);
   @apply text-primary opacity-95;
 }
 
 /* Dark button style for contrast */
 .btn-dark {
-  @apply rounded-2xl font-semibold transition-all duration-200
-         flex items-center justify-center gap-2 text-white text-lg
-         bg-background border border-gray-700;
+  @apply rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-white text-lg bg-background border border-gray-700;
 }
 
 /* Custom border width utility class */
 .border-3 {
   border-width: 3px;
 }
-

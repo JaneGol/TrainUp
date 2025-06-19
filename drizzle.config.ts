@@ -1,11 +1,11 @@
-import 'dotenv/config';             // читает DATABASE_URL из переменных окружения
+import 'dotenv/config';
 import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
-  schema: './server/schema.ts',     // здесь у тебя описаны таблицы
-  out: './migrations',              // куда складывать миграции
-  driver: 'pg',                     // драйвер Postgres
+  schema: './server/schema.ts',
+  out: './migrations',
+  dialect: 'postgresql',
   dbCredentials: {
-    connectionString: process.env.DATABASE_URL!,   // !! на Vercel задаётся в настройках
+    url: process.env.DATABASE_URL!,
   },
 });
