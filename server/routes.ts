@@ -1521,6 +1521,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json({ message: "Registered successfully" });
   });
 
+  // создаём сервер только один раз
   const httpServer = createServer(app);
   return httpServer;
 }
