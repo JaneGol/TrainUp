@@ -1,9 +1,10 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     try {
-      // Try to parse as JSON first
       const contentType = res.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
         const errorJson = await res.json();
@@ -13,20 +14,15 @@ async function throwIfResNotOk(res: Response) {
         (error as any).data = errorJson;
         throw error;
       } else {
-        // Fall back to text
         const text = (await res.text()) || res.statusText;
         const error = new Error(`${res.status}: ${text}`);
         (error as any).response = res;
         throw error;
       }
     } catch (e) {
-      if (e instanceof Error) {
-        // If we already created a custom error, just throw it
-        if ((e as any).response) {
-          throw e;
-        }
+      if (e instanceof Error && (e as any).response) {
+        throw e;
       }
-      // Otherwise create a generic error
       const error = new Error(`${res.status}: ${res.statusText}`);
       (error as any).response = res;
       throw error;
@@ -37,9 +33,13 @@ async function throwIfResNotOk(res: Response) {
 export async function apiRequest(
   method: string,
   url: string,
-  data?: unknown | undefined,
+  data?: unknown
 ): Promise<Response> {
-  const res = await fetch(url, {
+  const fullUrl = url.startsWith("/api")
+    ? `${API_URL}${url}`
+    : url;
+
+  const res = await fetch(fullUrl, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
@@ -51,58 +51,60 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
+
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    try {
-      const res = await fetch(queryKey[0] as string, {
-        credentials: "include",
-      });
+  ({ on401 }) =>
+    async ({ queryKey }) => {
+      const url = queryKey[0] as string;
+      const fullUrl = url.startsWith("/api")
+        ? `${API_URL}${url}`
+        : url;
 
-      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-        return null;
-      }
+      try {
+        const res = await fetch(fullUrl, {
+          credentials: "include",
+        });
 
-      await throwIfResNotOk(res);
-      return await res.json();
-    } catch (error) {
-      if (unauthorizedBehavior === "returnNull" && error instanceof Error && error.message.includes('401')) {
-        return null;
+        if (on401 === "returnNull" && res.status === 401) {
+          return null as any;
+        }
+
+        await throwIfResNotOk(res);
+        return await res.json();
+      } catch (error) {
+        if (on401 === "returnNull" && error instanceof Error && error.message.includes("401")) {
+          return null as any;
+        }
+        throw error;
       }
-      throw error;
-    }
-  };
+    };
 
 export const clearUserDataFromCache = () => {
-  // Clear all query cache
   queryClient.clear();
-  
-  // Clear any localStorage items that might contain user data
+
   try {
     Object.keys(localStorage).forEach(key => {
-      // Clear form data, cache, and any user-specific data
       if (
-        key.includes('form') || 
-        key.includes('user') || 
-        key.includes('diary') || 
-        key.includes('training') || 
-        key.includes('state') ||
-        key.includes('cache')
+        key.includes("form") ||
+        key.includes("user") ||
+        key.includes("diary") ||
+        key.includes("training") ||
+        key.includes("state") ||
+        key.includes("cache")
       ) {
         localStorage.removeItem(key);
       }
     });
-    
-    // Also clear sessionStorage items that might contain user data
+
     Object.keys(sessionStorage).forEach(key => {
       if (
-        key.includes('form') || 
-        key.includes('user') || 
-        key.includes('diary') || 
-        key.includes('training') || 
-        key.includes('state')
+        key.includes("form") ||
+        key.includes("user") ||
+        key.includes("diary") ||
+        key.includes("training") ||
+        key.includes("state")
       ) {
         sessionStorage.removeItem(key);
       }

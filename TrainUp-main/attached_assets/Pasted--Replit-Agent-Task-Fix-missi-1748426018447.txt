@@ -1,0 +1,106 @@
+# ------------------------------------------------------------------
+# Replit-Agent Task · Fix missing “today” sessions in coach views
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+# ------------------------------------------------------------------
+
+## GOAL
+Coach’s **Training Log** (`/api/training/week`) and **Weekly Training Load** (`/api/load/week`) must include today’s sessions immediately, regardless of the 50% threshold, and group dates in the coach’s local timezone.
+
+──────────────────────────────────────────────────────────────────
+1 ▸ SERVER: allow today’s incomplete sessions
+──────────────────────────────────────────────────────────────────
+### 1.1  `/api/training/week`  
+Edit the SQL to **remove** `AND is_complete = TRUE` for the **current date**:
+
+```sql
+SELECT id, session_date, type, session_load, participant_cnt
+FROM training_sessions
+WHERE team_id = :teamId
+  AND (
+        date_trunc('day', session_date AT TIME ZONE :tz) = current_date
+      OR is_complete = TRUE
+      )
+  AND date_trunc('week', session_date AT TIME ZONE :tz) = :weekStart::date
+ORDER BY session_date DESC;
+1.2 /api/load/week
+In the coach chart SQL, relax the filter for today:
+
+sql
+Copy
+Edit
+WITH days AS (
+  SELECT generate_series(
+    :weekStart::date,
+    :weekStart::date + 6, '1 day'
+  ) AS day
+)
+SELECT
+  d.day,
+  COALESCE(SUM(CASE WHEN type='Field' THEN session_load END),0) AS "Field",
+  COALESCE(SUM(CASE WHEN type='Gym'   THEN session_load END),0) AS "Gym",
+  COALESCE(SUM(CASE WHEN type='Match' THEN session_load END),0) AS "Match",
+  COALESCE(SUM(session_load),0)                              AS total
+FROM days d
+LEFT JOIN training_sessions t
+  ON date_trunc('day', t.session_date AT TIME ZONE :tz) = d.day
+ AND t.team_id    = :teamId
+ AND (
+       d.day = current_date
+    OR t.is_complete = TRUE
+  )
+GROUP BY d.day
+ORDER BY d.day;
+──────────────────────────────────────────────────────────────────
+2 ▸ PASS TIMEZONE HEADER
+──────────────────────────────────────────────────────────────────
+In your Axios setup (e.g. src/utils/api.ts):
+
+ts
+Copy
+Edit
+axios.interceptors.request.use(cfg => {
+  cfg.withCredentials = true;
+  cfg.headers['X-TZ']  = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return cfg;
+});
+──────────────────────────────────────────────────────────────────
+3 ▸ FRONT-END QUERY KEYS
+──────────────────────────────────────────────────────────────────
+Ensure coach hooks include teamId, weekStart, and tz so they refetch properly:
+
+diff
+Copy
+Edit
+- useQuery(['trainingWeek', teamId], fetchCoachLog)
++ useQuery(['trainingWeek', teamId, weekStart, tz], () =>
+    fetchCoachLog(teamId, weekStart, tz)
+  );
+
+- useQuery(['weekLoad', teamId], fetchCoachLoad)
++ useQuery(['weekLoad', teamId, weekStart, tz], () =>
+    fetchCoachLoad(teamId, weekStart, tz)
+  );
+──────────────────────────────────────────────────────────────────
+4 ▸ CACHE INVALIDATION
+──────────────────────────────────────────────────────────────────
+After any RPE submission or duration edit:
+
+ts
+Copy
+Edit
+onSuccess: () => {
+  queryClient.invalidateQueries(['trainingWeek', teamId, weekStart, tz]);
+  queryClient.invalidateQueries(['weekLoad',      teamId, weekStart, tz]);
+}
+──────────────────────────────────────────────────────────────────
+5 ▸ COMMIT MESSAGE
+──────────────────────────────────────────────────────────────────
+
+fix(coach-views): include today’s sessions regardless of threshold, group by local date, update query keys, invalidate cache
+
+End of agent task
+yaml
+Copy
+Edit
+
+---

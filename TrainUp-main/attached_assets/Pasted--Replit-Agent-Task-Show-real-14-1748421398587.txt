@@ -1,0 +1,90 @@
+# ---------------------------------------------------------------
+# Replit-Agent Task – Show real 14-day data in Fitness Progress
+# Repo: SportsMindTracker / FormTrack
+# ---------------------------------------------------------------
+
+## 1 ▸ SERVER – new helper that matches “working code pattern”
+### 1.1  server/database-storage.ts   (export function)
+```ts
+export async function getAthlete14DayLoad(db, athleteId, tz) {
+  return db.any(/*sql*/`
+    SELECT
+      to_char((session_date AT TIME ZONE $/tz/), 'YYYY-MM-DD') AS date,
+      SUM(CASE WHEN type='Field'  THEN session_load END) AS "Field",
+      SUM(CASE WHEN type='Gym'    THEN session_load END) AS "Gym",
+      SUM(CASE WHEN type='Match'  THEN session_load END) AS "Match"
+    FROM training_sessions
+    WHERE athlete_id=$/athleteId/
+      AND session_date >= (current_date - INTERVAL '13 days')
+    GROUP BY 1
+    ORDER BY 1;
+  `, { athleteId, tz });
+}
+(Uses existing db.any pattern, no trigger table joins.)
+
+1.2 route GET /api/athlete/weekly-load
+ts
+Copy
+Edit
+router.get('/weekly-load', authAthlete, async (req,res)=>{
+  const rows = await getAthlete14DayLoad(db, req.user.id, req.headers['x-tz']);
+  res.json(rows);
+});
+2 ▸ FRONT-END – hook & auto-refresh login
+2.1 src/hooks/use14DayLoad.ts
+ts
+Copy
+Edit
+export const use14DayLoad = (athleteId:string)=> {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return useQuery(['14day', athleteId], () =>
+    axios.get('/api/athlete/weekly-load', { headers:{'X-TZ':tz} })
+         .then(r=>r.data.map(normaliseKeys)));
+};
+2.2 If fetch returns 401 → try silent re-login
+ts
+Copy
+Edit
+axios.interceptors.response.use(undefined, async err=>{
+  if (err.response?.status === 401) {
+    await auth.refresh();     // existing silent refresh util
+    return axios(err.config); // retry once
+  }
+  throw err;
+});
+3 ▸ Chart component
+Replace data prop:
+
+diff
+Copy
+Edit
+- const {data=[]} = useWeekLoad(...)
++ const {data=[]} = use14DayLoad(auth.id)
+No other chart code changes (stacked bars, ACWR zone already merged).
+
+4 ▸ Cache invalidation after RPE submit
+Already in RpeForm:
+
+ts
+Copy
+Edit
+queryClient.invalidateQueries(['14day', auth.id]);
+Add same call in diary submit hook.
+
+5 ▸ Commit message
+fix(fitness-progress): pull 14-day load with working SQL helper; auto-refresh JWT on 401
+
+End of task
+pgsql
+Copy
+Edit
+
+---
+
+**After this runs**
+
+* The `/weekly-load` endpoint returns your Field (606 AU) & Gym (278 AU) rows.  
+* The stacked bars render in the Fitness Progress chart.  
+* If your JWT slips, the interceptor silently refreshes it, so the chart never blanks.
+
+Once you confirm the bars show up, we can tidy any other screens—but this will solve the “no data” issue first.

@@ -25,39 +25,38 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { MorningDiary } from "@shared/schema";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function SmartDoctorPage() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
 
-  // Fetch latest morning diary
   const { data: latestDiary, isLoading } = useQuery<MorningDiary>({
     queryKey: ["/api/morning-diary/latest"],
     queryFn: async () => {
-      const res = await fetch("/api/morning-diary/latest");
+      const res = await fetch(`${API_URL}/api/morning-diary/latest`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch latest diary");
       return await res.json();
     }
   });
 
-  // Fetch health reports
   const { data: healthReports = [] } = useQuery({
     queryKey: ["/api/health-reports"],
     queryFn: async () => {
-      const res = await fetch("/api/health-reports");
+      const res = await fetch(`${API_URL}/api/health-reports`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch health reports");
       return await res.json();
     }
   });
-  
-  // Fetch AI health recommendations
+
   const { data: aiRecommendations, isLoading: isLoadingRecommendations } = useQuery({
     queryKey: ["/api/health-recommendations"],
     queryFn: async () => {
-      const res = await fetch("/api/health-recommendations");
+      const res = await fetch(`${API_URL}/api/health-recommendations`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch AI recommendations");
       return await res.json();
     },
-    enabled: !!user // Only fetch if user is logged in
+    enabled: !!user
   });
 
   // Check if athlete submitted a morning diary today
@@ -72,36 +71,36 @@ export default function SmartDoctorPage() {
     const symptoms = Array.isArray(latestDiary.symptoms) ? latestDiary.symptoms : [];
     const hasInjury = latestDiary.hasInjury;
     const painLevel = latestDiary.painLevel || 0;
-    
+
     // Check for critical health symptoms
     const hasFever = symptoms.some((symptom: string) => {
       const symptomLower = symptom.toLowerCase();
-      return symptomLower.includes('fever') || 
-             symptomLower.includes('temperature') ||
-             symptomLower.includes('high_temp') ||
-             symptomLower.includes('temp') ||
-             symptomLower.includes('hot') ||
-             symptomLower.includes('burning');
+      return symptomLower.includes('fever') ||
+        symptomLower.includes('temperature') ||
+        symptomLower.includes('high_temp') ||
+        symptomLower.includes('temp') ||
+        symptomLower.includes('hot') ||
+        symptomLower.includes('burning');
     });
-    
+
     const hasSickness = symptoms.some((symptom: string) => {
       const symptomLower = symptom.toLowerCase();
-      return symptomLower.includes('sick') || 
-             symptomLower.includes('ill') ||
-             symptomLower.includes('nausea') ||
-             symptomLower.includes('vomit') ||
-             symptomLower.includes('dizzy') ||
-             symptomLower.includes('weak');
+      return symptomLower.includes('sick') ||
+        symptomLower.includes('ill') ||
+        symptomLower.includes('nausea') ||
+        symptomLower.includes('vomit') ||
+        symptomLower.includes('dizzy') ||
+        symptomLower.includes('weak');
     });
-    
+
     const hasRespiratoryIssues = symptoms.some((symptom: string) => {
       const symptomLower = symptom.toLowerCase();
-      return symptomLower.includes('cough') || 
-             symptomLower.includes('throat') ||
-             symptomLower.includes('breathing') ||
-             symptomLower.includes('chest') ||
-             symptomLower.includes('runny_nose') ||
-             symptomLower.includes('congestion');
+      return symptomLower.includes('cough') ||
+        symptomLower.includes('throat') ||
+        symptomLower.includes('breathing') ||
+        symptomLower.includes('chest') ||
+        symptomLower.includes('runny_nose') ||
+        symptomLower.includes('congestion');
     });
 
     let status = "Normal";
@@ -224,9 +223,9 @@ export default function SmartDoctorPage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Simple header with back button */}
       <header className="border-b border-border p-4 flex items-center shadow-sm">
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => navigate("/athlete")}
           className="mr-2"
         >
@@ -331,8 +330,8 @@ export default function SmartDoctorPage() {
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {assessment.symptoms.map((symptom: string, index: number) => (
-                      <Badge 
-                        key={index} 
+                      <Badge
+                        key={index}
                         variant={symptom.toLowerCase().includes('fever') || symptom.toLowerCase().includes('temperature') ? "destructive" : "secondary"}
                         className="text-xs"
                       >
@@ -493,7 +492,7 @@ export default function SmartDoctorPage() {
                   <div className="bg-black/30 p-4 rounded-md border border-primary/20">
                     <p className="text-sm">{aiRecommendations.summary}</p>
                   </div>
-                  
+
                   {/* Key Insights */}
                   {aiRecommendations.insights.length > 0 && (
                     <div className="space-y-2">
@@ -511,7 +510,7 @@ export default function SmartDoctorPage() {
                       </ul>
                     </div>
                   )}
-                  
+
                   {/* Recommendations */}
                   {aiRecommendations.recommendations.length > 0 && (
                     <div className="space-y-2">
@@ -529,7 +528,7 @@ export default function SmartDoctorPage() {
                       </ul>
                     </div>
                   )}
-                  
+
                   {/* Risk Areas */}
                   {aiRecommendations.riskAreas.length > 0 && (
                     <div className="space-y-2">
@@ -546,7 +545,7 @@ export default function SmartDoctorPage() {
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Improvement Areas */}
                   {aiRecommendations.improvementAreas.length > 0 && (
                     <div className="space-y-2">
@@ -572,8 +571,8 @@ export default function SmartDoctorPage() {
                 </CardFooter>
               </Card>
             )}
-            
-            <Button 
+
+            <Button
               className="w-full mt-4"
               onClick={() => navigate("/athlete/morning-diary")}
             >
@@ -581,7 +580,7 @@ export default function SmartDoctorPage() {
             </Button>
           </div>
         )}
-        
+
         {/* Loading state for AI recommendations */}
         {isLoadingRecommendations && !isLoading && latestDiary && (
           <div className="mt-6 p-6 bg-black/20 rounded-lg border border-primary/20 flex items-center justify-center">

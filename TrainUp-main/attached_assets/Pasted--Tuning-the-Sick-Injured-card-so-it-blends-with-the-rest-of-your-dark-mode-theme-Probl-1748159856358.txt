@@ -1,0 +1,94 @@
+### Tuning the **“Sick / Injured”** card so it blends with the rest of your dark-mode theme
+
+| Problem with the current red                                                                                                            | What we’ll switch to                                                          | Hex / Tailwind                    | Why it’s better                                                              |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------- |
+| Bright, fully-saturated red (`#b91c1c`) feels louder than every other accent on the screen, and it clashes with the lime buttons below. | A **desaturated deep-rose** that still reads as “alert” but doesn’t dominate. | `#9f1239`  (Tailwind `rose-800`)  | Keeps the danger cue, but sits comfortably next to yellows, limes and greys. |
+| Text contrast on pure red ≈ 3.6 : 1 → borderline for accessibility.                                                                     | Rose-800 + white gives 5.3 : 1                                                | Passes WCAG AA for large text.    |                                                                              |
+| Card background is flat.                                                                                                                | Add a subtle **inner shadow** so it matches the gauge cards’ depth.           | `shadow-inner shadow-rose-900/40` | Visual consistency with other cards.                                         |
+
+---
+
+#### New colour tokens
+
+```css
+:root {
+  /* alerts */
+  --danger-bg   : #9f1239;  /* rose-800 */
+  --danger-bg-0 : #27272a;  /* zinc-800 – for “all clear” mode */
+  --danger-text : #fda4af;  /* rose-300 */
+}
+```
+
+---
+
+#### JSX tweak (small change only)
+
+```tsx
+const sickActive   = m.data.sick > 0;
+const sickBg       = sickActive ? "bg-[var(--danger-bg)]"   : "bg-[var(--danger-bg-0)]";
+const sickText     = sickActive ? "text-[var(--danger-text)]" : "text-green-300";
+const sickSubtitle = sickActive ? "Tap to view" : "All clear";
+
+<Card className={`${sickBg} shadow-inner shadow-rose-900/40`}
+      onClick={() => nav('/athlete-status?filter=sick')}>
+  ...
+  <p className={`text-3xl font-extrabold ${sickText} mt-1`}>
+    {m.data.sick}
+  </p>
+  <p className="text-xs">{sickSubtitle}</p>
+</Card>
+```
+
+*(Gauge cards keep their existing dark-grey `bg-zinc-800` so the rose card stays visually distinct yet harmonious.)*
+
+---
+
+### Want the Replit agent to apply it?
+
+Paste the task list below into **Ask AI** and press **Send**.
+
+````txt
+# 🚀  Replit Agent Task – Re-tone Sick/Injured card
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+
+## 1. Add colour tokens
+- **File:** `src/index.css` or global tailwind file  
+  ```css
+  :root {
+    --danger-bg   : #9f1239;  /* rose-800 */
+    --danger-bg-0 : #27272a;  /* zinc-800 */
+    --danger-text : #fda4af;  /* rose-300 */
+  }
+````
+
+## 2. Update Sick/Injured card styling
+
+* **File:** `src/pages/coach/MainMetrics.tsx`
+
+  1. Replace the existing style logic with:
+
+     ```tsx
+     const sickActive   = m.data.sick > 0;
+     const sickBg       = sickActive ? "bg-[var(--danger-bg)]"   : "bg-[var(--danger-bg-0)]";
+     const sickText     = sickActive ? "text-[var(--danger-text)]" : "text-green-300";
+     const sickSubtitle = sickActive ? "Tap to view" : "All clear";
+     ```
+  2. Swap `className="bg-red-600/80"` for
+
+     ```tsx
+     className={`${sickBg} shadow-inner shadow-rose-900/40`}
+     ```
+  3. Swap `text-red-100` for `${sickText}` in the number line.
+
+## 3. Optional: remove old `bg-red-600/80` utility class reference if no longer used.
+
+## 4. Commit message
+
+> chore(ui): retone Sick/Injured card to rose-800 for cohesive dark theme
+
+# End of agent task
+
+```
+
+After the agent runs, reload your preview—the new deep-rose card should feel at home with the rest of your palette, while still shouting when someone’s hurt or ill.
+```

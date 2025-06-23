@@ -1,0 +1,105 @@
+# ------------------------------------------------------------------
+# Replit-Agent Task · Align Weekly totals & ACWR, set scale 0–2.5, show “Week NN”
+# Repo: https://replit.com/@e89030922661/FormTrack
+# ------------------------------------------------------------------
+
+PROBLEMS
+========
+1. **Week-22 total mismatch**  
+   • `/api/coach/weekly-total` sums `session_load` from `training_sessions`.  
+   • Ten-week endpoint sums via `session_metrics_from_entries` view.  
+   If a session’s `load` column is NULL while the view calculates it on the fly, numbers diverge (7787 AU vs lower).
+
+2. **ACWR axis too short** – currently tops out at 2.0.
+
+3. **XAxis uses date strings** – want labels `Week 22`, `Week 21`, …
+
+FIX
+===
+
+## 0 · Make both queries use the same live view
+### storage.ts  ➜  getCoachTenWeek()
+```diff
+- FROM session_metrics_from_entries
+- GROUP BY week_start
++  -- use identical aggregation for ALL weekly endpoints
++FROM session_metrics_from_entries
++GROUP BY week_start
+(Already done; ensure Weekly-Totals endpoint below identical.)
+
+storage.ts ➜ getCoachWeeklyTotals()
+diff
+Copy
+Edit
+- FROM training_sessions ts ...
+- SUM(ts.load) AS weekly_total
++FROM session_metrics_from_entries
++GROUP BY week_start
+Now weekly sum = 7787 AU in both endpoints.
+
+1 · ACWR calculation uses unified weekly_total
+ts
+Copy
+Edit
+const weeks = await getCoachTenWeek(teamId);
+weeks.forEach((w,i,arr)=>{
+  const chronic = i>=3
+    ? (arr[i-1].weekly_load + arr[i-2].weekly_load + arr[i-3].weekly_load)/3
+    : null;
+  w.acwr = chronic ? +(w.weekly_load / chronic).toFixed(2) : null;
+});
+2 · Front-end chart tweaks
+CombinedLoadAcwrChart.tsx
+diff
+Copy
+Edit
+<YAxis yAxisId="acwr" orientation="right"
+-       domain={[0, 2]}
++       domain={[0, 2.5]}
+        .../>
+
+<XAxis dataKey="weekStart"
+-       tickFormatter={d=>d.slice(5)} />
++       tickFormatter={(iso)=>'Week '+dateFns.getISOWeek(new Date(iso))} />
+(Import date-fns if not already.)
+
+Tooltip label (optional)
+jsx
+Copy
+Edit
+labelFormatter={(iso)=>'Week '+dateFns.getISOWeek(new Date(iso))}
+3 · Verify
+Call /api/coach/weekly-total and /api/coach/tenweek-load → week 22 both report 7787 AU.
+
+Chart now shows bars week-20 … week-22.
+
+ACWR line fits 0–2.5 range.
+
+4 · Commit message
+fix(load-acwr): unify weekly sum via session_metrics view; ACWR Y-axis 0-2.5; X-labels “Week NN”
+
+------------------------------------------------------------------
+markdown
+Copy
+Edit
+
+**Outcome**
+
+* Week-22 and all other weeks report identical totals in every chart/table.  
+* ACWR line can rise to 2.5 without clipping.  
+* X-axis labels are concise: **Week 22**, **Week 21**, …  
+
+No other modules or UI elements are affected.
+
+
+
+
+
+
+
+
+Tools
+
+
+
+ChatGPT can make mistake

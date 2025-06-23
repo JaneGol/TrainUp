@@ -1,0 +1,92 @@
+Below is an updated **Replit Agent Task List** that dials the danger cards down one more notch:
+
+* **Even lighter / more transparent red fill**
+* **Heading** size ↓ 1 step, **normal** weight
+* **Number** size ↓ 1 step
+* **Tap to view / All clear** size ↓ 1 step, **normal** weight
+
+Copy everything in the grey block into **Ask AI** in your *SportsMindTracker* Repl and hit **Send**.
+
+---
+
+````txt
+# 🚀  Replit Agent Task – Further soften & shrink danger cards
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+
+## 1. Adjust colour opacity
+- **File:** src/index.css  (or global Tailwind sheet)
+
+```css
+:root {
+  /* darker red from last task, now at 35 % opacity */
+  --danger-bg-active : #6b0f14;
+  --danger-opac      : 0.35;          /* was 0.55 */
+}
+````
+
+## 2. Update helper
+
+* **File:** src/pages/coach/MainMetrics.tsx
+
+```tsx
+const dangerClasses = (count:number) => ({
+  bg : count > 0
+        ? "bg-[color:var(--danger-bg-active)]/[var(--danger-opac)]"
+        : "bg-[color:var(--danger-bg-zero)]",
+  icon : count > 0 ? "text-[color:var(--danger-text)]" : "text-zinc-400",
+  num  : count > 0 ? "text-[color:var(--danger-text)]" : "text-zinc-300",
+  subtitle : count > 0 ? "Tap to view" : "All clear"
+});
+```
+
+## 3. Typography tweaks (both High-Risk & Sick/Injured)
+
+Replace the inner markup of each card with:
+
+```tsx
+<Card className={`${dc.bg} flex flex-col items-center justify-center h-full`}>
+  <IconComponent size={16} className={dc.icon} />
+
+  <!-- heading -->
+  <p className="text-[10px] uppercase text-zinc-200 mt-0.5">
+    {{LABEL}}
+  </p>
+
+  <!-- number -->
+  <p className={`text-xl font-medium ${dc.num} my-0.5`}>
+    {count}
+  </p>
+
+  <!-- subtitle -->
+  <p className="text-[10px] text-zinc-400">
+    {dc.subtitle}
+  </p>
+</Card>
+```
+
+* Use `IconComponent` = `AlertTriangle` for High-Risk, `HeartPulse` for Sick/Injured.
+* Replace `{{LABEL}}` accordingly (“High Risk” or “Sick / Injured”).
+* `text-[10px]` ≈ Tailwind’s tiny arbitrary value; `text-xl` for the count.
+
+## 4. Smart card
+
+No change (still border-less, lime gradient).
+
+## 5. Manual QA
+
+1. Background reds now appear significantly lighter/softer.
+2. Headings, counts, and subtitles are all one size smaller and non-bold (except count stays medium for legibility).
+3. Alignment and navigation remain intact.
+
+## 6. Commit message
+
+> style(metrics): lighter transparency & smaller fonts on High-Risk / Sick-Injured cards
+
+# End of agent task
+
+```
+
+---
+
+*After the agent commits, reload the dashboard—you’ll see subtler red cards with smaller, lighter text that aligns with the AI Recommendations button.*
+```

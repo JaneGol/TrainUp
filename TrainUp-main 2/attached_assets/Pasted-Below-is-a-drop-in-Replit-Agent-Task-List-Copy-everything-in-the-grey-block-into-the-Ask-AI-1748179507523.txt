@@ -1,0 +1,116 @@
+Below is a **drop-in “Replit Agent Task List.”**
+Copy everything in the grey block into the **Ask AI** panel inside your *SportsMindTracker* Repl and hit **Send**.
+The agent will:
+
+* Give **High Risk** and **Sick / Injured** identical styling logic
+* Make both transparent-grey when the count is **0**
+* Keep the same red when the count is **≥ 1** (no extra brightness for higher numbers)
+* Normalise icon size, heading size, number alignment, and “Tap to view” position
+* Remove the thin border / ring around the **Smart** card—everything else stays the same
+
+---
+
+````txt
+# 🚀  Replit Agent Task – Unified Key-Metrics button styling
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+
+## 1. Find the component
+Edit **`src/pages/coach/MainMetrics.tsx`** – this is where the three cards are rendered.
+
+## 2. Shared colour tokens (global CSS)
+- **File:** `src/index.css` (or global Tailwind file)
+  ```css
+  :root {
+    --danger-bg   : #86181c;  /* same red used by High Risk */
+    --danger-bg-0 : #3f3f46;  /* zinc-700 for “all clear” transparent look */
+    --danger-text : #fca5a5;  /* rose-300 for numbers / icon */
+  }
+````
+
+## 3. Utility classes for the two danger cards
+
+Add this helper **above** the component (or in a small util file):
+
+```tsx
+const dangerClasses = (count: number) => ({
+  bg : count > 0 ? "bg-[var(--danger-bg)]"   : "bg-[var(--danger-bg-0)]",
+  icon : count > 0 ? "text-[var(--danger-text)]" : "text-zinc-400",
+  num  : count > 0 ? "text-[var(--danger-text)]" : "text-zinc-200",
+  subtitle : count > 0 ? "Tap to view" : "All clear"
+});
+```
+
+## 4. Refactor **High Risk** card
+
+```tsx
+const hr = dangerClasses(m.data.highRisk);
+
+<Card className={`${hr.bg} flex flex-col items-center justify-center h-full`}
+      onClick={() => nav('/athlete-status?filter=highRisk')}>
+  <AlertTriangle size={20} className={hr.icon} />
+  <p className="text-xs font-medium uppercase text-zinc-200 mt-1">High Risk</p>
+
+  <p className={`text-3xl font-extrabold ${hr.num} my-1`}>
+    {m.data.highRisk}
+  </p>
+
+  <p className="text-xs">{hr.subtitle}</p>
+</Card>
+```
+
+## 5. Refactor **Sick / Injured** card (identical structure)
+
+```tsx
+const si = dangerClasses(m.data.sick);
+
+<Card className={`${si.bg} flex flex-col items-center justify-center h-full`}
+      onClick={() => nav('/athlete-status?filter=sick')}>
+  <HeartPulse size={20} className={si.icon} />
+  <p className="text-xs font-medium uppercase text-zinc-200 mt-1">
+    Sick&nbsp;/&nbsp;Injured
+  </p>
+
+  <p className={`text-3xl font-extrabold ${si.num} my-1`}>
+    {m.data.sick}
+  </p>
+
+  <p className="text-xs">{si.subtitle}</p>
+</Card>
+```
+
+### Notes
+
+* Icons use **size = 20** so both are identical.
+* Headings are the same `.text-xs font-medium uppercase`.
+* Number sits dead-centre due to `flex-col items-center justify-center`.
+
+## 6. Smart card – remove border / ring
+
+Locate the Smart (AI Recommendations) card and delete any class like
+`ring-1`, `border`, or `outline`, e.g.:
+
+```diff
+- <Card className="bg-lime-500/10 ring-1 ring-lime-400/40 h-full">
++ <Card className="bg-lime-500/10 h-full">
+```
+
+*No other changes to content, gradient, or layout.*
+
+## 7. Manual QA (agent does automatically)
+
+1. **Value > 1** → both danger cards show same red background, pale-red icon & number.
+2. **Value = 0** → both cards become zinc-700 background, grey icon & number, subtitle “All clear”.
+3. Icons, headings, numbers, and subtitle positions match pixel-for-pixel.
+4. Smart card has no border but keeps its lime gradient.
+5. Tap behaviour remains unchanged.
+
+## 8. Commit message
+
+> style(metrics): unify danger card colours, grey out when 0, remove Smart card border
+
+# End of agent task
+
+```
+
+---
+```

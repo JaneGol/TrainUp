@@ -5,44 +5,42 @@ import { ChevronLeft, Loader2, CheckCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import MultiStepMorningDiaryForm from "@/components/forms/multi-step-morning-diary-form"; 
+import MultiStepMorningDiaryForm from "@/components/forms/multi-step-morning-diary-form";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function MorningDiaryPage() {
   const [, navigate] = useLocation();
   const [submitting, setSubmitting] = useState(false);
   const queryClient = useQueryClient();
-  
-  // Fetch latest diary to check if one was already submitted today
+
   const { data: latestDiary, isLoading: diaryLoading } = useQuery({
     queryKey: ["/api/morning-diary/latest"],
     queryFn: async () => {
-      const res = await fetch("/api/morning-diary/latest");
+      const res = await fetch(`${API_URL}/api/morning-diary/latest`, { credentials: "include" });
       if (!res.ok) return null;
       return await res.json();
     }
   });
-  
-  // Mutation to delete the latest diary entry
+
   const deleteDiaryMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/morning-diary/latest", {
+      const response = await fetch(`${API_URL}/api/morning-diary/latest`, {
         method: "DELETE",
+        credentials: "include"
       });
-      
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to delete diary entry");
       }
-      
       return await response.json();
     },
     onSuccess: () => {
-      // Invalidate queries after successful deletion
       queryClient.invalidateQueries({ queryKey: ["/api/morning-diary/latest"] });
       toast({
         title: "Entry cleared",
         description: "Your diary entry has been cleared. You can now fill out a new one.",
-        variant: "default",
+        variant: "default"
       });
       setSubmitting(true);
     },
@@ -50,16 +48,14 @@ export default function MorningDiaryPage() {
       toast({
         title: "Failed to clear entry",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   });
-  
-  // Check if user has already completed diary today
+
   const today = new Date().toISOString().split('T')[0];
   const hasCompletedToday = latestDiary?.date?.split('T')[0] === today;
-  
-  // If loading, show loading state
+
   if (diaryLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -67,25 +63,19 @@ export default function MorningDiaryPage() {
       </div>
     );
   }
-  
-  // If already completed today, show confirmation
+
   if (hasCompletedToday && !submitting) {
     return (
       <div className="min-h-screen bg-black flex flex-col">
         <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate("/athlete")}
-            className="mr-2"
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate("/athlete")} className="mr-2">
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-xl font-bold text-white flex-1 text-center pr-8">
             Morning Self-Control Diary
           </h1>
         </header>
-        
+
         <main className="flex-1 p-4 flex flex-col items-center justify-center">
           <Card className="w-full max-w-md bg-black border border-gray-800">
             <CardHeader>
@@ -106,18 +96,11 @@ export default function MorningDiaryPage() {
             </CardContent>
             <CardFooter className="flex flex-col gap-3">
               <div className="flex justify-between w-full">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/athlete")}
-                >
-                  Back to Home
-                </Button>
-                <Button onClick={() => navigate("/athlete/smart-doctor")}>
-                  View Recommendations
-                </Button>
+                <Button variant="outline" onClick={() => navigate("/athlete")}>Back to Home</Button>
+                <Button onClick={() => navigate("/athlete/smart-doctor")}>View Recommendations</Button>
               </div>
               <Button 
-                variant="ghost" 
+                variant="ghost"
                 className="w-full flex items-center justify-center text-gray-400 hover:text-white border border-gray-800"
                 onClick={() => deleteDiaryMutation.mutate()}
                 disabled={deleteDiaryMutation.isPending}
@@ -140,24 +123,18 @@ export default function MorningDiaryPage() {
       </div>
     );
   }
-  
-  // Show the new multi-step form
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
       <header className="bg-[rgb(27,29,34)] border-b border-gray-800 p-4 flex items-center shadow-sm">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => navigate("/athlete")}
-          className="mr-2"
-        >
+        <Button variant="ghost" size="icon" onClick={() => navigate("/athlete")} className="mr-2">
           <ChevronLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-xl font-bold text-white flex-1 text-center pr-8">
           Morning Self-Control Diary
         </h1>
       </header>
-      
+
       <main className="flex-1 p-4">
         <Card className="w-full">
           <CardContent className="p-0">

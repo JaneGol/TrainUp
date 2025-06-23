@@ -24,7 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 export default function AthleteHomePage() {
   const { user, logoutMutation } = useAuth();
   const [, navigate] = useLocation();
-  
+
   // Handle logout click
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
@@ -87,7 +87,7 @@ export default function AthleteHomePage() {
         <p className="mt-1 text-sm font-medium opacity-90">
           {hasCompletedDiaryToday ? 'Ready for today\'s training!' : 'Complete your daily check-in'}
         </p>
-        
+
         {/* Today's wellness status */}
         {hasCompletedDiaryToday && latestDiary?.readinessScore && (
           <div className="mt-4">
@@ -117,11 +117,10 @@ export default function AthleteHomePage() {
           {/* Self-Control Diary Button - Using gradient */}
           <Button
             onClick={() => navigate("/athlete/morning-diary")}
-            className={`btn-athletic h-24 ${
-              hasCompletedDiaryToday
+            className={`btn-athletic h-24 ${hasCompletedDiaryToday
                 ? "bg-success text-white"
                 : "bg-primary text-black"
-            }`}
+              }`}
           >
             {diaryLoading ? (
               <Loader2 className="h-6 w-6 animate-spin text-white" />
@@ -150,11 +149,10 @@ export default function AthleteHomePage() {
           {/* RPE Form Button */}
           <Button
             onClick={() => navigate("/athlete/training-entry")}
-            className={`btn-athletic h-24 ${
-              hasCompletedRpeToday
+            className={`btn-athletic h-24 ${hasCompletedRpeToday
                 ? "bg-success text-white"
                 : "bg-gray-600 text-primary hover:text-primary"
-            }`}
+              }`}
           >
             {rpeLoading ? (
               <Loader2 className="h-6 w-6 animate-spin text-white" />
@@ -222,10 +220,10 @@ export default function AthleteHomePage() {
           </Button>
         </div>
       </main>
-      
+
       {/* Profile and Logout buttons */}
       <div className="bg-zinc-900 py-3 mt-4 flex justify-center space-x-4">
-        <Button 
+        <Button
           onClick={() => navigate("/profile")}
           variant="ghost"
           className="flex items-center text-lime-300 hover:text-lime-400 font-semibold gap-2"
@@ -233,8 +231,8 @@ export default function AthleteHomePage() {
           <User className="h-5 w-5" />
           <span>Profile</span>
         </Button>
-        
-        <Button 
+
+        <Button
           onClick={handleLogout}
           variant="ghost"
           className="flex items-center text-lime-300 hover:text-lime-400 font-semibold gap-2"

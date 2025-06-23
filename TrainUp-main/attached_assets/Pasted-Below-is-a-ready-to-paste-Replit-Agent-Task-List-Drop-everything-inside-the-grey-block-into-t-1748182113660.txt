@@ -1,0 +1,138 @@
+Below is a **ready-to-paste “Replit Agent Task List.”**
+Drop everything inside the grey block into the **Ask AI** side-panel of your *SportsMindTracker* Repl and press **Send**.
+The agent will **delete the “Athlete Status Overview” and “High Risk Factors” cards** and replace them with a single, compact **“Alerts at a Glance”** card (Option 2).
+
+---
+
+````txt
+# 🚀  Replit Agent Task – Replace two cards with “Alerts at a Glance”
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+
+## 0. Goal
+Show coaches **only** the athletes who need attention today:
+• Injury • Sickness symptom • ACWR > 1.30  
+If no alerts, card reads “No alerts today 🎉”.
+
+## 1. Data hook
+### 1.1  Create `src/hooks/useAlerts.ts`
+```tsx
+import { useQuery } from "@tanstack/react-query";
+import api from "@/utils/api";
+import { format } from "date-fns";
+
+export interface AlertRow {
+  athleteId : string;
+  name      : string;
+  type      : "injury" | "sick" | "acwr";
+  note      : string;     // e.g. "Knee pain", "Runny nose", "ACWR 1.42"
+}
+
+export const useAlerts = (teamId:string) =>
+  useQuery<AlertRow[]>(
+    ["alertsToday", teamId, format(new Date(),"yyyy-MM-dd")],
+    () => api.get(`/coach/${teamId}/alerts?date=today`).then(r=>r.data)
+  );
+````
+
+### 1.2  Back-end endpoint (pseudo-SQL for reference)
+
+```
+SELECT a.id      AS "athleteId",
+       a.name    AS "name",
+       CASE
+         WHEN de.injury_note IS NOT NULL OR de.pain_intensity>0 THEN 'injury'
+         WHEN de.symptoms NOT IN ('None','')                   THEN 'sick'
+         WHEN ac.acwr > 1.3                                    THEN 'acwr'
+       END                AS "type",
+       COALESCE(de.injury_note, de.symptoms, 'ACWR '||ROUND(ac.acwr,2)) AS "note"
+FROM athletes a
+LEFT JOIN diary_entries de ON de.athlete_id=a.id AND de.date=:today
+LEFT JOIN acwr_view ac     ON ac.athlete_id=a.id AND ac.date=:today
+WHERE team_id=:teamId
+  AND (
+        de.injury_note IS NOT NULL OR de.pain_intensity>0 OR
+        de.symptoms NOT IN ('None','') OR
+        ac.acwr > 1.3
+      );
+```
+
+*(add RLS or Supabase policy as needed)*
+
+## 2. Alerts card component
+
+### 2.1  `src/components/AlertsCard.tsx`
+
+```tsx
+import { AlertTriangle, HeartPulse, Activity } from "lucide-react";
+import Card from "@/components/Card";
+import { useAlerts } from "@/hooks/useAlerts";
+
+const iconMap = {
+  injury : <Activity   size={16} className="text-rose-400" />,
+  sick   : <HeartPulse size={16} className="text-rose-400" />,
+  acwr   : <AlertTriangle size={16} className="text-yellow-300" />,
+};
+
+export default function AlertsCard({teamId}:{teamId:string}) {
+  const { data: alerts=[], isLoading } = useAlerts(teamId);
+
+  return (
+    <Card className="bg-zinc-800/90 w-full">
+      <h2 className="text-lg font-semibold mb-2">Alerts at a Glance</h2>
+
+      {isLoading && <p className="text-sm text-zinc-400">Loading…</p>}
+
+      {!isLoading && alerts.length===0 && (
+        <p className="text-sm text-green-400">No alerts today 🎉</p>
+      )}
+
+      <ul className="space-y-1">
+        {alerts.map(a=>(
+          <li key={a.athleteId} className="flex items-center gap-2 text-sm">
+            {iconMap[a.type]}
+            <span className="font-medium">{a.name}</span>
+            <span className="text-zinc-400">— {a.note}</span>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={()=>navigate('/athlete-status?filter=alerts')}
+        className="mt-4 w-full rounded-lg bg-zinc-700/60 py-2 text-sm">
+        View Details
+      </button>
+    </Card>
+  );
+}
+```
+
+## 3. Remove old cards & mount new one
+
+* **File:** `src/pages/coach/Dashboard.tsx`
+
+  1. Delete imports & JSX for **`AthleteStatusOverview`** and **`HighRiskFactors`**.
+  2. Import and insert `<AlertsCard teamId={user.teamId} />` where the two cards used to sit.
+
+## 4. Styling
+
+`Card` already provides padding & rounded corners; new list inherits app fonts.
+
+## 5. Manual QA
+
+1. Dashboard now shows a single **Alerts at a Glance** card.
+2. If test data contains injuries / sickness / ACWR>1.3, they appear with correct icons.
+3. If none, shows green “No alerts today 🎉”.
+4. “View Details” button navigates to athlete-status filtered view and auto-highlights relevant athletes.
+
+## 6. Commit message
+
+> feat(dashboard): replace status & risk cards with unified “Alerts at a Glance”
+
+# End of agent task
+
+```
+
+---
+
+**Result:** your coach’s main menu will now display a concise, actionable list of only the athletes who truly need attention each day—no more scanning long tables to find the red flags.
+```

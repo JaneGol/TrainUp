@@ -1,0 +1,65 @@
+# ------------------------------------------------------------------
+# Replit-Agent Task · Unify coach & athlete data sources
+# Repo: https://replit.com/@e89030922661/FormTrack
+# ------------------------------------------------------------------
+
+BACKGROUND
+==========  
+• Athlete UI stores authentic loads in **training_entries** (one row per athlete).  
+• Coach UI still queries **rpe_submissions / training_sessions** and therefore
+  shows “0 / 8” and 0 AU when `rpe_submissions` is empty.  
+• We will drop the legacy `rpe_submissions` dependency and aggregate
+  **training_entries** on the fly for coach dashboards.
+
+SCOPE
+=====  
+Fix only coach-side data APIs & queries:  
+* **Training Log**  
+* **Weekly Training Load**  
+* **ACWR / Load Insights**  
+Do **not** alter athlete flows, UI styling, or triggers already in place.
+
+--------------------------------------------------------------------
+## 0 · Files to touch / add
+* server/storage.ts               (new aggregate queries)
+* server/routes/coach.ts          (swap endpoints to new queries)
+* client/src/hooks/useCoach*.ts   (expect new JSON)
+* migrations/20240604_view.sql    (NEW SQL view)
+
+--------------------------------------------------------------------
+## 1 · SQL view — session_metrics_from_entries
+### migrations/20240604_view.sql
+```sql
+CREATE OR REPLACE VIEW session_metrics_from_entries AS
+SELECT 
+    te.date                       AS session_date,
+    CASE
+        WHEN te.training_type ILIKE '%field%' THEN 'Field'
+        WHEN te.training_type ILIKE '%gym%'   THEN 'Gym'
+        WHEN te.training_type ILIKE '%match%' THEN 'Match'
+        ELSE 'Other'
+    END                           AS type,
+    te.session_number             AS session_number,
+    te.team_id,
+    COUNT(*)                      AS participants,                -- # athletes
+    AVG(te.effort_level)          AS avg_rpe,
+    ROUND( AVG(te.effort_level)                     -- avg RPE
+         * (1.0 + (AVG(te.emotional_load)::INT-1)*0.125)   -- emotional coeff
+         * COALESCE(ts.duration_minutes,60)                 -- duration
+         * CASE                                             -- type coeff
+             WHEN te.training_type ILIKE '%field%' THEN 1.2
+             WHEN te.training_type ILIKE '%gym%'   THEN 1.0
+             WHEN te.training_type ILIKE '%match%' THEN 1.5
+             ELSE 1.0
+           END
+    )                               AS session_load
+FROM training_entries te
+LEFT JOIN training_sessions ts
+       ON ts.session_date = te.date
+      AND ts.type = CASE
+                      WHEN te.training_type ILIKE '%field%' THEN 'Field'
+                      WHEN te.training_type ILIKE '%gym%'   THEN 'Gym'
+                      WHEN te.training_type ILIKE '%match%' THEN 'Match'
+                      ELSE 'Other'
+                    END
+GROUP BY 1,2,3,4;

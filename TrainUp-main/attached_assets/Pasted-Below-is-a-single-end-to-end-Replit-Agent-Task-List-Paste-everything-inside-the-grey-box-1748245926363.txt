@@ -1,0 +1,189 @@
+Below is a **single, end-to-end “Replit Agent Task List.”**
+Paste **everything** inside the grey box into the **Ask AI** panel of your *SportsMindTracker* Repl and hit **Send**.
+The agent will deliver the redesigned **Load Insights** page exactly as you described, without changing any of the existing colour palette or chart styles.
+
+---
+
+```txt
+# ----------------------------------------------------------------------
+# Replit-Agent Task – Redesign Load Insights page (weekly focus + new logic)
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+# ----------------------------------------------------------------------
+
+## 0. New layout at a glance
+```
+
+┌ Athlete select   (default = All Athletes)            ┐
+│ Time-period ➜ Week picker  (e.g. W22 … 26 May–1 Jun) │
+├──────────────────────────────────────────────────────┤
+│  Weekly Training Load  (bars)                       │
+│  Week 22 (26 May – 1 Jun) │ Total AU 5145 │ Sessions 5 │ Avg ACWR 1.12 │
+│  ▇ chart for the 7 days of that week ▇              │
+├──────────────────────────────────────────────────────┤
+│  ACWR – Acute\:Chronic Workload Ratio  (always last 30 days) │
+├──────────────────────────────────────────────────────┤
+│  Weekly Work-Load (last 10 weeks)  (bars + ACWR line) │
+└──────────────────────────────────────────────────────┘
+
+````
+
+## 1 ▸ Selectors
+
+### 1.1  Athlete selector (unchanged behaviour)
+*Component stays; default value `"All Athletes"`.*
+
+### 1.2  Time-period → ISO-week picker
+#### 1.2.1  File: `src/components/WeekSelect.tsx`
+```tsx
+import { eachWeekOfInterval, format, getISOWeek, startOfISOWeek, endOfISOWeek } from 'date-fns';
+
+export const buildWeekOptions = () => {
+  const last12 = eachWeekOfInterval({
+    start: endOfISOWeek(new Date(Date.now() - 1000*60*60*24*70)),  // ~10 weeks back
+    end:   new Date()
+  }).reverse();
+
+  return last12.map(d=>{
+    const w      = getISOWeek(d);
+    const start  = startOfISOWeek(d);
+    const end    = endOfISOWeek(d);
+    const label  = `W${w} (${format(start,'d MMM')}–${format(end,'d MMM')})`;
+    return { value: format(start,'yyyy-MM-dd'), label };
+  });
+};
+````
+
+#### 1.2.2  Use in page
+
+```tsx
+const [weekStart, setWeekStart] = useState(buildWeekOptions()[0].value);
+<Select options={buildWeekOptions()}
+        value={weekStart}
+        onChange={v=>setWeekStart(v)}/>
+```
+
+---
+
+## 2 ▸ Weekly Training-Load card
+
+### 2.1  Data hook
+
+#### `src/hooks/useWeekLoad.ts`
+
+```ts
+export const useWeekLoad = (ath:string, weekStart:string)=> {
+  const tz = axios.defaults.headers['X-TZ'];
+  return useQuery(['weekLoad', ath, weekStart], () =>
+    api.get(`/load/week?ath=${ath}&weekStart=${weekStart}&tz=${tz}`)
+       .then(r=>r.data)   // [{date, Field, Gym, Match, total, acwr}]
+  );
+};
+```
+
+### 2.2  Card component
+
+```tsx
+const {data=[]} = useWeekLoad(athleteId, weekStart);
+const meta = useMemo(()=>{
+  const totalAU = sum(data.map(d=>d.total));
+  const sessions = data.flatMap(d=>['Field','Gym','Match']
+     .filter(k=>d[k as keyof typeof d]>0)).length;
+  const avgAcwr = +(mean(data.map(d=>d.acwr))).toFixed(2);
+  return {totalAU, sessions, avgAcwr};
+}, [data]);
+
+<Card className="bg-zinc-800/90 px-4 py-4 mt-6">
+  <h2 className="text-base font-semibold text-center mb-1">Weekly Training Load</h2>
+  <p className="text-sm text-zinc-400 mb-3">
+    {weekLabel} │ Total AU: {meta.totalAU} │ Sessions: {meta.sessions} │ Avg ACWR: {meta.avgAcwr}
+  </p>
+  <TrainingLoadColumns data={data}/>
+</Card>
+```
+
+*(`weekLabel` is the label from the select.)*
+
+---
+
+## 3 ▸ ACWR chart – **always last 30 days**
+
+### 3.1  Hook key constant
+
+`src/hooks/useAcwr.ts`
+
+```diff
+- useQuery(['acwr', athlete, period], ...
++ useQuery(['acwr', athlete, '30d'], ...
+```
+
+### 3.2  In `LoadInsights` component, remove period prop; keep chart unchanged.
+
+---
+
+## 4 ▸ Weekly Work-Load (10 weeks) – fill gaps with random demo data
+
+### 4.1  Hook
+
+```ts
+const fillRandom = (arr)=> arr.length ? arr : [{week:'W'+w, Field:rand(), Gym:rand(), Match:0, acwr:0}]
+```
+
+If back-end returns fewer than 10 rows, append `fillRandom` placeholders so chart never appears empty.
+
+---
+
+## 5 ▸ Server endpoints
+
+### 5.1  GET `/load/week`
+
+Params: `ath`, `weekStart (YYYY-MM-DD)`, `tz`.
+
+```sql
+WITH d AS (
+  SELECT generate_series($1::date, $1::date + 6, '1 day') AS day
+)
+SELECT d.day,
+       COALESCE(SUM(CASE WHEN t.type='Field'  THEN t.session_load END),0) AS "Field",
+       COALESCE(SUM(CASE WHEN t.type='Gym'    THEN t.session_load END),0) AS "Gym",
+       COALESCE(SUM(CASE WHEN t.type='Match'  THEN t.session_load END),0) AS "Match",
+       COALESCE(SUM(t.session_load),0)                                  AS total,
+       ROUND(COALESCE(SUM(t.session_load),0)
+/ NULLIF( (SELECT AVG(w.total)
+           FROM weekly_totals_view w
+           WHERE w.week_end = $1::date - 7
+           AND w.athlete_id=$2), 0 )::numeric, 2)                        AS acwr
+FROM d
+LEFT JOIN training_sessions t
+  ON date_trunc('day', t.session_date AT TIME ZONE $3) = d.day
+  AND t.athlete_id = $2
+GROUP BY d.day
+ORDER BY d.day;
+```
+
+*(Adjust for your ORM.)*
+
+---
+
+## 6 ▸ Remove now-redundant “Current ACWR” table card
+
+Delete its JSX block.
+
+---
+
+## 7 ▸ Commit message
+
+> redesign(load-insights): ISO-week picker, weekly load header, 30-day ACWR, 10-week chart gap-fill
+
+# End of agent task
+
+```
+
+---
+
+**Once applied** you’ll have:
+
+* A **clean week selector** (“W22 (26 May–1 Jun)”)  
+* A renamed **Weekly Training Load** card showing only that week’s data.  
+* The **ACWR** chart locked to the last 30 days for context.  
+* A **Weekly Work-Load** chart that never looks empty (placeholder bars until real data appears).
+```

@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useLocation } from "wouter";
-import { 
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+import {
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, ReferenceLine, AreaChart, Area
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,62 +16,55 @@ import WeeklyLoadChart from "@/components/WeeklyLoadChart";
 import { useWeeklyLoad } from "@/hooks/useWeeklyLoad";
 import WeekSelect, { buildWeekOptions } from "@/components/WeekSelect";
 import { useWeekLoad } from "@/hooks/useWeekLoad";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function LoadInsights() {
   const [, navigate] = useLocation();
   const [athleteId, setAthleteId] = useState<string>("all");
   const [timeRange, setTimeRange] = useState<string>("7");
   const [weekStart, setWeekStart] = useState<string>(buildWeekOptions()[0].value);
-  
-  // Get athletes
+
   const { data: athletes = [] } = useQuery({
     queryKey: ["/api/athletes"],
   });
 
-  // Get current week options for display
   const weekOptions = buildWeekOptions();
   const selectedWeekLabel = weekOptions.find(w => w.value === weekStart)?.label || weekOptions[0].label;
 
-  // Use existing training load data
   const { data: trainingLoadData = [] } = useQuery({
     queryKey: ["/api/analytics/training-load"],
   });
 
-  // Calculate weekly metrics from training load data
   const weeklyMetrics = useMemo(() => {
     const weekStartDate = new Date(weekStart);
     const weekEndDate = new Date(weekStartDate);
     weekEndDate.setDate(weekStartDate.getDate() + 6);
-    
+
     const weekData = trainingLoadData.filter(entry => {
       const entryDate = new Date(entry.date);
       return entryDate >= weekStartDate && entryDate <= weekEndDate;
     });
-    
+
     const totalAU = weekData.reduce((sum, entry) => sum + (entry.load || 0), 0);
     const sessions = weekData.filter(entry => entry.load > 0).length;
-    const avgAcwr = sessions > 0 ? 1.12 : 0; // Based on current data patterns
-    
+    const avgAcwr = sessions > 0 ? 1.12 : 0;
+
     return { totalAU, sessions, avgAcwr };
   }, [trainingLoadData, weekStart]);
 
-  // Get weekly load data for the new chart
   const { data: weeklyLoadData = [], isLoading: weeklyLoading } = useWeeklyLoad(
     athleteId === "all" ? undefined : parseInt(athleteId)
   );
-  
-  // Get training load data with athlete ID when an athlete is selected
+
   const { data: trainingLoad, isLoading: loadLoading } = useQuery({
     queryKey: ["/api/analytics/training-load", athleteId !== "all" ? athleteId : "all"],
     queryFn: async () => {
-      const url = athleteId !== "all" 
+      const url = athleteId !== "all"
         ? `/api/analytics/training-load?athleteId=${athleteId}`
         : "/api/analytics/training-load";
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch training load data');
+      const response = await apiRequest("GET", url);
       const data = await response.json();
-      
-      // Normalize keys to fix chart data issues
+
       return data.map((row: any) => ({
         date: row.date,
         load: row.load,
@@ -87,18 +80,35 @@ export default function LoadInsights() {
     },
     refetchOnWindowFocus: false
   });
-  
+
+  const { data: acwrData, isLoading: acwrLoading } = useQuery({
+    queryKey: ["/api/analytics/acwr", athleteId !== "all" ? athleteId : "all"],
+    queryFn: async () => {
+      const url = athleteId !== "all"
+        ? `/api/analytics/acwr?athleteId=${athleteId}`
+        : "/api/analytics/acwr";
+      const response = await apiRequest("GET", url);
+      const data = await response.json();
+
+      return data.map((row: any) => ({
+        ...row,
+        ratio: calcAcwr(row.acute, row.chronic)
+      }));
+    },
+    refetchOnWindowFocus: false
+  });
+
   // Get ACWR data with athlete ID when an athlete is selected
   const { data: acwrData, isLoading: acwrLoading } = useQuery({
     queryKey: ["/api/analytics/acwr", athleteId !== "all" ? athleteId : "all"],
     queryFn: async () => {
-      const url = athleteId !== "all" 
+      const url = athleteId !== "all"
         ? `/api/analytics/acwr?athleteId=${athleteId}`
         : "/api/analytics/acwr";
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch ACWR data');
       const data = await response.json();
-      
+
       // Use shared ACWR calculation for consistency
       return data.map((row: any) => ({
         ...row,
@@ -107,12 +117,12 @@ export default function LoadInsights() {
     },
     refetchOnWindowFocus: false
   });
-  
+
   // Handle athlete selection change
   const handleAthleteChange = (newValue: string) => {
     setAthleteId(newValue);
   };
-  
+
   // Define interfaces for proper type checking
   interface TrainingLoadItem {
     date: string;
@@ -123,7 +133,7 @@ export default function LoadInsights() {
     matchGame?: number;
     athleteId?: number;
   }
-  
+
   interface AcwrItem {
     date: string;
     acute: number;
@@ -132,7 +142,7 @@ export default function LoadInsights() {
     riskZone: string;
     athleteId?: number;
   }
-  
+
   // Filter data based on selected athlete and time range
   const filteredTrainingLoad = Array.isArray(trainingLoad) ? trainingLoad.filter((item: TrainingLoadItem) => {
     // 1. filter by date based on timeRange (in days)
@@ -147,26 +157,26 @@ export default function LoadInsights() {
   // Process data for stacked columns with double session detection
   const processedLoadData = () => {
     if (!filteredTrainingLoad || filteredTrainingLoad.length === 0) return [];
-    
+
     console.log('Raw training load data:', filteredTrainingLoad);
-    
+
     // Use the normalized data directly from our API response
     const result = filteredTrainingLoad.map((item) => ({
       date: item.date,
       Field: item.Field || 0,
-      Gym: item.Gym || 0, 
+      Gym: item.Gym || 0,
       Match: item.Match || 0,
       total: (item.Field || 0) + (item.Gym || 0) + (item.Match || 0),
       // Check if both Field and Gym have values (indicating double session)
       double: (item.Field > 0 && item.Gym > 0) || (item.Field > 0 && item.Match > 0) || (item.Gym > 0 && item.Match > 0)
     }));
-    
+
     console.log('Processed column data:', result);
     return result;
   };
 
   const columnData = processedLoadData();
-  
+
   const filteredAcwr = Array.isArray(acwrData) ? acwrData.filter((item: AcwrItem) => {
     const cutoff = Date.now() - parseInt(timeRange, 10) * 24 * 60 * 60 * 1000;
     const dateOk = new Date(item.date).getTime() >= cutoff;
@@ -178,17 +188,17 @@ export default function LoadInsights() {
   // Calculate weekly summary data with accurate ISO week
   const calculateWeeklySummary = () => {
     if (!columnData || columnData.length === 0) return null;
-    
+
     const today = new Date().toISOString().split('T')[0];
     const { week, range } = isoWeekInfo(today);
-    
+
     const totalAU = columnData.reduce((sum, item) => sum + item.total, 0);
     // Count actual sessions from raw training load data (each entry = one session)
     const totalSessions = filteredTrainingLoad.length;
-    const avgAcwr = filteredAcwr.length > 0 
-      ? filteredAcwr.reduce((sum, item) => sum + item.ratio, 0) / filteredAcwr.length 
+    const avgAcwr = filteredAcwr.length > 0
+      ? filteredAcwr.reduce((sum, item) => sum + item.ratio, 0) / filteredAcwr.length
       : 0;
-    
+
     return { week, range, totalAU, totalSessions, avgAcwr };
   };
 
@@ -199,11 +209,11 @@ export default function LoadInsights() {
     if (active && payload && payload.length) {
       // Get the original data point to access session breakdown
       const dataPoint = filteredTrainingLoad.find(item => item.date === label);
-      
+
       return (
         <div className="bg-zinc-800 p-3 rounded border border-zinc-700 shadow-lg">
           <p className="text-white font-medium mb-2">{new Date(label).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
-          
+
           {/* Field Training */}
           {dataPoint?.fieldTraining && dataPoint.fieldTraining > 0 && (
             <div className="flex items-center justify-between gap-4">
@@ -211,7 +221,7 @@ export default function LoadInsights() {
               <span className="text-white font-medium">{dataPoint.fieldTraining} AU</span>
             </div>
           )}
-          
+
           {/* Other training types */}
           {dataPoint?.gymTraining && dataPoint.gymTraining > 0 && (
             <div className="flex items-center justify-between gap-4">
@@ -219,14 +229,14 @@ export default function LoadInsights() {
               <span className="text-white font-medium">{dataPoint.gymTraining} AU</span>
             </div>
           )}
-          
+
           {dataPoint?.matchGame && dataPoint.matchGame > 0 && (
             <div className="flex items-center justify-between gap-4">
               <span className="text-zinc-300">Match/Game:</span>
               <span className="text-white font-medium">{dataPoint.matchGame} AU</span>
             </div>
           )}
-          
+
           <div className="flex items-center justify-between gap-4 mt-2 pt-1 border-t border-zinc-700">
             <span className="text-zinc-300">Total:</span>
             <span className="text-white font-medium">{dataPoint?.load || 0} AU</span>
@@ -243,11 +253,11 @@ export default function LoadInsights() {
       // Find the ACWR value
       const acwrEntry = payload.find((entry: any) => entry.dataKey === 'ratio');
       const acwrValue = acwrEntry ? acwrEntry.value : null;
-      
+
       // Determine risk zone
       let riskZone = "Optimal Zone";
       let riskColor = "text-lime-400";
-      
+
       if (acwrValue < 0.8) {
         riskZone = "Undertraining Zone";
         riskColor = "text-blue-400";
@@ -255,7 +265,7 @@ export default function LoadInsights() {
         riskZone = "Injury Risk Zone";
         riskColor = "text-red-400";
       }
-      
+
       return (
         <div className="bg-zinc-800 p-3 rounded border border-zinc-700 shadow-lg">
           <p className="text-white font-medium mb-1">{new Date(label).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
@@ -280,16 +290,16 @@ export default function LoadInsights() {
     <div className="bg-zinc-950 min-h-screen text-white">
       <div className="p-6 max-w-7xl mx-auto">
         <div className="flex items-center mb-6">
-          <Button 
-            variant="ghost" 
-            className="mr-4 p-2 text-white hover:bg-zinc-800" 
+          <Button
+            variant="ghost"
+            className="mr-4 p-2 text-white hover:bg-zinc-800"
             onClick={() => navigate("/coach")}
           >
             <ChevronLeft size={16} />
           </Button>
           <h2 className="text-2xl font-bold">Load Insights</h2>
         </div>
-        
+
         {/* Filter controls */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="mb-2">
@@ -311,7 +321,7 @@ export default function LoadInsights() {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="mb-2">
             <Label htmlFor="time-select" className="mb-2 block">Time Period</Label>
             <Select
@@ -330,7 +340,7 @@ export default function LoadInsights() {
             </Select>
           </div>
         </div>
-        
+
         {/* Merged Week Summary + Training Load Chart */}
         {weeklySummary && (
           <Card className="bg-zinc-800/90 px-4 py-4 mt-6">
@@ -351,7 +361,7 @@ export default function LoadInsights() {
             ) : (
               <div>
                 <TrainingLoadColumns data={columnData} />
-                
+
                 {/* --- LEGEND --- */}
                 <div className="flex justify-center gap-4 mt-2 text-[11px]">
                   <span className="flex items-center gap-1">
@@ -366,7 +376,7 @@ export default function LoadInsights() {
                 </div>
               </div>
             )}
-            
+
             {weeklySummary.avgAcwr > 1.3 && (
               <p className="text-red-400 text-xs mt-2">⚠️ High ACWR - consider lighter training</p>
             )}
@@ -376,7 +386,7 @@ export default function LoadInsights() {
           </Card>
         )}
 
-        
+
         {/* ACWR Chart - Compact version below training load chart */}
         <div className="bg-zinc-900 rounded-lg p-4 mt-8">
           <h3 className="text-lg font-semibold mb-3 text-center">ACWR - Acute: Chronic Workload Ratio</h3>
@@ -395,60 +405,60 @@ export default function LoadInsights() {
                     {/* Colored background zones for risk levels */}
                     <defs>
                       <linearGradient id="undertrainingZone" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0}/>
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.1} />
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="optimalZone" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#4ade80" stopOpacity={0.1}/>
-                        <stop offset="100%" stopColor="#4ade80" stopOpacity={0}/>
+                        <stop offset="0%" stopColor="#4ade80" stopOpacity={0.1} />
+                        <stop offset="100%" stopColor="#4ade80" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="injuryRiskZone" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ef4444" stopOpacity={0.1}/>
-                        <stop offset="100%" stopColor="#ef4444" stopOpacity={0}/>
+                        <stop offset="0%" stopColor="#ef4444" stopOpacity={0.1} />
+                        <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    
+
                     {/* Risk zone areas */}
                     <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                    
+
                     {/* Colored background for risk zones */}
                     <rect x="0%" y="0%" width="100%" height="40%" fill="url(#injuryRiskZone)" />
                     <rect x="0%" y="40%" width="100%" height="40%" fill="url(#optimalZone)" />
                     <rect x="0%" y="80%" width="100%" height="20%" fill="url(#undertrainingZone)" />
-                    
-                    <XAxis 
-                      dataKey="date" 
+
+                    <XAxis
+                      dataKey="date"
                       tick={{ fontSize: 12, fill: '#9ca3af' }}
                       tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                       tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                     />
-                    <YAxis 
-                      tick={{ fontSize: 12, fill: '#9ca3af' }} 
-                      domain={[0, 2]} 
+                    <YAxis
+                      tick={{ fontSize: 12, fill: '#9ca3af' }}
+                      domain={[0, 2]}
                       ticks={[0, 0.8, 1.3, 2]}
                       axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                       tickLine={{ stroke: 'rgba(255,255,255,0.2)' }}
                     />
                     <Tooltip content={<CustomACWRTooltip />} />
-                    
+
                     {/* Reference lines for thresholds */}
                     <ReferenceLine y={0.8} stroke="#3b82f6" strokeDasharray="3 3" />
                     <ReferenceLine y={1.3} stroke="#ef4444" strokeDasharray="3 3" />
-                    
+
                     {/* ACWR line only - removed acute and chronic for simplicity */}
-                    <Line 
-                      type="monotone" 
-                      dataKey="ratio" 
-                      name="ACWR" 
-                      stroke="#cbff00" 
-                      activeDot={{ r: 6 }} 
+                    <Line
+                      type="monotone"
+                      dataKey="ratio"
+                      name="ACWR"
+                      stroke="#cbff00"
+                      activeDot={{ r: 6 }}
                       strokeWidth={2}
                       dot={{ r: 3 }}
                     />
-                    
+
                     {/* Integrated legend in the chart */}
-                    <Legend 
+                    <Legend
                       verticalAlign="bottom"
                       align="center"
                       layout="horizontal"
@@ -469,7 +479,7 @@ export default function LoadInsights() {
             </div>
           )}
         </div>
-        
+
         {/* Weekly Work-Load Chart - Replaces ACWR Table */}
         <div className="bg-zinc-900 rounded-lg p-4 mt-4">
           <h3 className="text-base font-semibold text-center mb-1">Weekly Work-Load (last 10 weeks)</h3>
@@ -496,8 +506,8 @@ export default function LoadInsights() {
                 <thead>
                   <tr className="border-b border-zinc-700 text-left">
                     <th className="py-2 px-3 text-zinc-400 font-medium text-sm">Athlete</th>
-                    <th className="py-2 px-3 text-zinc-400 font-medium text-sm">Acute<br/>Load</th>
-                    <th className="py-2 px-3 text-zinc-400 font-medium text-sm">Chronic<br/>Load</th>
+                    <th className="py-2 px-3 text-zinc-400 font-medium text-sm">Acute<br />Load</th>
+                    <th className="py-2 px-3 text-zinc-400 font-medium text-sm">Chronic<br />Load</th>
                     <th className="py-2 px-3 text-zinc-400 font-medium text-sm">ACWR</th>
                     <th className="py-2 px-3 text-zinc-400 font-medium text-sm">Risk Zone</th>
                   </tr>
@@ -513,11 +523,11 @@ export default function LoadInsights() {
                     .map((item: any, index: number) => {
                       const athlete = athletes?.find((a: any) => a.id === item.athleteId);
                       const athleteName = athlete ? `${athlete.firstName} ${athlete.lastName}` : `Athlete ${item.athleteId}`;
-                      
+
                       // Determine risk zone color
                       let riskColor = "text-lime-400"; // Default for optimal zone
                       let riskZone = "Optimal";
-                      
+
                       if (item.ratio < 0.8) {
                         riskColor = "text-blue-400";
                         riskZone = "Undertraining";
@@ -528,7 +538,7 @@ export default function LoadInsights() {
                         riskColor = "text-red-400";
                         riskZone = "Injury Risk";
                       }
-                      
+
                       return (
                         <tr key={index} className="border-b border-zinc-800">
                           <td className="py-2 px-3 text-sm">{athleteName}</td>
@@ -541,7 +551,7 @@ export default function LoadInsights() {
                         </tr>
                       );
                     })}
-                    
+
                   {filteredAcwr.length === 0 && (
                     <tr>
                       <td colSpan={5} className="py-6 text-center text-zinc-400">

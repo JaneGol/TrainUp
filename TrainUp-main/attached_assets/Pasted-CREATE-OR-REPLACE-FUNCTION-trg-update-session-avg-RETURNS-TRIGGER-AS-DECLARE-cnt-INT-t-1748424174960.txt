@@ -1,0 +1,160 @@
+CREATE OR REPLACE FUNCTION trg_update_session_avg() RETURNS TRIGGER AS $$
+DECLARE
+  _cnt   INT;
+  _team  INT;
+BEGIN
+  SELECT COUNT(*) INTO _cnt
+    FROM rpe_submissions
+    WHERE session_id = COALESCE(NEW.session_id, OLD.session_id);
+
+  SELECT COUNT(*) INTO _team
+    FROM users
+    WHERE team_id = NEW.team_id AND role = 'athlete';
+
+  UPDATE training_sessions
+     SET avg_rpe        = (SELECT AVG(rpe) FROM rpe_submissions WHERE session_id = NEW.id),
+         avg_emo_coeff  = (SELECT AVG(1.0+(emotional_load-1)*0.125) FROM rpe_submissions WHERE session_id = NEW.id),
+         participant_cnt= _cnt,
+         is_complete    = (_cnt::numeric / NULLIF(_team,1)) >= 0.5
+   WHERE id = NEW.id;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+2.2 trg_session_load
+plpgsql
+Copy
+Edit
+CREATE OR REPLACE FUNCTION trg_session_load() RETURNS TRIGGER AS $$
+DECLARE
+  c NUMERIC := CASE NEW.type WHEN 'Field' THEN 1.2 WHEN 'Gym' THEN 1.0 ELSE 1.5 END;
+BEGIN
+  NEW.session_load := ROUND(
+    NEW.avg_rpe * NEW.avg_emo_coeff * NEW.duration_minutes * c
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+Force-recalc today’s sessions:
+
+sql
+Copy
+Edit
+UPDATE training_sessions
+SET duration_minutes = duration_minutes
+WHERE session_date::date = current_date;
+────────────────────────────────────────────────────────────────────
+3 ▸ API ENDPOINTS FIX
+────────────────────────────────────────────────────────────────────
+
+/api/training/week (coach log)
+Ensure it only returns complete sessions:
+
+sql
+Copy
+Edit
+SELECT id, session_date, type, session_load, participant_cnt
+FROM training_sessions
+WHERE team_id = :team
+  AND is_complete = TRUE
+  AND date_trunc('week', session_date AT TIME ZONE :tz) = :weekStart
+ORDER BY session_date DESC;
+/api/athlete/weekly-load & /api/load/week
+Use the same pattern—session_date AT TIME ZONE :tz, is_complete = TRUE, SUM(session_load).
+
+────────────────────────────────────────────────────────────────────
+4 ▸ FRONT-END HOOK & CHART ALIGNMENT
+────────────────────────────────────────────────────────────────────
+
+Axios config to send timezone & credentials:
+
+ts
+Copy
+Edit
+axios.defaults.withCredentials = true;
+axios.interceptors.request.use(cfg => {
+  cfg.headers['X-TZ'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return cfg;
+});
+React-Query keys must include weekStart for coach, none for athlete:
+
+diff
+Copy
+Edit
+- useQuery(['weekLoad', athleteId], fetchWeek)
++ useQuery(['weekLoad', athleteId, weekStart], fetchWeek)
+Normalize API keys if needed:
+
+ts
+Copy
+Edit
+data.map(r => ({
+  date: r.date,
+  Field: r.Field ?? r.field ?? 0,
+  Gym:   r.Gym   ?? r.gym   ?? 0,
+  Match: r.Match ?? r.match ?? 0,
+  total: r.total ?? (r.Field + r.Gym + r.Match),
+}));
+────────────────────────────────────────────────────────────────────
+5 ▸ CACHE INVALIDATION
+────────────────────────────────────────────────────────────────────
+In both RPE form and Session duration submit handlers:
+
+ts
+Copy
+Edit
+onSuccess: () => {
+  queryClient.invalidateQueries(['trainingWeek', teamId, weekStart]);
+  queryClient.invalidateQueries(['weekLoad', athleteId, weekStart]);
+  queryClient.invalidateQueries(['acwr30d', athleteId]);
+  queryClient.invalidateQueries(['load', 'fitnessProgress', athleteId]);
+}
+────────────────────────────────────────────────────────────────────
+6 ▸ UI FALLBACK MESSAGE
+────────────────────────────────────────────────────────────────────
+Below log & chart renders:
+
+tsx
+Copy
+Edit
+{sessions.length === 0 && (
+  <p className="text-center text-sm text-zinc-400 mt-4">
+    No training data for this period—please submit your RPE.
+  </p>
+)}
+────────────────────────────────────────────────────────────────────
+7 ▸ COMMIT
+────────────────────────────────────────────────────────────────────
+Commit message:
+
+scss
+Copy
+Edit
+fix(data-pipeline): audit triggers, enforce is_complete, unify SQL & hooks, add UI fallback
+End of task
+yaml
+Copy
+Edit
+
+---
+
+**Once this runs** and you re-submit today’s RPE:
+
+- **Training Log** table will list today’s Field & Gym rows.  
+- **Weekly Training Load** chart will plot the corresponding bars under today’s tick.  
+- No more blank screens!
+
+
+
+
+
+
+
+
+
+
+Tools
+
+
+
+ChatGPT can make mistakes. Check important info. See Cookie Preferences.

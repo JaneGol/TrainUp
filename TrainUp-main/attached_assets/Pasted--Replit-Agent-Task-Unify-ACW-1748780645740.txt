@@ -1,0 +1,108 @@
+# ------------------------------------------------------------------
+# Replit-Agent Task – Unify ACWR & Weekly Work-Load into one chart
+# Repo: https://replit.com/@e89030922661/FormTrack
+# ------------------------------------------------------------------
+
+## 0 ▸ Files to touch / add
+* client/src/components/CombinedLoadAcwrChart.tsx   (NEW)
+* client/src/pages/coach/load-insights.tsx          (replace old charts)
+* client/src/hooks/useTenWeekCombo.ts               (NEW hook or extend existing)
+* tailwind.css – optional: add `.chart-spacer` (margin-top:2rem)
+
+## 1 ▸ Remove old charts from UI
+### load-insights.tsx
+```diff
+- <AcwrChart data={acwr30d}/>
+- <TenWeekChart data={tenWeek}/>
++ <CombinedLoadAcwrChart data={tenWeekCombo}/>
+Add <div className="chart-spacer"/> if needed to preserve spacing.
+
+2 ▸ New hook: useTenWeekCombo
+ts
+Copy
+Edit
+export function useTenWeekCombo(athleteId: string) {
+  return useQuery(['tenWeekCombo', athleteId], async () => {
+    const res = await fetch(`/api/load/tenweeks?ath=${athleteId}`);
+    const raw = await res.json();          // [{weekStart, Field, Gym, Match, total}]
+    return raw.map((w, idx, arr) => {
+      // chronic = mean of current + prev 3 weeks (if exist)
+      const slice = arr.slice(Math.max(0, idx - 3), idx + 1);
+      const chronic = slice.reduce((s,r)=>s+r.total,0) / slice.length;
+      const acwr = +(w.total / (chronic || 1)).toFixed(2);
+      return { ...w, chronic, acwr };
+    });
+  });
+}
+3 ▸ CombinedLoadAcwrChart component
+tsx
+Copy
+Edit
+import { BarChart, Bar, YAxis, XAxis, CartesianGrid,
+         Tooltip, Legend, ReferenceArea, Line } from 'recharts';
+
+export default function CombinedLoadAcwrChart({ data }:{
+  data:{weekStart:string,Field:number,Gym:number,Match:number,total:number,acwr:number}[];
+}) {
+  return (
+    <div className="bg-card rounded-xl p-4">
+      <h3 className="text-center font-semibold mb-1">Weekly Load & ACWR (Last 10 Weeks)</h3>
+      <p className="text-xs text-zinc-400 text-center mb-2">
+        Bars = weekly load; line = ACWR. Green band = optimal 0.8–1.3
+      </p>
+      <BarChart width={680} height={260} data={data}
+                margin={{top:10,right:30,left:0,bottom:0}}>
+        <CartesianGrid stroke="#333" strokeDasharray="3 3"/>
+        <XAxis dataKey="weekStart" tickFormatter={d=>d.slice(5)} />
+        <YAxis yAxisId="load" orientation="left" label={{value:'AU',angle:-90,position:'insideLeft'}}/>
+        <YAxis yAxisId="acwr" orientation="right" domain={[0,2]} hide />
+        {/* ACWR optimal zone */}
+        <ReferenceArea yAxisId="acwr" y1={0.8} y2={1.3}
+                       stroke="none" fill="#16a34a" fillOpacity={0.08}/>
+        {/* Bars */}
+        <Bar yAxisId="load" dataKey="Field"  stackId="a" fill="#bef264"/>
+        <Bar yAxisId="load" dataKey="Gym"    stackId="a" fill="#60a5fa"/>
+        <Bar yAxisId="load" dataKey="Match"  stackId="a" fill="#f87171"/>
+        {/* ACWR line */}
+        <Line yAxisId="acwr" type="monotone" dataKey="acwr"
+              stroke="#facc15" dot={{r:3}} strokeWidth={2}/>
+        <Legend verticalAlign="bottom" height={24}/>
+        <Tooltip formatter={(v)=>`${v}`}/>
+      </BarChart>
+    </div>
+  );
+}
+*Bars share the left AU axis; ACWR line uses right axis (hidden).
+Green shaded band 0.8–1.3 shows optimal zone; dashed grid lines remain.
+
+4 ▸ Spacing
+Add utility or just inline class:
+
+html
+Copy
+Edit
+<div className="h-8"/>{/* spacer between chart blocks */}
+5 ▸ Explanatory text for Training Strain (already added in previous task)
+No further change needed.
+
+6 ▸ Commit message
+feat(load-insights): unify weekly load & ACWR into one chart with optimal zone; remove obsolete 30-day & 10-week charts
+
+End of task
+yaml
+Copy
+Edit
+
+---
+
+### Outcome
+
+* Two old charts disappear.  
+* A single, clear **Weekly Load & ACWR** combo chart appears:  
+  * Stacked bars: Field ▇ Gym ▇ Match ▇  
+  * Yellow line: weekly ACWR.  
+  * Shaded green band 0.8–1.3 (+ dashed threshold lines if chart lib auto-draws grid).  
+* Tooltip shows exact AU and ACWR values per week.  
+* No other UI/athlete code changed.
+
+Design language (fonts, colors, card radius) remains consistent.

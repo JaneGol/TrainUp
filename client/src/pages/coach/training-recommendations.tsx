@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import CoachDashboardLayout from "@/components/layout/coach-dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, Brain, Users, TrendingUp, AlertTriangle, Target, Calendar, Activity } from "lucide-react";
 import { useLocation } from "wouter";
@@ -35,11 +36,18 @@ export default function TrainingRecommendationsPage() {
 
   const { data: teamRecommendations, isLoading, error, refetch } = useQuery<TeamTrainingRecommendation>({
     queryKey: ["/api/training-recommendations"],
-    enabled: !!user && user.role === 'coach',
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/training-recommendations");
+      if (!res.ok) {
+        throw new Error("Failed to fetch training recommendations");
+      }
+      return res.json();
+    },
+    enabled: !!user && user.role === "coach",
     retry: 1,
     refetchOnWindowFocus: false,
     staleTime: 0,
-    gcTime: 0
+    gcTime: 0,
   });
 
   // Debug logging
@@ -126,10 +134,10 @@ export default function TrainingRecommendationsPage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
-              className="mr-2 hover:bg-zinc-800 text-white" 
+              className="mr-2 hover:bg-zinc-800 text-white"
               onClick={handleBackClick}
             >
               <ChevronLeft className="h-5 w-5" />
@@ -185,7 +193,7 @@ export default function TrainingRecommendationsPage() {
                 <div className="text-sm text-zinc-400">Athletes Analyzed</div>
               </div>
             </div>
-            
+
             {/* Team Reasoning */}
             <div className="bg-zinc-800 rounded-lg p-4">
               <h4 className="font-semibold mb-2 flex items-center">
@@ -275,20 +283,20 @@ export default function TrainingRecommendationsPage() {
 
         {/* Quick Actions */}
         <div className="mt-6 flex flex-wrap gap-3">
-          <Button 
+          <Button
             onClick={() => navigate('/coach/training-log')}
             className="bg-primary text-black hover:bg-primary/90"
           >
             Plan Today's Session
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => navigate('/coach/athlete-status')}
             className="border-zinc-600 text-white hover:bg-zinc-800"
           >
             View Athlete Status
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => window.location.reload()}
             className="border-zinc-600 text-white hover:bg-zinc-800"

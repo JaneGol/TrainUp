@@ -1,0 +1,117 @@
+Below is a **copy-ready “Replit Agent Task List.”**
+Paste it into the **Ask AI** panel for your *SportsMindTracker* Repl and press **Send**.
+The agent will add ISO-**week grouping** (e.g., **Week 21 — 20 - 26 May**) to the existing **Training Sessions** screen while keeping the current row component and bottom-sheet duration editor exactly as they are.
+
+---
+
+````txt
+# 🚀  Replit Agent Task – Group Training Sessions by ISO Week
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+
+## 0. Keep
+✓ TrainingRow component  
+✓ Bottom-sheet editor & duration-update mutation / cache invalidation
+
+## 1. Helper utilities
+### 1.1  Add date helpers
+- **File:** src/utils/weekHelpers.ts
+```ts
+import { getISOWeek, startOfISOWeek, endOfISOWeek, format, parseISO } from 'date-fns';
+
+export const weekKey = (dateStr: string) => {
+  const d = parseISO(dateStr);
+  return `${d.getFullYear()}-W${String(getISOWeek(d)).padStart(2,"0")}`;
+};
+
+export const weekLabel = (key: string) => {
+  // "2025-W21" -> "Week 21 (20 – 26 May)"
+  const [year, wTag] = key.split("-W");
+  const weekNo = +wTag;
+  const start = startOfISOWeek(new Date(+year, 0, 4));   // ISO week 1 anchor
+  start.setDate(start.getDate() + (weekNo-1)*7);
+  const end = endOfISOWeek(start);
+  return `Week ${weekNo} (${format(start,"d MMM")} – ${format(end,"d MMM")})`;
+};
+````
+
+### 1.2  Utility to bucket sessions
+
+```ts
+export const bucketByWeek = (sessions: {date:string}[]) => {
+  return sessions.reduce((acc, s) => {
+    const key = weekKey(s.date);
+    (acc[key] ||= []).push(s);
+    return acc;
+  }, {} as Record<string, typeof sessions>);
+};
+```
+
+## 2. Modify TrainingSessions page
+
+* **File:** src/pages/coach/TrainingSessions.tsx
+
+### 2.1  Import helpers
+
+```tsx
+import { bucketByWeek, weekLabel } from "@/utils/weekHelpers";
+```
+
+### 2.2  After data fetch
+
+```tsx
+const { data: sessions=[] } = useSessions(teamId);   // existing hook
+const sessionsByWeek = bucketByWeek(sessions);
+const orderedWeeks   = Object.keys(sessionsByWeek).sort().reverse(); // newest first
+```
+
+### 2.3  Replace flat list JSX
+
+```tsx
+return (
+  <div className="space-y-6 pt-2">
+    {orderedWeeks.map(wKey => (
+      <div key={wKey}>
+        {/* Week header */}
+        <h3 className="px-2 py-1 mb-2 text-sm font-semibold tracking-wide text-zinc-400">
+          {weekLabel(wKey)}
+        </h3>
+
+        {/* Existing TrainingRow for each session */}
+        <div className="space-y-3">
+          {sessionsByWeek[wKey].map(s => (
+            <TrainingRow key={s.id} session={s} onOpen={openSheet}/>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+);
+```
+
+*Styling notes*
+
+* Week header uses `.text-sm font-semibold` and muted grey to avoid overpowering rows.
+* Each week block gets a `space-y-6` gap from the next week.
+
+## 3. No API change
+
+The page still calls your current `/sessions?start=<date>&end=<date>` endpoint; grouping is purely client-side.
+
+## 4. Manual QA (agent will run)
+
+1. Sessions now display under **Week N (range)** headers.
+2. Row tap still opens editor; editing duration updates load and all caches.
+3. Scrolling works smoothly; headers scroll away (no sticky needed per spec).
+
+## 5. Commit message
+
+> feat(training-sessions): group list by ISO week with range header
+
+# End of agent task
+
+```
+
+---
+
+**After the agent commits** and you refresh the preview, you’ll see your familiar Training-Row design, neatly grouped under week headers like **“Week 21 (20 – 26 May)”**—with all edit logic untouched.
+```

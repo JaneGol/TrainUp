@@ -1,0 +1,144 @@
+Below is a **ready-to-paste “Replit Agent Task List.”**
+Copy **everything** inside the grey block into the **Ask AI** panel of your **SportsMindTracker** Repl and press **Send**.
+The agent will trace why the **/api/athlete/weekly-load** endpoint returns empty/zero rows, patch the culprit (time-zone, field-names, or `is_complete`), and guarantee the Fitness Progress chart renders the same AU numbers the coach sees.
+
+---
+
+````txt
+# ------------------------------------------------------------------
+# Replit Agent Task – Make Weekly-Load data appear in athlete chart
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+# ------------------------------------------------------------------
+
+## 0 ▸ Diagnose
+1. Run (console)  
+   ```sql
+   SELECT id,type,session_date,session_load,is_complete,participant_cnt
+   FROM training_sessions
+   WHERE session_date::date = current_date;
+````
+
+2. Run (console)
+
+   ```bash
+   curl -s -H "Authorization: Bearer $TOKEN" \
+     "/api/athlete/weekly-load" | jq .
+   ```
+
+**Log findings** so we can see if:
+
+* a) row exists but `is_complete=false`
+* b) row exists, but API returns 0 AU
+* c) API 401 or 404
+
+──────────────────────────────────────────────────────────────────
+
+## 1 ▸ If `is_complete = false` yet ≥50 % athletes have submitted
+
+### 1.1  Fix trigger condition
+
+`db/sql/trg_update_session_avg.sql`
+
+```diff
+- is_complete = (_cnt::numeric / NULLIF(_team,0)) >= 0.5
++ is_complete = (_cnt::numeric / NULLIF(_team,1)) >= 0.5
+```
+
+(force NO div-by-zero).
+
+### 1.2  Re-execute for today
+
+```sql
+UPDATE training_sessions
+SET participant_cnt = participant_cnt  -- trigger fires, recalcs is_complete
+WHERE session_date::date = current_date;
+```
+
+──────────────────────────────────────────────────────────────────
+
+## 2 ▸ If API rows are all zeros but DB has loads
+
+Root cause = UTC grouping.
+
+### 2.1  Patch `/api/athlete/weekly-load`
+
+```sql
+SELECT
+  date_trunc('day', ts.session_date AT TIME ZONE :tz) AS date,
+  SUM(CASE WHEN ts.type='Field'  THEN ts.session_load END) AS "Field",
+  SUM(CASE WHEN ts.type='Gym'    THEN ts.session_load END) AS "Gym",
+  SUM(CASE WHEN ts.type='Match'  THEN ts.session_load END) AS "Match",
+  SUM(ts.session_load) AS total
+FROM training_sessions ts
+WHERE athlete_id = :ath
+  AND date_trunc('week', ts.session_date AT TIME ZONE :tz) = date_trunc('week', :weekStart::date)
+GROUP BY 1
+ORDER BY 1;
+```
+
+Header `X-TZ` from client = `Intl.DateTimeFormat().resolvedOptions().timeZone`.
+
+### 2.2  Front-end fetch sends TZ
+
+`axios.defaults.headers.common['X-TZ'] = Intl.DateTimeFormat().resolvedOptions().timeZone;`
+
+──────────────────────────────────────────────────────────────────
+
+## 3 ▸ If JSON keys are lower-case (field, gym)
+
+### 3.1  Map keys in hook
+
+```ts
+const normalise = (r:any)=>({
+  date: r.date,
+  Field: r.Field ?? r.field ?? 0,
+  Gym:   r.Gym   ?? r.gym   ?? 0,
+  Match: r.Match ?? r.match ?? 0,
+  total: r.total ?? (r.Field+r.Gym+r.Match)
+});
+```
+
+Apply in `useWeekLoad`.
+
+──────────────────────────────────────────────────────────────────
+
+## 4 ▸ Cache bust after RPE submit & duration edit
+
+```ts
+onSuccess: () => {
+  queryClient.invalidateQueries(['weekLoad', athleteId, currentWeekStart]);
+  queryClient.invalidateQueries(['trainingWeek']);
+  queryClient.invalidateQueries(['acwr30d', athleteId]);
+}
+```
+
+──────────────────────────────────────────────────────────────────
+
+## 5 ▸ UI fallback
+
+If `weekLoad.every(d=>d.total===0)` display placeholder:
+
+```jsx
+<p className="text-center text-sm text-zinc-400 mt-4">
+  No RPE data for this week yet.
+</p>
+```
+
+──────────────────────────────────────────────────────────────────
+
+## 6 ▸ Commit message
+
+> fix(weekly-load): local-date grouping, key normalisation, complete-flag, cache bust
+
+# End of task
+
+```
+
+---
+
+**After this runs** and you refresh:
+
+* Athlete’s 14-day chart shows **26 May Gym 278 AU** and **Field 606 AU** bars.  
+* Coach Weekly-Load and Training Log still display the same numbers.  
+* Empty-week placeholder appears only when truly zero RPE data.
+```

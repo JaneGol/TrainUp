@@ -1,0 +1,38 @@
+Title
+Standardize ACWR calculation across all widgets
+
+Objective
+Ensure the Advanced Workload Metrics → ACWR value is produced with the exact helper already used by the Weekly Load card and the ACWR (Last 10 Weeks) trend. After this change, every place in the UI will always display the same ratio.
+
+Scope of Change
+Layer	File(s) / Component(s)	Required edit
+Shared util	src/utils/workload/getAcwrSmoothed.ts
+(this is the helper the chart already imports)	No change – keep logic intact.
+Advanced Workload Metrics block	src/metrics/AdvancedMetrics.tsx
+(or the specific ACWR sub-component)	1. Delete the local acute/chronic division now producing 0.00.
+2. Import getAcwrSmoothed and pass it the same inputs the chart uses:
+ts const acwr = getAcwrSmoothed(acuteLoad, chronicLoad);
+3. If the helper returns null, render an em-dash “—” instead of 0.00.
+i18n / Strings	none	UI copy is unchanged.
+Tests	__tests__/acwr.test.tsx	Add/adjust test to assert that the Advanced block now displays the same value returned by getAcwrSmoothed for a sample dataset.
+
+Do NOT change anything else
+• Leave Training Strain, Monotony, VI, layouts, and styles untouched.
+• Keep analytics event names and props exactly as they are.
+• No dependency bumps, formatting passes, or unrelated refactors.
+
+Acceptance Criteria
+For every athlete dataset, Advanced Workload Metrics → ACWR shows identical two-decimal output to the Weekly Load card and the 10-week trend line.
+
+When either acuteLoad or chronicLoad is zero, all three widgets display an em-dash “—” (not 0.00).
+
+Unit tests covering parity between the widgets pass.
+
+Deployed Repl (replit.com/@e89030922661/TrainUp) shows matching values and no regressions elsewhere.
+
+Lighthouse performance & accessibility scores remain unchanged (±1).
+
+Roll-out / Replicas
+Apply this minimal diff to every replica of the TrainUp codebase. Please avoid collateral edits or stylistic changes.
+
+Once merged, the 0.00 vs 0.50 discrepancy will disappear, and coaches will see a single, consistent ACWR everywhere.

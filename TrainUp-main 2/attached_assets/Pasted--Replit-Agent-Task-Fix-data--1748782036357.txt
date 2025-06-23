@@ -1,0 +1,116 @@
+# ------------------------------------------------------------------
+# Replit-Agent Task – Fix data + axes for “Weekly Load & ACWR” chart
+# Repo: https://replit.com/@e89030922661/FormTrack
+# ------------------------------------------------------------------
+
+## 0 ▸ Files to touch
+* client/src/hooks/useTenWeekCombo.ts            (data padding / axis data)
+* client/src/components/CombinedLoadAcwrChart.tsx (dual-axis config)
+
+## 1 ▸ Ensure 10-week array length & placeholder data
+### useTenWeekCombo.ts
+```diff
+   const raw = await res.json(); // may be < 10 weeks
++  // 1. Ensure we always return 10 items (oldest→newest)
++  const weeksNeeded = 10 - raw.length;
++  if (weeksNeeded > 0) {
++    const oldestWeekStart = raw.length
++      ? new Date(raw[0].weekStart)
++      : dateFns.startOfISOWeek(dateFns.subWeeks(new Date(), 9));
++    for (let i = weeksNeeded - 1; i >= 0; i--) {
++      const wkStart = dateFns.formatISO(
++        dateFns.addWeeks(oldestWeekStart, -i),
++        { representation: 'date' }
++      );
++      raw.unshift({
++        weekStart: wkStart,
++        Field: 0,
++        Gym: 0,
++        Match: 0,
++        total: 0
++      });
++    }
++  }
+(Imports: import * as dateFns from 'date-fns';)
+
+All missing weeks are now padded with zero-load rows, so the chart always has 10 ticks.
+
+2 ▸ Compute ACWR safely when chronic = 0
+diff
+Copy
+Edit
+- const chronic = slice.reduce((s,r)=>s+r.total,0) / slice.length;
+- const acwr = +(w.total / (chronic || 1)).toFixed(2);
++ const chronic = slice.reduce((sum,r)=>sum+r.total,0) / Math.max(slice.length,1);
++ const acwr = chronic === 0 ? 0 : +(w.total / chronic).toFixed(2);
+3 ▸ Dual-axis fix in CombinedLoadAcwrChart
+diff
+Copy
+Edit
+<YAxis yAxisId="load" orientation="left" label={{value:'AU',angle:-90}} />
+-<YAxis yAxisId="acwr" orientation="right" domain={[0,2]} hide />
++<YAxis yAxisId="acwr" orientation="right"
++       domain={[0,2]} tick={{fontSize:11, fill:'#9ca3af'}}
++       label={{value:'ACWR',angle:90,position:'insideRight'}}/>
+4 ▸ Remove ACWR line sitting on X-axis
+diff
+Copy
+Edit
+<Line yAxisId="acwr" type="monotone" dataKey="acwr"
+-      stroke="#facc15" dot={{r:3}} strokeWidth={2}/>
++      stroke="#facc15" dot={{r:3}} strokeWidth={2}
++      connectNulls />
+connectNulls prevents gaps when early weeks have acwr = 0.
+
+5 ▸ Tooltip & legend clarify axes
+diff
+Copy
+Edit
+<Tooltip formatter={(v,name)=> name==='acwr'? `${v}` : `${v} AU`} />
+<Legend payload={[
+  {value:'Field', type:'square', color:'#bef264'},
+  {value:'Gym',   type:'square', color:'#60a5fa'},
+  {value:'Match', type:'square', color:'#f87171'},
+  {value:'ACWR',  type:'line',   color:'#facc15'}
+]}/>
+6 ▸ Y-axis range for load
+Optionally clamp to 0–3000 as elsewhere:
+
+diff
+Copy
+Edit
+<YAxis yAxisId="load" orientation="left"
+-       label={{...}} />
++       domain={[0, 3000]}
++       label={{...}} />
+7 ▸ Commit message
+fix(load-acwr-combo): pad to 10 weeks, safe ACWR calc, true dual-axis, tooltip labels; clamps load axis 0-3000
+
+End of task
+yaml
+Copy
+Edit
+
+---
+
+**Result**
+
+* Chart always displays 10 week-ticks (padded with zero rows if data is missing).  
+* ACWR values sit on the right axis; left axis shows 0–3000 AU bars.  
+* No more ACWR line stuck on X-axis.  
+* Tooltip clarifies units, legend distinguishes bar vs line.  
+* Rest of the app remains unchanged.
+
+
+
+
+
+
+
+
+
+Tools
+
+
+
+ChatGPT can make mistakes. Check important info. See Cookie Preferences.

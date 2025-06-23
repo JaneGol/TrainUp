@@ -1,0 +1,181 @@
+# -----------------------------------------------------------------
+# Replit-Agent Task · End‐to‐End Debug & Fix for “Today’s Data” Missing
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+# -----------------------------------------------------------------
+
+## OBJECTIVE
+Ensure that as soon as an athlete submits today’s RPE, the “Weekly Training Load” bars for today appear in both:
+  • Athlete “Fitness Progress” chart  
+  • Coach “Weekly Training Load” chart  
+
+## STEP 1 · DB INTEGRITY CHECK
+### 1.1  Dump today’s raw records
+In Replit DB console run:
+```sql
+-- A) RPE submissions for today
+SELECT * 
+FROM rpe_submissions 
+WHERE session_id IN (
+  SELECT id FROM training_sessions 
+  WHERE session_date::date = current_date
+);
+
+-- B) Aggregate row in training_sessions
+SELECT id, session_date, type, session_no, avg_rpe, avg_emo_coeff,
+       participant_cnt, is_complete, session_load
+FROM training_sessions
+WHERE session_date::date = current_date;
+Log the results to confirm that:
+
+rpe_submissions exist for today
+
+avg_rpe & avg_emo_coeff reflect those submissions
+
+participant_cnt ≥ 50% threshold AND is_complete = TRUE
+
+session_load is non‐zero
+
+STEP 2 · TRIGGER & FLAG VALIDATION
+If any of the above values are incorrect:
+
+Review the trg_update_session_avg trigger—ensure it updates both:
+
+plpgsql
+Copy
+Edit
+AVG(rpe)   → avg_rpe,
+AVG(emo)   → avg_emo_coeff,
+COUNT(*)   → participant_cnt,
+is_complete=participant_cnt/roster_size >= 0.5
+Ensure trg_session_load fires after that trigger and uses the correct formula:
+
+plpgsql
+Copy
+Edit
+session_load := ROUND(
+  avg_rpe * avg_emo_coeff * duration_minutes * type_coeff
+);
+Force‐recalc for today:
+
+sql
+Copy
+Edit
+UPDATE training_sessions
+SET duration_minutes = duration_minutes
+WHERE session_date::date = current_date;
+STEP 3 · API QUERY ALIGNMENT
+3.1 Athlete endpoint /api/athlete/weekly-load
+Switch to your proven SQL pattern:
+
+ts
+Copy
+Edit
+-- server/database-storage.ts
+export async function getAthlete14DayLoad(db, athleteId, tz) {
+  return db.any(`
+    SELECT
+      to_char(session_date AT TIME ZONE $/tz/, 'YYYY-MM-DD') AS date,
+      SUM(CASE WHEN type='Field' THEN session_load END) AS "Field",
+      SUM(CASE WHEN type='Gym'   THEN session_load END) AS "Gym",
+      SUM(CASE WHEN type='Match' THEN session_load END) AS "Match",
+      SUM(session_load)                            AS total
+    FROM training_sessions
+    WHERE athlete_id=$/athleteId/
+      AND session_date >= current_date - INTERVAL '13 days'
+      AND is_complete = TRUE
+    GROUP BY 1
+    ORDER BY 1;
+  `, { athleteId, tz });
+}
+Ensure is_complete = TRUE filters out partial sessions.
+
+3.2 Coach endpoint /api/load/week
+Use identical pattern (replace athlete_id filter with team_id and :ath='all' → no filter).
+
+STEP 4 · REACT QUERY & HOOKS
+4.1 Header‐inclusion of TZ
+In main.tsx or your Axios setup:
+
+ts
+Copy
+Edit
+axios.defaults.withCredentials = true;
+axios.interceptors.request.use(cfg => {
+  cfg.headers['X-TZ'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return cfg;
+});
+4.2 Correct hook usage
+diff
+Copy
+Edit
+- const { data: weekData=[] } = useWeekLoad(athleteId, weekStart);
++ const { data: weekData=[] } = use14DayLoad(athleteId);
+No stale weekStart param—athlete always sees last 14 days rolling.
+
+STEP 5 · KEY NORMALIZATION
+If API returns lowercase keys:
+
+ts
+Copy
+Edit
+const normalise = (r:any) => ({
+  date : r.date,
+  Field: r.Field ?? r.field ?? 0,
+  Gym  : r.Gym   ?? r.gym   ?? 0,
+  Match: r.Match ?? r.match ?? 0,
+  total: r.total ?? (r.Field + r.Gym + r.Match),
+});
+Apply in your hook’s .then(data=>data.map(normalise)).
+
+STEP 6 · CACHE INVALIDATION
+In both RPE‐form and Diary‐submit onSuccess:
+
+ts
+Copy
+Edit
+queryClient.invalidateQueries(['14day', athleteId]);
+queryClient.invalidateQueries(['weekLoad', athleteId, weekStart]);
+STEP 7 · FRONT-END FALLBACK
+Below your chart render:
+
+tsx
+Copy
+Edit
+{weekData.length === 0 && (
+  <p className="text-center text-sm text-zinc-400 mt-4">
+    No training data for the last 14 days. Please ensure you’ve submitted today’s RPE.
+  </p>
+)}
+STEP 8 · QA CHECKLIST
+ DB shows today’s session_load > 0 and is_complete = true.
+
+ GET /api/athlete/weekly-load returns 14 rows, with today’s { total:606,278,… }.
+
+ Athlete chart plots those two bars under 28.05 tick.
+
+ Coach /api/load/week shows the same numbers under today.
+
+ No SQL errors in logs; 200 OK on all endpoints.
+
+ No 401s—athlete remains logged in.
+
+Commit message
+pgsql
+Copy
+Edit
+fix(today-data): end-to-end pipeline audit; enforce is_complete; unify SQL; normalize keys; invalidate cache
+End of agent task
+yaml
+Copy
+Edit
+
+---
+
+**Copy → Send** and the agent will execute a **full‐stack audit & patch** so that **today’s data** appears perfectly in both athlete and coach views.
+
+
+
+
+
+
+

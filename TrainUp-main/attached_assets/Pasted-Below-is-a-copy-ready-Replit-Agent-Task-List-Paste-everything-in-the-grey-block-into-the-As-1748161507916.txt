@@ -1,0 +1,82 @@
+Below is a **copy-ready “Replit Agent Task List.”**
+Paste everything in the grey block into the **Ask AI** side-panel of your *SportsMindTracker* Repl and press **Send**.
+The agent will place **High Risk ▸ Sick/Injured ▸ AI Recommendations** side-by-side in a single, evenly-spaced row—while still stacking them gracefully on very small phones.
+
+---
+
+````txt
+# 🚀  Replit Agent Task – Compact 3-button row (High-Risk, Sick/Injured, AI Recommendations)
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+
+## 1. Identify component
+These three cards live inside **Coach Dashboard** under `src/pages/coach/MainMetrics.tsx`
+(the High-Risk & Sick/Injured cards we just edited, plus the existing AI Recommendations card).
+
+## 2. Wrap cards in a responsive 3-column grid
+### 2.1 Add container class
+Locate the JSX block where the three cards are rendered (currently two red cards + one lime).  
+Replace the surrounding `div` with:
+
+```tsx
+<section
+  className="grid gap-3
+             grid-cols-1
+             sm:grid-cols-2
+             md:grid-cols-3">
+  {/* High-Risk card */}
+  {/* Sick/Injured card */}
+  {/* AI Recommendations card */}
+</section>
+````
+
+### 2.2 Ensure each card grows evenly
+
+Add `className="h-full"` to each `<Card>` so they match heights when in one row:
+
+```tsx
+<Card className="bg-red-600/80 h-full" ...> … </Card>
+```
+
+(repeat for Sick/Injured and AI cards).
+
+### 2.3 Remove external margins
+
+If any of the three cards have `mt-4`, `mb-4`, or similar, delete those so the grid gap handles spacing.
+
+## 3. Mobile overflow safeguard
+
+Phones narrower than **360 px** may still wrap; to keep them in a single scrollable line on extra-small screens, add:
+
+```tsx
+<section
+  className="flex md:grid gap-3 overflow-x-auto
+             md:overflow-visible
+             md:grid-cols-3">
+```
+
+(That line replaces the grid above; it behaves as flex-row < md, grid ≥ md.)
+
+## 4. Testing checklist
+
+1. **Desktop (≥ 768 px)** – three cards sit in one row, equal width & height.
+2. **Standard mobile (≥ 375 px)** – still one row (scrolls horizontally if needed).
+3. **Very small mobile (320 px)** – user can side-scroll the row; no layout break.
+4. Clicking any card still triggers its original navigation / modal.
+
+## 5. Commit message
+
+> style(dashboard): arrange High-Risk, Sick/Injured & AI cards into single responsive row
+
+# End of agent task
+
+```
+
+---
+
+### What happens
+
+* Grid/flex utilities (`gap-3`, `grid-cols-3`, `overflow-x-auto`) are pure Tailwind, so no extra CSS files.  
+* Height equalisation (`h-full`) keeps the lime “Smart” card from stretching taller than the two red cards.  
+
+Send the task to the agent, reload your preview, and you’ll see the three compact buttons lined up neatly in one row.
+```

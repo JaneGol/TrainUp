@@ -1,0 +1,75 @@
+### Fitness Progress — proposed redesign
+
+*(keeps current colours, fonts, card styling; swaps only the content & layout)*
+
+| Section                                      | Replace with…                                                                                                                                                                                                           | Why it’s better for the athlete                                                  |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **1 · Load Trend Analysis**<br>(single line) | **Stacked “7-Day Load bar + ACWR line”**<br>• X-axis = last 14 days (dd.MM)<br>• Bars = Session-load AU by type (Field lime ▇, Gym blue ▇, Match coral ▇)<br>• Thin yellow line = rolling ACWR<br>• Shaded band 0.8-1.3 | Athlete sees **volume + risk zone** at a glance; colours already used elsewhere. |
+| **2 · Status card**                          | 3-state badge: **OK · Caution · High Risk**<br>+ numeric: **Acute / Chronic = 1.34**<br>+ short, coach-style tip (≤ 100 chars).                                                                                         | Puts the actual ratio beside the message so it feels concrete.                   |
+| **3 · Physical vs Emotional Load pie**       | **Duo-donut “Body / Mind”**<br>inner ring = avg RPE vs emo-coeff this week (label “7.2 / 1.23×”)<br>outer ring = % contribution to AU.                                                                                  | Athlete understands both intensity (RPE) and strain (emo).                       |
+| **4 · Recent Training Sessions**             | **Swipeable cards** (max 5)<br>`26 May · Gym · 60min · 539 AU`<br>small bar under card shows AU relative to weekly max.                                                                                                 | More compact; thumb-swipe friendly on phone.                                     |
+| **5 · Weekly Scorecard** *(new)*             | Mini-table for the current ISO week: <br>`Sleep avg 7h  → 👍`<br>`Stress avg 2.1 ↑`<br>`Motivation avg 3.8 ↓`                                                                                                           | Links diary metrics to load so the athlete sees cause ↔ effect.                  |
+
+---
+
+#### Layout sketch (mobile)
+
+```
+┌ Card: Weekly Training Load (stacked bars + ACWR) ┐
+│                                                  │
+└───────────────────────────────────────────────────┘
+
+┌ Card: Your Status ───────────────┐
+│  🔴 High Risk (1.34)             │
+│  Reduce intensity for two days.  │
+└───────────────────────────────────┘
+
+┌ Duo-donut: Body vs Mind ─────────┐
+│   inner 7.2 / 1.23×              │
+│   outer Field 65%  Gym 35%       │
+└───────────────────────────────────┘
+
+┌ Swipe deck: Recent Sessions ─────┐
+│  27 May · Field 1185 AU  ▌▌▌▌     │
+│  26 May · Gym   539 AU   ▌▌       │
+│  …                                │
+└───────────────────────────────────┘
+
+┌ Card: Weekly Scorecard ──────────┐
+│  Sleep     6 h ↑   (goal 7)      │
+│  Stress    2.1 ↑  (good < 3)     │
+│  Motivation3.8 ↓  (goal > 4)     │
+└───────────────────────────────────┘
+```
+
+---
+
+### Implementation notes (keep existing design system)
+
+* **Charts** reuse Recharts components already in the app (stacked `BarChart`, `Line`, `Pie` for the duo-donut).
+* **Fonts / colours**:
+
+  * Titles: `text-base font-semibold` (same as other cards).
+  * Labels: `text-sm font-medium text-zinc-400`.
+  * Bars use the existing lime / blue / coral palette.
+* **Spacing**: wrap each card in class `mb-8` to match Load Insights rhythm.
+* **Data**:
+
+  ```sql
+  acute  = SUM(session_load) WHERE date > today-7
+  chronic= AVG(SELECT SUM(session_load) BY week ORDER BY week DESC LIMIT 4)
+  acwr   = ROUND(acute / NULLIF(chronic,0),2)
+  ```
+
+---
+
+### Action items for the team
+
+| Role                | Next step                                                                                                                   |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Programmer**      | 1) Add `/athlete/weekly-load` endpoint (14-day stack).<br>2) Add `/athlete/week-scorecard` (avg sleep, stress, motivation). |
+| **Designer**        | Provide duo-donut SVG masks; ensure swipe-deck matches button radius.                                                       |
+| **S\&C coach**      | Approve the three status thresholds:<br>• OK ≤ 1.2 · Caution 1.21-1.29 · High Risk ≥ 1.3                                    |
+| **Sport scientist** | Validate that emo-coeff mapping (1-1.5) displays meaningfully in the inner donut numeric.                                   |
+
+Once those pieces are signed off and built, the Fitness Progress page will deliver clear, actionable insights without altering the app’s established look.

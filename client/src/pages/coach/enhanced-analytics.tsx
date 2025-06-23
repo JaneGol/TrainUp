@@ -44,8 +44,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import { apiRequest } from "@/lib/queryClient";
 
-// Helper function for date formatting
 const formatDateLabel = (dateStr: string) => {
   try {
     return format(parseISO(dateStr), "MMM dd");
@@ -69,56 +69,43 @@ type AcwrData = {
 
 export default function EnhancedAnalyticsPage() {
   const { toast } = useToast();
-  
-  // State for filters
   const [selectedAthlete, setSelectedAthlete] = useState<string>("all");
   const [timeRange, setTimeRange] = useState<string>("30");
-  
-  // Fetch athletes
+
   const { data: athletes, isLoading: athletesLoading } = useQuery({
     queryKey: ["/api/athletes"],
     queryFn: async () => {
-      const res = await fetch("/api/athletes");
-      if (!res.ok) throw new Error("Failed to fetch athletes");
-      return await res.json();
+      const res = await apiRequest("GET", "/api/athletes");
+      return res.json();
     }
   });
-  
-  // Fetch training load data
+
   const { data: trainingLoad, isLoading: trainingLoadLoading } = useQuery({
     queryKey: ["/api/analytics/training-load", selectedAthlete],
     queryFn: async () => {
-      const url = selectedAthlete !== "all" 
+      const url = selectedAthlete !== "all"
         ? `/api/analytics/training-load?athleteId=${selectedAthlete}`
         : `/api/analytics/training-load`;
-        
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch training load data");
-      return await res.json();
+      const res = await apiRequest("GET", url);
+      return res.json();
     }
   });
-  
-  // Fetch acute:chronic workload ratio data
+
   const { data: acwrData, isLoading: acwrLoading } = useQuery({
     queryKey: ["/api/analytics/acwr", selectedAthlete],
     queryFn: async () => {
       const url = selectedAthlete !== "all"
         ? `/api/analytics/acwr?athleteId=${selectedAthlete}`
         : `/api/analytics/acwr`;
-        
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch ACWR data");
-      return await res.json();
+      const res = await apiRequest("GET", url);
+      return res.json();
     }
   });
 
-  // Filter data by time range
   const filterDataByTimeRange = (data: any[]) => {
     if (!data || !data.length) return [];
-    
     const days = parseInt(timeRange);
     const cutoffDate = subDays(new Date(), days);
-    
     return data.filter(item => {
       try {
         return parseISO(item.date) >= cutoffDate;
@@ -127,16 +114,12 @@ export default function EnhancedAnalyticsPage() {
       }
     });
   };
-  
-  // Filtered data
+
   const filteredTrainingLoad = trainingLoad ? filterDataByTimeRange(trainingLoad) : [];
   const filteredAcwrData = acwrData ? filterDataByTimeRange(acwrData) : [];
-  
-  // Group training load data by type
+
   const trainingLoadByType = filteredTrainingLoad.reduce((acc: Record<string, TrainingLoadData[]>, item) => {
-    if (!acc[item.trainingType]) {
-      acc[item.trainingType] = [];
-    }
+    if (!acc[item.trainingType]) acc[item.trainingType] = [];
     acc[item.trainingType].push(item);
     return acc;
   }, {});

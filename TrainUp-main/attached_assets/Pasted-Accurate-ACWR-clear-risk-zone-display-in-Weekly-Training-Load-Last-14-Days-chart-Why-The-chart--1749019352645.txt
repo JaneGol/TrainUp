@@ -1,0 +1,56 @@
+Accurate ACWR & clear risk-zone display in Weekly Training Load (Last 14 Days) chart
+
+Why
+The chart’s ACWR now comes from a shortcut (chronic = acute × 0.85), so the yellow line never leaves the “sweet-spot” band and can mislead athletes.
+We will:
+
+Compute ACWR correctly – acute 7-day load ÷ chronic 28-day average.
+
+Show the zones clearly – add labeled bands at 0 – 0.79 (blue), 0.80 – 1.19 (green), 1.20 – 1.49 (amber caution), ≥ 1.50 (red high-risk).
+
+Explain the metric – one-line caption under the chart.
+
+Nothing else in the app changes.
+
+Scope of work
+Layer	File(s) / Component(s)	Required edit
+Back-end	src/routes/athlete/weekly-load.ts
+src/services/loadUtils.ts	Replace simplified chronic calc
+ts\nconst acute = sumLastNDays(7, dailyTotals);\nconst chronic = meanLastNDays(28, dailyTotals);\nconst acwr = chronic ? +(acute / chronic).toFixed(2) : null;\n
+• Return acwr: null until 28 days of data exist.
+• No other response fields change.
+Front-end	components/WeeklyLoadChart.tsx	1. Consume new acwr values (null ⇒ no dot).
+2. Re-add right-side ACWR Y-axis (0–2.0).
+3. Replace existing ReferenceAreas with:
+jsx\n<ReferenceArea y1={0} y2={0.79} fill=\"#1e3a8a\" fillOpacity={0.08}/>\n<ReferenceArea y1={0.8} y2={1.19} fill=\"#15803d\" fillOpacity={0.08}/>\n<ReferenceArea y1={1.2} y2={1.49} fill=\"#fbbf24\" fillOpacity={0.08}/>\n<ReferenceArea y1={1.5} y2={2.0} fill=\"#dc2626\" fillOpacity={0.08}/>\n
+4. Under the chart add caption (reuse .metric-note style):
+ACWR compares this week’s load to your 4-week average. 0.8–1.2 = balanced; >1.5 = spike (higher risk).
+i18n	locales/en.json	Add keys:
+json\n\"chart.acwr.caption\": \"ACWR compares …\", \n\"chart.acwr.legend\": \"ACWR\" \n
+Tests	__tests__/acwrCalc.test.ts
+__tests__/WeeklyLoadChart.test.tsx	• Feed mocked daily loads where week-4 is a 2× spike → expect acwr ≥ 1.50 and red zone highlight.
+• Verify caption renders and zones' colors.
+
+Do NOT change anything else
+• Leave diary, RPE, coach views, styling tokens, and analytics untouched.
+• No dependency bumps or formatting sweeps.
+
+Acceptance criteria
+Calculation – Given fixture data:
+
+previous 28-day mean = 3 000 AU, last 7-day total = 6 000 AU → endpoint returns acwr = 2.00.
+
+with <28 days of data → acwr = null and chart shows no line/dot for those dates.
+
+Chart UI
+
+Colored bands match the y-ranges above and appear behind the ACWR line.
+
+Tooltip shows “ACWR: 2.00” (or “—” if null).
+
+Caption displays exactly the copy above, same font/size as other metric notes.
+
+No regressions – all existing tests green; Lighthouse scores unchanged (±1).
+
+Replit demo [replit.com/@e89030922661/TrainUp] shows variable ACWR values that rise into amber/red when weekly spikes occur and fall into blue after taper weeks.
+

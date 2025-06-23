@@ -1,0 +1,73 @@
+Below is a copy-ready Replit-Agent Task List that changes the load-calculation trigger from a percentage check to a fixed threshold: “more than 3 athletes submitted.”
+Nothing else in the system is altered.
+
+txt
+Copy
+Edit
+# ------------------------------------------------------------------
+# Replit-Agent Task · Switch RPE threshold to “> 3 athletes”
+# Repo: https://replit.com/@e89030922661/FormTrack
+# ------------------------------------------------------------------
+
+## 0 ▸ File to patch
+* db/triggers.sql   (function `sync_rpe_participants` or equivalent)
+
+## 1 ▸ Replace >40 % check with absolute count
+```diff
+- -- old: percentage threshold
+- IF (rpe_participants::NUMERIC / NULLIF(total_athletes,0)) > 0.4 THEN
++ -- new: absolute threshold (>3 submissions)
++ IF rpe_participants > 3 THEN
+Keep same numeric cast inside load formula
+diff
+Copy
+Edit
+ new_load := avg_rpe * emo_coeff * duration * type_coeff
+-             * (rpe_participants::NUMERIC / NULLIF(total_athletes,1));
++             * (rpe_participants::NUMERIC / NULLIF(total_athletes,1));
+(No change needed—the scaling by participants / total remains valid.)
+
+2 ▸ Re-trigger today’s session to reflect new rule
+sql
+Copy
+Edit
+-- Example: fire trigger for 1-Jun Gym (id = X)
+UPDATE rpe_submissions
+   SET updated_at = NOW()
+ WHERE session_id = X
+ LIMIT 1;
+(If you don’t know X, first query
+SELECT id FROM training_sessions WHERE session_date='2025-06-01' AND type='Gym';)
+
+3 ▸ Verify
+SELECT session_date, rpe_participants, load FROM training_sessions WHERE id = X;
+
+If rpe_participants > 3 → load is now > 0 AU.
+
+Refresh coach UI → Training Log & Weekly Training Load show updated AU.
+
+4 ▸ Commit message
+chore(threshold): require >3 RPE submissions (not 40 %) to compute session load
+
+------------------------------------------------------------------
+pgsql
+Copy
+Edit
+
+**Result**
+
+* Any session with **4 or more** athlete RPE submissions instantly gets its training load computed.  
+* Training Log shows accurate “X / N” counts; Weekly Training Load & ACWR charts update immediately after the 4th submission.  
+* All other logic, formulas, and UI remain unchanged.
+
+
+
+
+
+
+
+
+
+Tools
+
+

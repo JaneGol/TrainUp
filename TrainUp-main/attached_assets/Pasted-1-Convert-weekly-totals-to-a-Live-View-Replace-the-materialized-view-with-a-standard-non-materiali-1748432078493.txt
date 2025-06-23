@@ -1,0 +1,89 @@
+1. Convert weekly_totals to a Live View
+Replace the materialized view with a standard (non-materialized) view that selects from training_sessions and computes weekly sums on the fly. This guarantees the chart always shows the latest data without manual refresh.
+
+sql
+Copy
+Edit
+-- Drop the old mat view
+DROP MATERIALIZED VIEW IF EXISTS weekly_totals;
+
+-- Create a real view that groups sessions by week
+CREATE OR REPLACE VIEW weekly_totals AS
+SELECT
+  date_trunc('week', session_date AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date AS week_start,
+  team_id,
+  SUM(CASE WHEN type = 'Field' THEN session_load ELSE 0 END) AS field_au,
+  SUM(CASE WHEN type = 'Gym'   THEN session_load ELSE 0 END) AS gym_au,
+  SUM(CASE WHEN type = 'Match' THEN session_load ELSE 0 END) AS match_au,
+  SUM(session_load) AS total_au,
+  -- acute & chronic logic here, or delegate to separate view
+  ...
+FROM training_sessions
+GROUP BY week_start, team_id;
+After this change, any request to /load/week that queries weekly_totals will immediately reflect today’s data.
+
+2. Or: Automate Mat-View Refresh on Trigger
+If you prefer to keep the materialized view (for performance), have your trigger on training_sessions also fire a REFRESH MATERIALIZED VIEW weekly_totals whenever a session’s session_load changes. For example, in your trg_session_load function, at the end:
+
+plpgsql
+Copy
+Edit
+PERFORM pg_notify('refresh_weekly_totals', '');
+And set up a LISTEN/NOTIFY job or a simple SQL call:
+
+sql
+Copy
+Edit
+CREATE FUNCTION refresh_weekly_totals() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  REFRESH MATERIALIZED VIEW CONCURRENTLY weekly_totals;
+  RETURN NULL;
+END;
+$$;
+
+-- Attach it after your existing trg_session_load
+CREATE TRIGGER trg_refresh_weekly_totals
+  AFTER UPDATE OF session_load ON training_sessions
+  FOR EACH STATEMENT
+  EXECUTE FUNCTION refresh_weekly_totals();
+This ensures the view is always up-to-date as soon as session_load is computed.
+
+3. Verify /load/week Endpoint
+Finally, double-check your Express route for /load/week. Ensure it’s hitting the intended table/view, for example:
+
+js
+Copy
+Edit
+// Before (example using mat view)
+const weekly = await db('weekly_totals')
+  .select('field_au','gym_au','match_au','total_au')
+  .where({ team_id, week_start: weekStart });
+
+–– After (if switching to direct table)
+const weekly = await db('training_sessions')
+  .select(
+    db.raw("date_trunc('day', session_date)::date as day"),
+    db.raw("SUM(CASE WHEN type='Field' THEN session_load ELSE 0 END) AS field_au"),
+    …
+  )
+  .where('session_date','>=', weekStart)
+  .andWhere('session_date','<', moment(weekStart).add(7,'days').toDate())
+  .andWhere('team_id', team_id)
+  .groupBy('day')
+  .orderBy('day');
+This guarantees the chart pulls live aggregates.
+
+Prompt for Replit
+pgsql
+Copy
+Edit
+🔧 **Title**: Make Weekly Training Load chart real-time
+
+🔍 **What to fix**:
+1. Replace the `weekly_totals` materialized view with a live SQL view that groups `training_sessions` by week and computes field/gym/match AU sums on the fly.
+2. OR, if you need to keep the mat-view, add a trigger to `training_sessions` so that after `session_load` updates, you automatically `REFRESH MATERIALIZED VIEW CONCURRENTLY weekly_totals`.
+3. Update the Express `/load/week` endpoint to point at the new live view (or ensure it runs after the mat-view is refreshed).
+4. Test by submitting RPE for Field, Gym, and Match sessions today—confirm the Weekly Training Load chart displays colored stacks for each day of the current week.
+
+📌 **Why**: The materialized view behind the weekly chart isn’t refreshed automatically, so today’s data stays at zero. Switching to a live view (or automating refresh) ensures the chart always shows up-to-date session loads.
+With these changes in place, your Weekly Training Load chart will immediately reflect today’s Field, Gym, and Match session loads—no more blank charts when athletes submit!

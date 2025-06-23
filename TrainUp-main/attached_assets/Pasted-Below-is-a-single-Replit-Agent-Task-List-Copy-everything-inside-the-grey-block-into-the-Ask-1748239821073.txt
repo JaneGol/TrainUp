@@ -1,0 +1,124 @@
+Below is a **single “Replit Agent Task List.”**
+Copy everything inside the grey block into the **Ask AI** panel of your *SportsMindTracker* Repl and press **Send**.
+It forces every key-metrics query (Recovery, Readiness, Alerts) to use **only today’s diary entries**, fixes the server-side date filter, and clears any cached “yesterday” data at midnight.
+
+---
+
+````txt
+# ------------------------------------------------------------------
+# Replit-Agent Task – Stop yesterday’s diary data leaking into TODAY
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+# ------------------------------------------------------------------
+
+## 1 ▸ ALWAYS send today’s local date + timezone
+### 1.1  src/utils/api.ts
+```ts
+export const refreshDateHeaders = () => {
+  axios.defaults.headers.common['X-TZ'] =
+    Intl.DateTimeFormat().resolvedOptions().timeZone;        // e.g. Europe/Paris
+  axios.defaults.headers.common['X-DATE'] =
+    new Date().toISOString().slice(0, 10);                   // YYYY-MM-DD local
+};
+refreshDateHeaders();
+````
+
+Call `refreshDateHeaders()` **again** inside Dashboard `useEffect` so it updates after midnight if the app stays open.
+
+---
+
+## 2 ▸ Query keys MUST include `date`
+
+### 2.1  src/hooks/useKeyMetrics.ts
+
+```diff
+- const date = axios.defaults.headers['X-DATE'];
+- useQuery(['keyMetrics', teamId], () => api.get(...)
++ const date = axios.defaults.headers['X-DATE'];
++ useQuery(['keyMetrics', teamId, date], () =>
++   api.get(`/coach/${teamId}/metrics?date=${date}`)
+ );
+```
+
+### 2.2  src/hooks/useAlerts.ts
+
+```diff
+- useQuery(['alertsToday', teamId], ...
++ useQuery(['alertsToday', teamId, date], ...
+```
+
+*(Do the same for any other “today” hooks.)*
+
+---
+
+## 3 ▸ Server: compare diary\_time in coach’s timezone
+
+### 3.1  api/coach/alerts.ts (or Supabase RPC)
+
+```sql
+WITH tz_date AS (
+  SELECT :date::date AS today, :tz AS tz
+)
+SELECT *
+FROM diary_entries, tz_date
+WHERE date_trunc('day', diary_time AT TIME ZONE tz_date.tz) = tz_date.today
+  AND team_id = :teamId
+  AND (
+        symptoms NOT IN ('None','') OR
+        injury_note IS NOT NULL      OR
+        pain_intensity > 0
+      );
+```
+
+*(Apply the same `AT TIME ZONE :tz = :date` filter in `/metrics` endpoint.)*
+
+---
+
+## 4 ▸ Remove “fallback to last entry” logic
+
+In any aggregation util:
+
+```diff
+- const latest = rows.length ? recentRow : cachePrevDay;
++ if (!rows.length) return null;   // show placeholder / dim state
+```
+
+---
+
+## 5 ▸ Invalidate caches at local midnight
+
+### 5.1  src/index.tsx (app entry)
+
+```ts
+const invalidateAtMidnight = () => {
+  const now   = new Date();
+  const msTil = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0,0,5) - now;
+  setTimeout(() => {
+    refreshDateHeaders();
+    queryClient.invalidateQueries(['keyMetrics']);
+    queryClient.invalidateQueries(['alertsToday']);
+    invalidateAtMidnight();        // schedule next midnight
+  }, msTil);
+};
+invalidateAtMidnight();
+```
+
+---
+
+## 6 ▸ Manual QA (agent auto-runs)
+
+1. **Open dashboard before any diaries** → Recovery / Readiness show “--” (dim), Alerts shows “Awaiting today’s diaries…”.
+2. Submit a diary → gauges & Alerts update within 30 s.
+3. At 00:00 local, dashboard resets automatically.
+
+---
+
+## 7 ▸ Commit message
+
+> fix(date-filter): enforce today-only diaries via X-DATE header, TZ cast; invalidate cache at midnight
+
+# End of agent task
+
+```
+
+---
+```

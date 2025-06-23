@@ -1,0 +1,94 @@
+Title
+Add visual training-type indicator to the RPE button after today's submission
+
+Objective
+When an athlete has logged RPE for today, update the RPE button on the athlete home screen to show:
+
+A “Completed Today” label
+
+A small icon indicating the type of session logged today
+
+This mirrors the behavior of the Self-Control Diary button and gives the athlete clear, immediate visual feedback on what they submitted.
+
+Training Types & Icons
+Training Type	Icon Description	Example (if using system icons / SVG)
+Field Training	Small field or cone icon	icon-training-field.svg or icon-cones.svg
+Gym	Barbell or dumbbell icon	icon-barbell.svg
+Match / Game	Whistle, scoreboard, or jersey	icon-game.svg or icon-jersey.svg
+
+✅ If two field sessions are logged in one day, still show the Field Training icon once (we only display one icon per day).
+
+Display Logic
+If RPE submitted today:
+
+Button displays:
+
+csharp
+Copy
+Edit
+[icon] Completed Today
+Example:
+
+🏟️ Completed Today → (replaced with system field icon)
+
+🏋️ Completed Today → (replaced with gym icon)
+
+🎮 Completed Today → (replaced with match/game icon)
+
+If no RPE for today → button remains unchanged.
+
+Icons appear left of label text, with same sizing/margin as used in Self-Control Diary.
+
+Scope of Change
+Layer	File(s) / Component(s)	Required edit
+Front-end	AthleteHomeScreen.tsx or RpeButton.tsx	1. Detect if RPE submitted today.
+2. Check session type → prioritize: Match > Gym > Field if multiple exist.
+3. Render corresponding SVG icon + "Completed Today" text.
+Assets / Icons	assets/icons/	Import or reference system icons:
+• training-field.svg
+• barbell.svg
+• match.svg (or equivalents used in app)
+Styles	Existing button label classes	Reuse styles from Diary button (font, padding, alignment). Icon should be small (16–20px) and vertically centered with text.
+i18n / Strings	locales/en.json	Add (if not present):
+
+json
+Copy
+Edit
+"rpe.completedToday": "Completed Today"
+``` |
+| Tests | `rpeButton.test.tsx` | Add test cases for RPE submitted today with each training type. Confirm correct icon appears. |
+
+> **Do NOT change anything else**  
+> • Do not edit Diary button, training form, session types, or analytics.  
+> • No layout shifts, refactors, or new libraries.  
+> • Leave existing styling and navigation unchanged.
+
+---
+
+### Acceptance Criteria  
+
+1. After an athlete logs RPE for today:
+   - RPE button updates to show: **[correct icon] Completed Today**
+2. Correct icon displays based on training type:
+   - Match > Gym > Field (priority if multiple)
+3. Button appearance matches visual style of Self-Control Diary:
+   - Font size, spacing, mobile-friendly layout
+4. No changes if RPE is not submitted today.
+5. All test cases pass; Repl (**[replit.com/@e89030922661/TrainUp](https://replit.com/@e89030922661/TrainUp)**) shows icons correctly.
+6. Lighthouse and performance scores unchanged.
+
+---
+
+### Roll-out / Replicas  
+Apply this visual-only change to all replicas of the *TrainUp* codebase. **No other behavior or styling should be touched.**
+
+---
+
+Let me know if you'd like help sourcing SVGs that match your design system (e.g., Material, Heroicons, custom asset set).
+
+
+
+
+
+
+

@@ -1,0 +1,66 @@
+Sure—here’s a **copy-and-paste “Replit Agent Task List.”**
+Drop everything inside the grey block into the **Ask AI** panel in your *SportsMindTracker* Repl and hit **Send**.
+The agent will swap the **“LOW READINESS”** card for a **“SICK / INJURED”** card that shows the count and links to the filtered Athlete-Status view.
+
+---
+
+````txt
+# 🚀  Replit Agent Task – Replace “Low Readiness” card with “Sick / Injured”
+# Repo: https://replit.com/@e89030922661/SportsMindTracker
+
+## Goal
+Show coaches how many athletes are currently flagged as sick or injured, in place of the old “Low Readiness” box.
+
+## 1. Update MainMetrics UI
+- **File:** `src/pages/coach/MainMetrics.tsx`
+- Remove the card whose heading is “LOW READINESS”.
+- Add a new card using the snippet below (place it where the old one was).
+
+```tsx
+/* ▼ NEW 4th CARD — paste inside the grid --------------------------------- */
+import { HeartPulse } from "lucide-react";   // add up-top with other icons
+
+<Card className="bg-red-600/80"
+      onClick={() => nav('/athlete-status?filter=sick')}>
+  <div className="flex items-center gap-1">
+    <HeartPulse size={18} className="text-red-300" />
+    <p className="text-xs uppercase text-white/60">
+      Sick&nbsp;/&nbsp;Injured
+    </p>
+  </div>
+
+  <p className="text-3xl font-extrabold text-red-100 mt-1">
+    {m.data.sick}
+  </p>
+
+  <p className="text-xs">Tap to view</p>
+</Card>
+/* ▲ NEW CARD -------------------------------------------------------------- */
+````
+
+(Keep the other three cards—Recovery, Readiness, High-Risk—unchanged.)
+
+## 2. CSS / Tailwind
+
+No new utilities needed; `bg-red-600/80` and `text-red-100` are Tailwind defaults.
+
+## 3. Routing
+
+Clicking the card navigates to
+`/athlete-status?filter=sick`
+This route already exists (same logic previously used for the High-Risk card).
+
+## 4. Clean-up (optional)
+
+* Delete any leftover styles/classes for `.card-lowReady` if present.
+
+## 5. Commit message
+
+> feat(ui): replace Low Readiness card with Sick / Injured count
+
+# End of agent task
+
+```
+
+---
+```

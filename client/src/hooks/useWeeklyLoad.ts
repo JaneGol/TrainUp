@@ -18,11 +18,15 @@ export function useWeeklyLoad(athleteId?: number) {
       if (athleteId) {
         params.set('athleteId', athleteId.toString());
       }
-      
-      const response = await fetch(`/api/analytics/weekly-load?${params}`);
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/analytics/weekly-load?${params}`, {
+        credentials: "include",
+      });
+
       if (!response.ok) {
         throw new Error('Failed to fetch weekly load data');
       }
+
       return response.json();
     },
   });

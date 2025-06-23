@@ -44,40 +44,33 @@ export function ResetPasswordForm({ token, onSuccess, onInvalidToken, onBack }: 
     },
   });
 
-  // Check if the token is valid
   useEffect(() => {
     const validateToken = async () => {
       try {
-        const response = await fetch(`/api/reset-password/verify/${token}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reset-password/verify/${token}`, {
+          credentials: "include",
+        });
         const data = await response.json();
-        
+
         if (response.ok && data.valid) {
           setIsValidToken(true);
         } else {
           setIsValidToken(false);
-          
           toast({
             title: "Invalid or expired token",
             description: "The password reset link is no longer valid. Please request a new one.",
             variant: "destructive",
           });
-          
-          if (onInvalidToken) {
-            onInvalidToken();
-          }
+          onInvalidToken?.();
         }
       } catch (error) {
         setIsValidToken(false);
-        
         toast({
           title: "Error validating token",
           description: "Could not verify your reset token. Please try again.",
           variant: "destructive",
         });
-        
-        if (onInvalidToken) {
-          onInvalidToken();
-        }
+        onInvalidToken?.();
       } finally {
         setIsValidating(false);
       }
@@ -93,15 +86,10 @@ export function ResetPasswordForm({ token, onSuccess, onInvalidToken, onBack }: 
     },
     onSuccess: () => {
       setIsSubmitting(false);
-      
-      // We'll show success in a separate step, no need for toast here
-      if (onSuccess) {
-        onSuccess();
-      }
+      onSuccess?.();
     },
     onError: (error: Error) => {
       setIsSubmitting(false);
-      
       toast({
         title: "Failed to reset password",
         description: error.message || "Please try again later",
@@ -136,13 +124,8 @@ export function ResetPasswordForm({ token, onSuccess, onInvalidToken, onBack }: 
         <p className="text-muted-foreground">
           The password reset link is invalid or has expired. Please request a new one.
         </p>
-        
         {onBack && (
-          <Button 
-            type="button" 
-            onClick={onBack}
-            className="mt-4"
-          >
+          <Button type="button" onClick={onBack} className="mt-4">
             Back to Forgot Password
           </Button>
         )}
@@ -170,11 +153,11 @@ export function ResetPasswordForm({ token, onSuccess, onInvalidToken, onBack }: 
                 <FormControl>
                   <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-primary">
                     <Lock className="ml-2 h-4 w-4 text-muted-foreground" />
-                    <Input 
+                    <Input
                       type="password"
-                      placeholder="Enter your new password" 
-                      className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0" 
-                      {...field} 
+                      placeholder="Enter your new password"
+                      className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      {...field}
                     />
                   </div>
                 </FormControl>
@@ -182,7 +165,7 @@ export function ResetPasswordForm({ token, onSuccess, onInvalidToken, onBack }: 
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="confirmPassword"
@@ -192,11 +175,11 @@ export function ResetPasswordForm({ token, onSuccess, onInvalidToken, onBack }: 
                 <FormControl>
                   <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-primary">
                     <KeyRound className="ml-2 h-4 w-4 text-muted-foreground" />
-                    <Input 
+                    <Input
                       type="password"
-                      placeholder="Confirm your new password" 
-                      className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0" 
-                      {...field} 
+                      placeholder="Confirm your new password"
+                      className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      {...field}
                     />
                   </div>
                 </FormControl>
@@ -209,11 +192,11 @@ export function ResetPasswordForm({ token, onSuccess, onInvalidToken, onBack }: 
             <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Resetting..." : "Reset Password"}
             </Button>
-            
+
             {onBack && (
-              <Button 
-                type="button" 
-                variant="ghost" 
+              <Button
+                type="button"
+                variant="ghost"
                 onClick={onBack}
                 className="w-full"
               >

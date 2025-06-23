@@ -1,0 +1,110 @@
+# 🚀   Replit Agent Task List  – SportsMindTracker facelift & bug-fix
+# Repo URL: https://replit.com/@e89030922661/SportsMindTracker
+
+## 0. Context
+Keep the existing colour palette and overall style, but make typography, spacing,
+and component behaviour consistent across the whole app.  
+Main pain-points to solve:
+
+1. **Inconsistent fonts / indents**
+2. **Key Metrics cards return NaN / stay blank**
+3. **Athlete Status UI is too crowded**
+4. **Training Log lacks polish; duration edits don’t propagate**
+5. **Load Insights athlete-filter is broken; no weekly summary**
+6. **Athlete -› Fitness Progress is just static numbers**
+
+## 1. Global UI polish
+- **File:** `src/App.css` (or root Tailwind file)  
+  - Append:
+    ```css
+    :root {
+      --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+    }
+    body { font-family: var(--font-sans); }
+    ```
+- **File:** `tailwind.config.js`
+  - Extend font sizes:
+    ```js
+    extend: {
+      fontSize: { h1: ['1.5rem','2rem'], h2: ['1.25rem','1.75rem'] }
+    }
+    ```
+- **Add:** `src/components/Card.tsx`
+    ```tsx
+    import { ReactNode } from "react";
+    export default function Card({children}: {children: ReactNode}) {
+      return (
+        <div className="rounded-xl bg-white/5 backdrop-blur p-4 md:p-6 shadow">
+          {children}
+        </div>
+      );
+    }
+    ```
+
+## 2. Fix Key Metrics (coach dashboard)
+- **Make hook:** `src/hooks/useKeyMetrics.ts`
+    ```tsx
+    import { useQuery } from "@tanstack/react-query";
+    import api from "../utils/api";
+    import { today, avg } from "../utils/dateFns";
+
+    export const useKeyMetrics = (teamId: string) =>
+      useQuery(
+        ["keyMetrics", teamId, today()],
+        () => api.get(`/coach/${teamId}/metrics?date=${today()}`),
+        {
+          staleTime: 60_000,
+          refetchInterval: 30_000,
+          select: ({ data }) => ({
+            recovery : avg(data.map(d => d.recovery)),
+            readiness: avg(data.map(d => d.readiness)),
+            highRisk : data.filter(d => d.acwr > 1.3 || d.recovery < 2).length,
+            sick     : data.filter(d => d.health === "Sick").length,
+          }),
+        }
+      );
+    ```
+- **Dashboard:** import the hook and render 4 `Card`s.
+
+## 3. Athlete Status redesign
+- **Replace `TeamMembersStatus` component** with a compact table:
+    ```tsx
+    const statusColor = (v:number)=>v>=4?"bg-green-500":v>=3?"bg-yellow-400":"bg-red-500";
+    ...
+    <table className="w-full text-sm">
+      <thead><tr><th></th><th>Name</th><th>Recovery</th><th>Readiness</th><th>Health</th></tr></thead>
+      <tbody>
+        {athletes.map(a=>(
+          <tr key={a.id} className="border-b border-white/10">
+            <td className="pr-2">🏃</td>
+            <td>{a.name}</td>
+            <td><span className={`px-2 text-white ${statusColor(a.recovery)}`}>{a.recovery}/5</span></td>
+            <td><span className={`px-2 text-white ${statusColor(a.readiness)}`}>{a.readiness}/10</span></td>
+            <td>{a.healthIcon} {a.healthNote}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    ```
+
+## 4. Training Log polish & live duration update
+- **Install** `@tanstack/react-table@latest`
+- **Component:** `src/pages/coach/TrainingLog.tsx`
+  - Render a sticky-header table with zebra rows.
+  - Duration column:
+    ```tsx
+    <input
+      type="number"
+      defaultValue={row.original.duration}
+      onBlur={e=>updateDuration.mutate({id:row.id,duration:+e.target.value})}
+      className="w-16 border rounded px-1 text-right"
+    />
+    ```
+  - `updateDuration` = mutation ➜ onSuccess → `queryClient.invalidateQueries(['trainingWeek', weekId])`.
+- **Backend call (`/api/updateDuration`)** must recompute `session_load` on the fly; do **not** store derived values.
+
+## 5. Load Insights fixes
+- **Add athlete filter**: dropdown `All / athleteName`.
+- Query becomes
+  ```ts
+  /coach/${team}/load-insights?ath=${athlete || "all"}

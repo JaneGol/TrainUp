@@ -16,13 +16,17 @@ export const useWeekLoad = (athleteId: string, weekStart: string) => {
     queryFn: async () => {
       const params = new URLSearchParams({
         ath: athleteId,
-        weekStart: weekStart
+        weekStart: weekStart,
       });
-      
-      const response = await fetch(`/api/load/week?${params}`);
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/load/week?${params}`, {
+        credentials: "include",
+      });
+
       if (!response.ok) {
         throw new Error("Failed to fetch weekly load data");
       }
+
       return response.json();
     },
   });

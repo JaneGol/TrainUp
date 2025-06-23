@@ -1,0 +1,109 @@
+# ------------------------------------------------------------------
+# Replit-Agent Task · Bug-fix DB logic for Training-Log & Weekly Load
+# Repo: https://replit.com/@e89030922661/FormTrack
+# ------------------------------------------------------------------
+
+## 0 ▸ Files to touch
+* migrations/20240602_defaults.sql       (NEW default duration + backfill)
+* server/storage.ts                      (two query patches)
+* server/controllers/sessions.ts         (PATCH duration endpoint)
+* client/src/components/TrainingRow.tsx  (display “— / N” when avg_rpe NULL)
+
+## 1 ▸ Set duration default = 60 min for every row
+### migrations/20240602_defaults.sql
+```sql
+ALTER TABLE training_sessions
+  ALTER COLUMN duration_minutes SET DEFAULT 60,
+  ALTER COLUMN duration_minutes SET NOT NULL;
+
+UPDATE training_sessions
+   SET duration_minutes = 60
+ WHERE duration_minutes IS NULL;
+2 ▸ Training-Log query - return NULL when no RPE
+storage.ts ➜ getTrainingLog
+diff
+Copy
+Edit
+- COALESCE(AVG(rs.rpe),0)           AS avg_rpe,
+- COUNT(rs.id)                      AS participant_cnt,
++ AVG(rs.rpe)                       AS avg_rpe,          -- NULL if none
++ COUNT(rs.id)                      AS participant_cnt,
+Do not wrap AVG with COALESCE(…,0).
+Let the frontend decide what to show when avg_rpe === null.
+
+TrainingRow.tsx (coach list row)
+diff
+Copy
+Edit
+- {avg_rpe} / {participant_cnt}
++ {avg_rpe === null ? '—' : avg_rpe.toFixed(1)} / {participant_cnt}
+3 ▸ Weekly-Load query – always count sessions, even 0 AU
+storage.ts ➜ getWeeklyLoad
+diff
+Copy
+Edit
+SELECT
+  SUM(ts.session_load)                                AS total_load,
+  COUNT(ts.id)                                        AS session_cnt,
+  …
+- WHERE ts.session_date >= $start AND ts.session_date <  $end
++ WHERE ts.session_date >= $start AND ts.session_date <= $end   -- include Sun
+total_load may be zero if no RPE yet, but session_cnt will be ≥1, so
+the bar stub is still plotted and tooltip shows “Sessions: 1”.
+
+4 ▸ ACWR / Ten-week helper – protect divide-by-zero
+diff
+Copy
+Edit
+const chronic = avgPrev3 || 1;          // avoid /0
+const acwr    = +(acute / chronic).toFixed(2);
+5 ▸ Duration PATCH recalculates with default 60
+sessions.ts (PATCH /sessions/:id/duration)
+After update, if duration_minutes is NULL, set it to 60 before calling the
+calc_session_load trigger.*
+
+ts
+Copy
+Edit
+await db.$queryRaw/*sql*/`
+  UPDATE training_sessions
+     SET duration_minutes = COALESCE($1, 60)
+   WHERE id = $2
+  RETURNING *`;
+6 ▸ Front-end Weekly-Load header
+Display Sessions: from session_cnt not from a computed length.
+
+7 ▸ Commit message
+fix(db): avg_rpe null-safe, count sessions even with 0 AU, include Sunday; default duration 60; frontend shows “— / N” when no RPE
+
+End of task
+yaml
+Copy
+Edit
+
+---
+
+### After the agent runs
+
+* **Training Log** rows with no submissions display **“— / 8”** (or whatever the
+  roster size is) instead of **“0 / 8.”**  
+* Coaches can still edit duration; if a cell is blank, it defaults to 60 min.  
+* **Weekly Training Load** bar for **1 Jun** now appears:  
+  * Load may be 0 AU (until athletes submit RPE),  
+  * **Sessions: 1** label shows, so coaches know a workout exists.  
+
+All other screens, styles and logic remain unchanged.
+
+
+
+
+
+
+
+
+
+Tools
+
+
+
+ChatGPT can make mistakes. Check important info. See Cookie Preferences.
