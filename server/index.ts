@@ -1,14 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors"; // не забудь установить, если ещё не: npm i cors
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import cors from "cors"; // ✅ добавлен импорт
 
-const app = express();
+const app = express(); // ✅ создаём app сразу
 
-// ✅ добавлено: CORS до любых body-парсеров
+// ✅ CORS — перед парсерами тела
 app.use(
   cors({
-    origin: ["https://train-up-topaz.vercel.app"],
+    origin: ["https://train-up-topaz.vercel.app"], // заменён на твой frontend
     credentials: true,
   })
 );

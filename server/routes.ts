@@ -1506,19 +1506,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to update training session" });
     }
   });
+  app.post("/api/register", async (req, res) => {
+    const { email, password, role, position, teamName, teamPin } = req.body;
 
+    if (!email || !password || !role || !teamName || !teamPin) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Здесь можно вставить сохранение пользователя в базу данных
+    console.log("📩 New registration:", { email, role, teamName });
+
+    res.status(201).json({ message: "Registered successfully" });
+  });
+
+  // ✅ создать и вернуть сервер в конце
   const httpServer = createServer(app);
   return httpServer;
-} app.post("/api/register", async (req, res) => {
-  const { email, password, role, position, teamName, teamPin } = req.body;
-
-  if (!email || !password || !role || !teamName || !teamPin) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  // Тут временно просто выводим данные — как будто сохраняем
-  console.log("📩 New registration:", { email, role, teamName });
-
-  res.status(201).json({ message: "Registered successfully" });
-});
-
+}
