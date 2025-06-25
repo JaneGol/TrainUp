@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "NODE_ENV=development ts-node index.ts",
-    "build": "esbuild index.ts --bundle --platform=node --format=esm --outdir=dist --packages=external",
+    "build": "esbuild index.ts --bundle --platform=node --format=cjs --outdir=dist --external:fsevents --external:lightningcss --external:@babel/preset-typescript",
     "start": "NODE_ENV=production node dist/index.js",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "db:reset": "rm -rf migrations && drizzle-kit push",
+    "db:push:help": "echo \"Создаёт миграции и применяет их к базе Neon\""
   },
   "keywords": [],
   "author": "",

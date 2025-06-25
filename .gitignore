@@ -6,6 +6,9 @@ yarn-error.log*
 dist/
 .env
 .DS_Store
+.build/
+.next/
+*.log
 
 # Replit
 .replit.vscode/
