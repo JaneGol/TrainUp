@@ -21,30 +21,30 @@
 
 ### Athlete & Coach Interfaces
 
-- ![Athlete main interface](assets/Athlet%20main%20interface.png)
-- ![Coach main interface](assets/coach%20main%20interface.png)
-- ![Athlete status](assets/Athlet%20status.png)
+<img src="assets/Athlet%20main%20interface.png" alt="Athlete main interface" width="400"/>
+<img src="assets/coach%20main%20interface.png" alt="Coach main interface" width="400"/>
+<img src="assets/Athlet%20status.png" alt="Athlete status" width="400"/>
 
 ### Smart Doctor & Logs
 
-- ![Smart doctor (athlet interface)](assets/Smart%20doctor%20(athlet%20interface).png)
-- ![Smart doctor (coach interface)1](assets/Smart%20doctor(coach%20interface)1.png)
-- ![Smart doctor (coach interface)2](assets/Smart%20doctor(coach%20interface)2.png)
-- ![Training log](assets/Training%20log.png)
+<img src="assets/Smart%20doctor%20(athlet%20interface).png" alt="Smart doctor (athlet interface)" width="400"/>
+<img src="assets/Smart%20doctor(coach%20interface)1.png" alt="Smart doctor (coach interface)1" width="400"/>
+<img src="assets/Smart%20doctor(coach%20interface)2.png" alt="Smart doctor (coach interface)2" width="400"/>
+<img src="assets/Training%20log.png" alt="Training log" width="400"/>
 
 ### Fitness & Metrics
 
-- ![Fitness progress](assets/Fitness%20progress.png)
-- ![Fitness Progress (athlet interface)](assets/Fitness%20Progress%20(athlet%20interface).png)
-- ![Key metrics](assets/key%20metrics.png)
+<img src="assets/Fitness%20progress.png" alt="Fitness progress" width="400"/>
+<img src="assets/Fitness%20Progress%20(athlet%20interface).png" alt="Fitness Progress (athlet interface)" width="400"/>
+<img src="assets/key%20metrics.png" alt="Key metrics" width="400"/>
 
 ### Load, Duration & Diaries
 
-- ![ACWR loading](assets/ACWR%20loading.png)
-- ![Load insights](assets/Load%20insights.png)
-- ![Sessoin duration](assets/sessoin%20duration.png)
-- ![Self-control diary 1](assets/self-control%20diary1.png)
-- ![Self-control diary 2](assets/self-control%20diary2.png)
+<img src="assets/ACWR%20loading.png" alt="ACWR loading" width="400"/>
+<img src="assets/Load%20insights.png" alt="Load insights" width="400"/>
+<img src="assets/sessoin%20duration.png" alt="Sessoin duration" width="400"/>
+<img src="assets/self-control%20diary1.png" alt="Self-control diary1" width="400"/>
+<img src="assets/self-control%20diary2.png" alt="Self-control diary2" width="400"/>
 
 ## 📦 Getting Started
 
