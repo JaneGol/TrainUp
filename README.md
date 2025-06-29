@@ -9,6 +9,8 @@
 - Alerts for key recovery and risk metrics
 - Interface for coaches and medical professionals
 
+## 📚 Documentation TrainUp - https://www.notion.so/TrainUp-21e5d72c41228024ad68d08a07f1e643?source=copy_link 
+
 ## 🚀 Tech Stack
 
 - **Frontend:** React, TypeScript, Vite (hosted on Vercel)
